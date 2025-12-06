@@ -118,7 +118,7 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="card-body pt-0">
-              <div className="mt-3 d-flex align-items-center justify-content-center rounded bg-light bg-opacity-50 border border-dashed" style={{ height: "309px" }}>
+              <div className="mt-3 d-flex align-items-center justify-content-center rounded bg-light bg-opacity-50 border border-dashed map-placeholder-height">
                 <div className="text-center">
                   <i className="bx bx-globe fs-48 text-primary"></i>
                   <p className="text-muted mb-0 mt-2">World Map</p>
