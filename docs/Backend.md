@@ -790,4 +790,50 @@ try {
 
 ---
 
-**END OF CONSOLIDATED BACKEND DOCUMENTATION v4.0 (Phase 6 Updated)**
+## 17. Phase 7 – RLS Security & Authorization Layer
+
+### 17.1 Phase 7 Documentation Artifacts
+
+| Document | Purpose | Status |
+|----------|---------|--------|
+| RLS-Policy-Specification.md | Complete RLS policy definitions for all tables | Complete |
+| RLS-Expression-Map.md | Technology-neutral predicate expressions | Complete |
+| Role-Permission-Matrix.md | Full role-by-resource-by-action matrix | Complete |
+| Case-Authorization-Model.md | Case-specific ownership and status rules | Complete |
+| Document-Auth-Model.md | Document access and integrity rules | Complete |
+| Policy-Validation-Matrix.md | Cross-check validation for Phase 8 | Complete |
+
+### 17.2 Role Definitions (Final)
+
+| Role | Privilege Level | Scope |
+|------|-----------------|-------|
+| citizen | 1 | Own data only |
+| district_intake_officer | 2 | District |
+| case_handler | 3 | Assigned cases |
+| case_reviewer | 4 | Review queue |
+| department_head | 5 | Department |
+| finance_officer | 4 | Payments |
+| fraud_officer | 4 | Flagged cases |
+| system_admin | 10 | Global |
+| audit_viewer | 3 | Global (read) |
+
+### 17.3 Resource Sensitivity Classification
+
+- **HIGH**: citizens, cases, payments, fraud_signals, user_roles
+- **MEDIUM**: documents, notifications, workflow_definitions
+- **LOW**: service_types, offices, lookup tables
+
+### 17.4 SECURITY DEFINER Functions (Phase 8 Implementation)
+
+```
+has_role(user_id, role) - Check user role (bypasses RLS)
+current_user_id() - Get internal user ID
+current_user_district() - Get user's district
+has_case_access(case_id) - Check case access
+```
+
+**CRITICAL:** Roles stored in separate `user_roles` table, NOT on profiles.
+
+---
+
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v5.0 (Phase 7 Updated)**
