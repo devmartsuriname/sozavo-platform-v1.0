@@ -1,8 +1,68 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.3 (Phase 9D-0 Update)  
+> **Version:** 1.4 (Phase 9D-1A Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-1 Query Layer Implementation
+
+### Cases Query Module
+
+**File:** `src/integrations/supabase/queries/cases.ts`
+
+The Cases Query Module provides RLS-protected data access for the Cases Admin MVP module.
+
+#### Functions
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getCases` | `(params: GetCasesParams) → Promise<{data, count, error}>` | Paginated case list with citizen/service joins |
+| `getCaseById` | `(caseId: string) → Promise<{data, error}>` | Full case details with all contextual joins |
+| `getCaseTimeline` | `(caseId: string) → Promise<{data, error}>` | Case events sorted by created_at DESC |
+
+#### GetCasesParams Interface
+```typescript
+interface GetCasesParams {
+  page?: number;       // default: 1
+  pageSize?: number;   // default: 10
+  search?: string;     // matches case_reference (ilike)
+  status?: CaseStatus; // filter by current_status
+  serviceTypeId?: string;
+  officeId?: string;
+}
+```
+
+#### Return Types
+```typescript
+// getCases returns
+interface CaseWithRelations {
+  id, case_reference, citizen_id, service_type_id, current_status, created_at,
+  citizens: { first_name, last_name } | null,
+  service_types: { name } | null
+}
+
+// getCaseById returns
+interface CaseDetailWithRelations {
+  ...Case,  // all case fields
+  citizens: Citizen | null,
+  service_types: { id, name, description, code } | null,
+  offices: { name, district_id } | null
+}
+
+// getCaseTimeline returns
+interface TimelineEvent {
+  id, event_type, old_status, new_status, meta, created_at, actor_id
+}
+```
+
+#### Data Flow
+```
+Page Component → getCases() → Supabase Client (authenticated) → RLS Filter → cases table
+                                                                              ↓
+                                                              Joined: citizens, service_types
+```
 
 ---
 
