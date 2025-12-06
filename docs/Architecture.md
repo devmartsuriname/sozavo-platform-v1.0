@@ -959,4 +959,33 @@ graph TB
 
 ---
 
-**END OF CONSOLIDATED ARCHITECTURE v3.0 (Phase 5 Updated)**
+## 20. Phase 6 – Engine Runtime & Integration Layer
+
+### 20.1 Phase 6 Documentation Artifacts
+
+| Document | Purpose | Status |
+|----------|---------|--------|
+| Engine-Runtime-Configuration.md | Runtime load order, context, state isolation | Complete |
+| Integration-Stubs.md | BIS, Subema, Notification service stubs | Complete |
+| Service-Layer-Specification.md | Engine-to-DAL bindings, pipelines | Complete |
+| Event-Routing-Framework.md | Event types, routing, retry logic | Complete |
+| Access-Control-PreModel.md | Actor/resource/action matrices | Complete |
+| Engine-Orchestration-Plan.md | Orchestration topology, failure paths | Complete |
+| Test-Scenario-Suite.md | Dry-run validation scenarios | Complete |
+
+### 20.2 Engine Orchestration Topology
+
+```
+Wizard → BIS → Eligibility → Workflow → Payment → Fraud → Notification
+```
+
+### 20.3 Readiness for Phase 7
+
+Phase 6 provides all prerequisites for Phase 7 RLS implementation:
+- Access Control Pre-Model defines role-action-resource matrix
+- Service Layer bindings define what data each engine accesses
+- Event Routing defines audit requirements
+
+---
+
+**END OF CONSOLIDATED ARCHITECTURE v4.0 (Phase 6 Updated)**
