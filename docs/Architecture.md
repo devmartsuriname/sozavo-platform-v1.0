@@ -1,9 +1,9 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 1.0 (Consolidated)  
-> **Status:** Reference Document  
-> **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents
-
+> **Version:** 3.0 (Consolidated & Stabilized)  
+> **Status:** Authoritative Reference Document  
+> **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
+> **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
 ---
 
 ## 1. Architecture Overview
@@ -826,4 +826,113 @@ graph TB
 
 ---
 
-**END OF CONSOLIDATED ARCHITECTURE v1.0**
+## 16. Versioning Anchors
+
+### 16.1 Architecture Version History
+
+| Version | Date | Changes | Status |
+|---------|------|---------|--------|
+| 1.0 | Phase 1 | Initial architecture document | Superseded |
+| 2.0 | Phase 3 | Added cross-layer dependencies, failure analysis | Superseded |
+| 3.0 | Phase 4 | Added versioning anchors, PRD traceability, stability analysis | **Current** |
+
+### 16.2 Schema Version References
+
+| Component | Schema Version | Compatibility | Notes |
+|-----------|---------------|---------------|-------|
+| Core Tables (P1) | 1.0 | Stable | citizens, cases, users, etc. |
+| Supporting Tables (P1) | 1.0 | Stable | workflow_definitions, eligibility_rules |
+| Payment Tables (P12) | 1.0 | Stable | payment_batches, payment_items |
+| Fraud Tables (P14) | 1.0 | Stable | fraud_signals, fraud_risk_scores |
+| Audit Tables (P15) | 1.0 | Stable | audit_events |
+
+### 16.3 Component Compatibility Notes
+
+| Component | Version | Breaking Changes | Migration Path |
+|-----------|---------|------------------|----------------|
+| Workflow Engine | 1.0 | None | N/A |
+| Eligibility Engine | 1.0 | Rule format changes require version | Versioned rules |
+| Document Engine | 1.0 | None | N/A |
+| Payment Engine | 1.0 | Formula changes require version | Versioned formulas |
+| Fraud Engine | 1.0 | Algorithm changes require version | Versioned algorithms |
+
+---
+
+## 17. Architecture → PRD Traceability
+
+### 17.1 PRD Requirement Groups → Architecture Components
+
+| PRD Requirement Group | Architecture Section | Components |
+|----------------------|----------------------|------------|
+| REQ-FUN-001 to REQ-FUN-006 (Intake) | Section 2.1, 6.2 | Wizard Engine, Workflow Engine |
+| REQ-FUN-007 to REQ-FUN-012 (CCR) | Section 3.1, 5.1 | Data Model, BIS Integration |
+| REQ-FUN-013 to REQ-FUN-019 (Eligibility) | Section 6.3 | Eligibility Engine |
+| REQ-FUN-020 to REQ-FUN-026 (Case Handling) | Section 6.1, 6.2 | Workflow Engine |
+| REQ-FUN-027 to REQ-FUN-032 (Documents) | Section 6.4 | Document Engine, Storage |
+| REQ-FUN-033 to REQ-FUN-037 (Review) | Section 6.2 | Workflow Engine |
+| REQ-FUN-038 to REQ-FUN-043 (Payments) | Section 5.2 | Payment Engine, Subema Integration |
+| REQ-FUN-044 to REQ-FUN-050 (Reporting) | Section 7 | Data Layer, Derived Fields |
+| REQ-NFR-001 to REQ-NFR-005 (Security) | Section 4 | RLS, Auth |
+| REQ-INT-001 to REQ-INT-006 (Integration) | Section 5 | BIS, Subema, Email, SMS |
+| REQ-SEC-001 to REQ-SEC-007 (Governance) | Section 4, 9 | RLS, Audit Engine |
+
+### 17.2 Engines → Requirement Coverage
+
+| Engine | Requirements Covered | Coverage |
+|--------|---------------------|----------|
+| Wizard Engine | REQ-FUN-001 to REQ-FUN-006 | 100% |
+| Workflow Engine | REQ-FUN-020 to REQ-FUN-026, REQ-FUN-033 to REQ-FUN-037 | 100% |
+| Eligibility Engine | REQ-FUN-013 to REQ-FUN-019 | 100% (policy-dependent) |
+| Document Engine | REQ-FUN-027 to REQ-FUN-032 | 95% (versioning TBD) |
+| Payment Engine | REQ-FUN-038 to REQ-FUN-043 | 100% (Subema-dependent) |
+| Fraud Engine | REQ-SEC-006 | 100% |
+| Audit Engine | REQ-NFR-004, REQ-SEC-007 | 100% (legal-dependent) |
+
+### 17.3 Integrations → Requirement Coverage
+
+| Integration | Requirements Covered | Status |
+|-------------|---------------------|--------|
+| BIS Integration | REQ-FUN-009, REQ-INT-001, REQ-INT-002 | **Blocked** |
+| Subema Integration | REQ-FUN-040, REQ-INT-003, REQ-INT-004 | **Blocked** |
+| Email Service | REQ-INT-005 | **Requires Confirmation** |
+| SMS Service | REQ-INT-006 | **Requires Policy Decision** |
+
+---
+
+## 18. Stability Analysis
+
+### 18.1 Components Unlikely to Change
+
+| Component | Stability | Reason |
+|-----------|-----------|--------|
+| Core Data Model (citizens, cases) | **Stable** | Foundational schema, well-defined |
+| Authentication Flow | **Stable** | Supabase Auth standard implementation |
+| RLS Policy Patterns | **Stable** | Based on proven role-based patterns |
+| Case Event Logging | **Stable** | Append-only audit trail |
+| Document Storage Structure | **Stable** | Standard file organization |
+| Workflow Status Definitions | **Stable** | Standard case lifecycle |
+
+### 18.2 Components Sensitive to Policy Decisions
+
+| Component | Sensitivity | Policy Dependency |
+|-----------|-------------|-------------------|
+| Eligibility Rules | **High** | Income thresholds, age limits (Ministry) |
+| Payment Formulas | **High** | Benefit calculation (Ministry) |
+| Fraud Thresholds | **Medium** | Risk score triggers (Ministry) |
+| Override Authorization | **Medium** | Who can override (Ministry) |
+| Data Retention | **High** | Retention period (Legal) |
+| Consent Flow | **Medium** | Consent requirements (Legal) |
+
+### 18.3 Components Dependent on External Services
+
+| Component | External Dependency | Fallback Available |
+|-----------|--------------------|--------------------|
+| CCR Verification | BIS API | ✅ Manual entry mode |
+| Payment Processing | Subema API | ✅ Manual queue |
+| Email Notifications | Email Provider | ✅ Portal notifications |
+| SMS Notifications | SMS Provider | ✅ Email/portal fallback |
+| Identity Prefill | BIS API | ✅ Manual entry |
+
+---
+
+**END OF CONSOLIDATED ARCHITECTURE v3.0**
