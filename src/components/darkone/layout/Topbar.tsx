@@ -195,8 +195,8 @@ const Topbar = () => {
               </div>
             </div>
 
-            {/* User */}
-            <div className="dropdown topbar-item">
+            {/* User - position relative for dropdown positioning */}
+            <div className="dropdown topbar-item" style={{ position: 'relative' }}>
               <a
                 className="topbar-button"
                 href="#"
@@ -214,7 +214,16 @@ const Topbar = () => {
                   />
                 </span>
               </a>
-              <div className={`dropdown-menu dropdown-menu-end ${userMenuOpen ? "show" : ""}`}>
+              <div 
+                className={`dropdown-menu dropdown-menu-end ${userMenuOpen ? "show" : ""}`}
+                style={{ 
+                  position: 'absolute', 
+                  top: '100%', 
+                  right: 0, 
+                  zIndex: 1050,
+                  marginTop: '0.125rem'
+                }}
+              >
                 <h6 className="dropdown-header">Welcome!</h6>
                 <a className="dropdown-item" href="#">
                   <Icon icon="solar:user-outline" className="align-middle me-2 fs-18" />
