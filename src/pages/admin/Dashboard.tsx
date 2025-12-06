@@ -1,4 +1,5 @@
 import PageTitle from "@/components/darkone/layout/PageTitle";
+import Icon from "@/components/darkone/ui/Icon";
 
 const Dashboard = () => {
   return (
@@ -18,7 +19,7 @@ const Dashboard = () => {
                 </div>
                 <div className="col-6">
                   <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <iconify-icon icon="solar:globus-outline" className="fs-32 avatar-title text-primary"></iconify-icon>
+                    <Icon icon="solar:globus-outline" className="fs-32 avatar-title text-primary" />
                   </div>
                 </div>
               </div>
@@ -38,7 +39,7 @@ const Dashboard = () => {
                 </div>
                 <div className="col-6">
                   <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <iconify-icon icon="solar:users-group-two-rounded-broken" className="fs-32 avatar-title text-primary"></iconify-icon>
+                    <Icon icon="solar:users-group-two-rounded-broken" className="fs-32 avatar-title text-primary" />
                   </div>
                 </div>
               </div>
@@ -58,7 +59,7 @@ const Dashboard = () => {
                 </div>
                 <div className="col-6">
                   <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <iconify-icon icon="solar:cart-5-broken" className="fs-32 avatar-title text-primary"></iconify-icon>
+                    <Icon icon="solar:cart-5-broken" className="fs-32 avatar-title text-primary" />
                   </div>
                 </div>
               </div>
@@ -78,7 +79,7 @@ const Dashboard = () => {
                 </div>
                 <div className="col-6">
                   <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <iconify-icon icon="solar:pie-chart-2-broken" className="fs-32 avatar-title text-primary"></iconify-icon>
+                    <Icon icon="solar:pie-chart-2-broken" className="fs-32 avatar-title text-primary" />
                   </div>
                 </div>
               </div>
