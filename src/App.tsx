@@ -57,6 +57,10 @@ import LayoutsPlaceholder from "./pages/admin/layouts/LayoutsPlaceholder";
 import Page404 from "./pages/admin/pages/Page404";
 import Page404Alt from "./pages/admin/pages/Page404Alt";
 
+// Cases module pages
+import CasesIndexPage from "./pages/admin/cases/Index";
+import CaseDetailPage from "./pages/admin/cases/Detail";
+
 // Placeholder components for MVP modules (to be implemented in future phases)
 import AdminComingSoonPage from "./components/darkone/placeholders/AdminComingSoonPage";
 
@@ -97,9 +101,15 @@ const App = () => (
               } />
               
               {/* MVP Business Modules - Role Protected */}
-              <Route path="cases/*" element={
+              {/* Cases Module - List and Detail */}
+              <Route path="cases" element={
                 <RequireRole allowed={["cases"]}>
-                  <AdminComingSoonPage title="Cases" subTitle="Case Management" message="Case management module coming soon." />
+                  <CasesIndexPage />
+                </RequireRole>
+              } />
+              <Route path="cases/:id" element={
+                <RequireRole allowed={["cases"]}>
+                  <CaseDetailPage />
                 </RequireRole>
               } />
               <Route path="eligibility/*" element={

@@ -1,8 +1,76 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.4 (Phase 9D-1A Update)  
+> **Version:** 1.5 (Phase 9D-2A Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-2A – Cases UI Scaffolding
+
+### Overview
+
+Phase 9D-2A implements the read-only Cases module UI using Darkone Admin styling, wired to the Phase 9D-1A Cases Query Layer.
+
+### Components Created
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| CasesIndexPage | `src/pages/admin/cases/Index.tsx` | Cases list page with filters, table, pagination |
+| CaseDetailPage | `src/pages/admin/cases/Detail.tsx` | Case detail view with info panels and timeline |
+| CaseStatusBadge | `src/components/admin/cases/CaseStatusBadge.tsx` | Status enum to visual badge mapping |
+| CaseFilters | `src/components/admin/cases/CaseFilters.tsx` | Search and filter controls |
+| CaseListTable | `src/components/admin/cases/CaseListTable.tsx` | Tabular case list with actions |
+| CaseDetailHeader | `src/components/admin/cases/CaseDetailHeader.tsx` | Detail page header with back navigation |
+| CaseInfoPanel | `src/components/admin/cases/CaseInfoPanel.tsx` | Case metadata display |
+| CitizenInfoPanel | `src/components/admin/cases/CitizenInfoPanel.tsx` | Citizen information display |
+| ServiceInfoPanel | `src/components/admin/cases/ServiceInfoPanel.tsx` | Service type information display |
+| CaseTimeline | `src/components/admin/cases/CaseTimeline.tsx` | Case events timeline |
+| CaseEligibilityPlaceholder | `src/components/admin/cases/placeholders/...` | Future eligibility section |
+| CaseDocumentsPlaceholder | `src/components/admin/cases/placeholders/...` | Future documents section |
+| CasePaymentsPlaceholder | `src/components/admin/cases/placeholders/...` | Future payments section |
+| CaseFraudPlaceholder | `src/components/admin/cases/placeholders/...` | Future fraud section |
+
+### Query Layer Usage
+
+| Page | Query Functions Used |
+|------|---------------------|
+| CasesIndexPage | `getCases(params)` |
+| CaseDetailPage | `getCaseById(id)`, `getCaseTimeline(id)` |
+
+### Routing
+
+| Route | Component | RequireRole |
+|-------|-----------|-------------|
+| `/admin/cases` | CasesIndexPage | `["cases"]` |
+| `/admin/cases/:id` | CaseDetailPage | `["cases"]` |
+
+### Read-Only Constraints
+
+- No create, update, or delete operations
+- No status transitions or workflow controls
+- No inline editing capabilities
+- Navigation only: list ↔ detail, back to overview
+
+### Data Flow
+
+```
+CasesIndexPage
+    │
+    ├── Filter State (page, search, status, serviceTypeId, officeId)
+    │
+    └── getCases({ page, pageSize, search, status, ... })
+            │
+            └── Supabase Client (RLS) → cases + citizens + service_types
+                    │
+                    └── CaseListTable (render list with CaseStatusBadge)
+
+CaseDetailPage
+    │
+    ├── getCaseById(id) → CaseInfoPanel, CitizenInfoPanel, ServiceInfoPanel
+    │
+    └── getCaseTimeline(id) → CaseTimeline
+```
 
 ---
 
