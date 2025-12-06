@@ -988,4 +988,76 @@ Phase 6 provides all prerequisites for Phase 7 RLS implementation:
 
 ---
 
-**END OF CONSOLIDATED ARCHITECTURE v4.0 (Phase 6 Updated)**
+## 21. Phase 7 – RLS Security & Authorization Layer
+
+### 21.1 Security Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      APPLICATION LAYER                          │
+│  (Portal, Staff Interface, API Clients)                        │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   AUTHENTICATION LAYER                          │
+│  (Supabase Auth, JWT Tokens, auth.uid())                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                   AUTHORIZATION LAYER                           │
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────────┐   │
+│  │ Role Check    │  │ Row Filters   │  │ Column Masks      │   │
+│  │ (user_roles)  │  │ (RLS Policies)│  │ (Field-level)     │   │
+│  └───────────────┘  └───────────────┘  └───────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATA ACCESS LAYER                            │
+│  (DAL Models, Queries, Mutations)                              │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    DATABASE LAYER                               │
+│  (PostgreSQL with RLS Enabled)                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 21.2 Role Hierarchy
+
+```
+                system_admin (Level 10)
+                      │
+        ┌─────────────┼─────────────┐
+        │             │             │
+   department_head  finance    fraud_officer
+     (Level 5)    (Level 4)    (Level 4)
+        │
+   case_reviewer (Level 4)
+        │
+   case_handler (Level 3)
+        │
+district_intake_officer (Level 2)
+        │
+     citizen (Level 1)
+
+   audit_viewer (Level 3, read-only overlay)
+```
+
+### 21.3 Phase 7 Deliverables
+
+| Document | Purpose |
+|----------|---------|
+| RLS-Policy-Specification.md | Policy definitions for all tables |
+| RLS-Expression-Map.md | Predicate expressions and column maps |
+| Role-Permission-Matrix.md | Complete permission matrix |
+| Case-Authorization-Model.md | Case ownership and status rules |
+| Document-Auth-Model.md | Document access model |
+| Policy-Validation-Matrix.md | Validation checklist for Phase 8 |
+
+---
+
+**END OF CONSOLIDATED ARCHITECTURE v5.0 (Phase 7 Updated)**
