@@ -2,7 +2,8 @@ import React from "react";
 
 interface DarkoneCardProps {
   title?: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
+  titleTag?: 'h4' | 'h5';
   headerAction?: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
@@ -14,6 +15,7 @@ interface DarkoneCardProps {
 const DarkoneCard = ({
   title,
   subtitle,
+  titleTag = 'h4',
   headerAction,
   footer,
   className = '',
@@ -22,14 +24,15 @@ const DarkoneCard = ({
   children
 }: DarkoneCardProps) => {
   const hasHeader = title || subtitle || headerAction;
+  const TitleTag = titleTag;
 
   return (
     <div className={`card ${className}`.trim()}>
       {hasHeader && (
         <div className={`card-header d-flex justify-content-between align-items-center ${headerClassName}`.trim()}>
           <div>
-            {title && <h4 className="card-title mb-0">{title}</h4>}
-            {subtitle && <p className="text-muted mb-0">{subtitle}</p>}
+            {title && <TitleTag className="card-title">{title}</TitleTag>}
+            {subtitle && <p className="card-subtitle">{subtitle}</p>}
           </div>
           {headerAction}
         </div>
