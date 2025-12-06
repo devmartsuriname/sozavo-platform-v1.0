@@ -480,4 +480,47 @@ Approved Cases → Payment Creation → Subema Submission → Status Sync → Ca
 
 ---
 
+## 11. Phase Dependency Mapping
+
+### 11.1 MVP Dependency Flow (Phases 1–9)
+
+| Source Phase | Target Phase | Dependency Type | Critical Path |
+|--------------|--------------|-----------------|---------------|
+| Phase 1 (DB) | All phases | Hard dependency | ✅ Yes |
+| Phase 2 (Queries) | Phases 3-9 | Hard dependency | ✅ Yes |
+| Phase 3 (Wizard) | Phase 4 | Data dependency (case creation) | ✅ Yes |
+| Phase 4 (Workflow) | Phases 5, 6, 9 | Status engine dependency | ✅ Yes |
+| Phase 5 (Documents) | Phase 9 | Document validation for eligibility | ✅ Yes |
+| Phase 7 (RLS) | Phases 10+ | Security foundation | ✅ Yes |
+
+### 11.2 Extended Layer Dependencies (Phases 10–17)
+
+| Phase | Depends On | Provides To | External Blocker |
+|-------|------------|-------------|------------------|
+| Phase 10 (Payments) | Phase 4 (case outcomes) | Phase 12 (Subema) | None |
+| Phase 11 (BIS) | Phase 3 (CCR structure) | Phases 9, 14 | **BIS API specs** |
+| Phase 12 (Subema) | Phase 10 (payment records) | Phase 14 | **Subema API specs** |
+| Phase 13 (Notifications) | Phase 7 (RLS) | Portal UX | Email service |
+| Phase 14 (Fraud) | Phases 9, 11, 12 | Phase 15 | None |
+| Phase 15 (Audit) | Phase 6 (reporting) | Compliance | **Legal requirements** |
+
+### 11.3 Strategic Layer Dependencies (Phases 18–29)
+
+| Phase | Primary Dependency | National Impact |
+|-------|-------------------|-----------------|
+| Phase 18 (i18n) | All UI phases | High |
+| Phase 21 (Monitoring) | All backend phases | Critical |
+| Phase 22 (DR) | Phase 21 | Critical |
+| Phase 25 (Inter-ministry) | Phase 11 | Critical |
+
+### 11.4 Identified Blockers
+
+| Dependency | Issue | Resolution |
+|------------|-------|------------|
+| BIS field names | Assumed mappings not confirmed | Block Phase 11 until specs received |
+| Subema payload | Payment structure assumed | Block Phase 12 until specs received |
+| Portal auth linkage | `portal_user_id` assumption | Define in Phase 8 |
+
+---
+
 **END OF CONSOLIDATED ARCHITECTURE v1.0**
