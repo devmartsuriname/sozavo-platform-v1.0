@@ -1,0 +1,192 @@
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { 
+  getCaseById, 
+  getCaseTimeline, 
+  type CaseDetailWithRelations, 
+  type TimelineEvent 
+} from "@/integrations/supabase/queries/cases";
+import PageTitle from "@/components/darkone/layout/PageTitle";
+import CaseDetailHeader from "@/components/admin/cases/CaseDetailHeader";
+import CaseInfoPanel from "@/components/admin/cases/CaseInfoPanel";
+import CitizenInfoPanel from "@/components/admin/cases/CitizenInfoPanel";
+import ServiceInfoPanel from "@/components/admin/cases/ServiceInfoPanel";
+import CaseTimeline from "@/components/admin/cases/CaseTimeline";
+import CaseEligibilityPlaceholder from "@/components/admin/cases/placeholders/CaseEligibilityPlaceholder";
+import CaseDocumentsPlaceholder from "@/components/admin/cases/placeholders/CaseDocumentsPlaceholder";
+import CasePaymentsPlaceholder from "@/components/admin/cases/placeholders/CasePaymentsPlaceholder";
+import CaseFraudPlaceholder from "@/components/admin/cases/placeholders/CaseFraudPlaceholder";
+
+const CaseDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+
+  // Case data state
+  const [isLoadingCase, setIsLoadingCase] = useState(true);
+  const [errorCase, setErrorCase] = useState<string | null>(null);
+  const [caseData, setCaseData] = useState<CaseDetailWithRelations | null>(null);
+
+  // Timeline state
+  const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
+  const [errorTimeline, setErrorTimeline] = useState<string | null>(null);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[] | null>(null);
+
+  // Fetch case details
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchCase = async () => {
+      setIsLoadingCase(true);
+      setErrorCase(null);
+
+      const result = await getCaseById(id);
+
+      if (result.error) {
+        setErrorCase(result.error.message);
+        setCaseData(null);
+      } else {
+        setCaseData(result.data);
+      }
+
+      setIsLoadingCase(false);
+    };
+
+    fetchCase();
+  }, [id]);
+
+  // Fetch timeline
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchTimeline = async () => {
+      setIsLoadingTimeline(true);
+      setErrorTimeline(null);
+
+      const result = await getCaseTimeline(id);
+
+      if (result.error) {
+        setErrorTimeline(result.error.message);
+        setTimelineEvents(null);
+      } else {
+        setTimelineEvents(result.data);
+      }
+
+      setIsLoadingTimeline(false);
+    };
+
+    fetchTimeline();
+  }, [id]);
+
+  const handleBack = () => {
+    navigate('/admin/cases');
+  };
+
+  // Loading state for case
+  if (isLoadingCase) {
+    return (
+      <>
+        <PageTitle title="Cases" subTitle="Case Detail" />
+        <div className="row">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body text-center py-5">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+                <p className="mt-3 text-muted">Loading case details...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Error state
+  if (errorCase) {
+    return (
+      <>
+        <PageTitle title="Cases" subTitle="Case Detail" />
+        <div className="row">
+          <div className="col-12">
+            <div className="alert alert-danger" role="alert">
+              <i className="bx bx-error-circle me-2"></i>
+              Error loading case: {errorCase}
+            </div>
+            <button className="btn btn-secondary" onClick={handleBack}>
+              <i className="bx bx-arrow-back me-1"></i>
+              Back to Cases
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Case not found
+  if (!caseData) {
+    return (
+      <>
+        <PageTitle title="Cases" subTitle="Case Detail" />
+        <div className="row">
+          <div className="col-12">
+            <div className="alert alert-warning" role="alert">
+              <i className="bx bx-info-circle me-2"></i>
+              Case not found
+            </div>
+            <button className="btn btn-secondary" onClick={handleBack}>
+              <i className="bx bx-arrow-back me-1"></i>
+              Back to Cases
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Build citizen name
+  const citizenName = caseData.citizens 
+    ? `${caseData.citizens.first_name} ${caseData.citizens.last_name}`
+    : null;
+
+  // Build service name
+  const serviceName = caseData.service_types?.name || null;
+
+  return (
+    <>
+      <PageTitle title="Cases" subTitle="Case Detail" />
+      
+      <CaseDetailHeader
+        caseReference={caseData.case_reference}
+        status={caseData.current_status}
+        citizenName={citizenName}
+        serviceName={serviceName}
+        onBack={handleBack}
+      />
+
+      <div className="row">
+        {/* Left Column - Info Panels */}
+        <div className="col-lg-6">
+          <CaseInfoPanel caseData={caseData} />
+          <CitizenInfoPanel citizen={caseData.citizens} />
+          <ServiceInfoPanel serviceType={caseData.service_types} />
+        </div>
+
+        {/* Right Column - Timeline & Placeholders */}
+        <div className="col-lg-6">
+          <CaseTimeline
+            events={timelineEvents}
+            isLoading={isLoadingTimeline}
+            error={errorTimeline}
+          />
+          <CaseEligibilityPlaceholder />
+          <CaseDocumentsPlaceholder />
+          <CasePaymentsPlaceholder />
+          <CaseFraudPlaceholder />
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default CaseDetailPage;

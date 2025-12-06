@@ -1,9 +1,116 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.2 (Phase 9D-1A Update)  
+> **Version:** 3.3 (Phase 9D-2A Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-2A – Cases UI Architecture
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CASES UI MODULE (Phase 9D-2A)                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   PAGES                                                                      │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CasesIndexPage (/admin/cases)                                        │  │
+│   │   ├── PageTitle                                                       │  │
+│   │   ├── DarkoneCard                                                     │  │
+│   │   │   ├── CaseFilters (search, status, service, office)              │  │
+│   │   │   ├── CaseListTable                                               │  │
+│   │   │   │   └── CaseStatusBadge (per row)                              │  │
+│   │   │   └── Pagination Controls                                         │  │
+│   │   └── State: page, filters, data, isLoading, error                   │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CaseDetailPage (/admin/cases/:id)                                    │  │
+│   │   ├── PageTitle                                                       │  │
+│   │   ├── CaseDetailHeader (reference, status, citizen, service, back)   │  │
+│   │   ├── Row                                                             │  │
+│   │   │   ├── Col-6: CaseInfoPanel, CitizenInfoPanel, ServiceInfoPanel   │  │
+│   │   │   └── Col-6: CaseTimeline, Placeholders (4)                      │  │
+│   │   └── State: caseData, timelineEvents, loading states, errors        │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│   COMPONENTS                                                                 │
+│   ├── CaseStatusBadge     → Maps case_status enum to DarkoneBadge          │
+│   ├── CaseFilters         → Search + dropdowns using Darkone form classes  │
+│   ├── CaseListTable       → Uses DarkoneTable, handles loading skeleton    │
+│   ├── CaseDetailHeader    → Back nav + title + status badge               │
+│   ├── CaseInfoPanel       → Key-value table in DarkoneCard                 │
+│   ├── CitizenInfoPanel    → Citizen details in DarkoneCard                 │
+│   ├── ServiceInfoPanel    → Service type details in DarkoneCard            │
+│   ├── CaseTimeline        → Vertical timeline with events                  │
+│   └── Placeholders (4)    → Reserved for Eligibility/Docs/Payments/Fraud  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CASES UI DATA FLOW                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌───────────────────┐                                                      │
+│   │  CasesIndexPage   │                                                      │
+│   │  (List View)      │                                                      │
+│   └─────────┬─────────┘                                                      │
+│             │ getCases({ page, pageSize, search, status, ... })              │
+│             ▼                                                                │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │              Query Layer (cases.ts)                          │           │
+│   │   getCases() → supabase.from('cases').select(...).range()   │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│             │                                                                │
+│             ▼ RLS: has_case_access(id)                                       │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    Supabase (PostgreSQL)                     │           │
+│   │   cases ← JOIN → citizens, service_types                    │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│             │                                                                │
+│             ▼ { data: CaseWithRelations[], count, error }                    │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │              CaseListTable + Pagination                      │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│                                                                              │
+│   ═══════════════════════════════════════════════════════════════           │
+│                                                                              │
+│   ┌───────────────────┐                                                      │
+│   │  CaseDetailPage   │                                                      │
+│   │  (Detail View)    │                                                      │
+│   └─────────┬─────────┘                                                      │
+│             │ getCaseById(id)         getCaseTimeline(id)                    │
+│             ▼                         ▼                                      │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │              Query Layer (cases.ts)                          │           │
+│   │   getCaseById() → .eq('id', id).maybeSingle()               │           │
+│   │   getCaseTimeline() → .eq('case_id', id).order('desc')      │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│             │                         │                                      │
+│             ▼ RLS applied             ▼ RLS applied                          │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    Supabase (PostgreSQL)                     │           │
+│   │   cases ← JOIN → citizens, service_types, offices           │           │
+│   │   case_events                                                │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│             │                         │                                      │
+│             ▼                         ▼                                      │
+│   ┌────────────────────┐    ┌────────────────────┐                          │
+│   │ Info Panels:       │    │ CaseTimeline       │                          │
+│   │ Case/Citizen/Svc   │    │ (events list)      │                          │
+│   └────────────────────┘    └────────────────────┘                          │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
