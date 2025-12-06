@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Icon from "../ui/Icon";
+import { useAuth } from "@/integrations/supabase/AuthContext";
 
 const Topbar = () => {
+  const { user, roles, signOut } = useAuth();
+  const navigate = useNavigate();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -32,6 +35,22 @@ const Topbar = () => {
       document.body.classList.remove("sidebar-enable");
     }
   };
+
+  const handleLogout = async () => {
+    setUserMenuOpen(false);
+    await signOut();
+    navigate("/admin/auth/signin");
+  };
+
+  // Format role for display (e.g., "system_admin" -> "System Admin")
+  const formatRole = (role: string) => {
+    return role
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const primaryRole = roles.length > 0 ? roles[0] : null;
 
   return (
     <header className="app-topbar">
@@ -215,7 +234,14 @@ const Topbar = () => {
                 </span>
               </a>
               <div className={`dropdown-menu dropdown-menu-end ${userMenuOpen ? "show" : ""}`} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '2px' }}>
-                <h6 className="dropdown-header">Welcome!</h6>
+                <h6 className="dropdown-header">
+                  {user?.email || "Welcome!"}
+                </h6>
+                {primaryRole && (
+                  <div className="px-3 pb-2">
+                    <span className="badge bg-primary">{formatRole(primaryRole)}</span>
+                  </div>
+                )}
                 <a className="dropdown-item" href="#">
                   <Icon icon="solar:user-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">My Account</span>
@@ -233,10 +259,10 @@ const Topbar = () => {
                   <span className="align-middle">Lock screen</span>
                 </Link>
                 <div className="dropdown-divider my-1"></div>
-                <Link className="dropdown-item text-danger" to="/admin/auth/signin">
+                <button className="dropdown-item text-danger" onClick={handleLogout}>
                   <Icon icon="solar:logout-3-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">Logout</span>
-                </Link>
+                </button>
               </div>
             </div>
           </div>
