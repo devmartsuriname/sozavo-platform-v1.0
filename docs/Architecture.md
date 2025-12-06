@@ -1060,4 +1060,184 @@ district_intake_officer (Level 2)
 
 ---
 
-**END OF CONSOLIDATED ARCHITECTURE v5.0 (Phase 7 Updated)**
+## 22. Phase 8 – RLS Implementation & Policy Activation
+
+### 22.1 Security Implementation Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        POLICY ACTIVATION FLOW                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+     ┌──────────────────────────────┼──────────────────────────────┐
+     ▼                              ▼                              ▼
+┌──────────────┐           ┌──────────────┐           ┌──────────────────┐
+│ Phase 1      │           │ Phase 2      │           │ Phase 3          │
+│ Foundation   │──────────▶│ Read Lock    │──────────▶│ Write Lock       │
+│              │           │              │           │                  │
+│ • app_role   │           │ • SELECT     │           │ • INSERT         │
+│ • user_roles │           │   policies   │           │ • UPDATE         │
+│ • SECURITY   │           │ • Test per   │           │ • DELETE         │
+│   DEFINER    │           │   role       │           │ • Column masks   │
+│   functions  │           │              │           │ • Workflow locks │
+└──────────────┘           └──────────────┘           └──────────────────┘
+                                    │
+                                    ▼
+                         ┌──────────────────┐
+                         │ Validation       │
+                         │ • 20 test cases  │
+                         │ • Role matrix    │
+                         │ • Status locks   │
+                         └──────────────────┘
+```
+
+### 22.2 RLS → Workflow → Engine Binding
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      SECURITY-WORKFLOW-ENGINE INTEGRATION                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────┐     ┌────────────────────┐     ┌────────────────────┐
+│   RLS LAYER        │     │   WORKFLOW ENGINE  │     │   BUSINESS ENGINES │
+│                    │     │                    │     │                    │
+│ • Row filters      │────▶│ • Status machine   │────▶│ • Eligibility      │
+│ • Column masks     │     │ • Transitions      │     │ • Payment          │
+│ • Role checks      │     │ • Guard conditions │     │ • Fraud            │
+│                    │     │                    │     │                    │
+└────────────────────┘     └────────────────────┘     └────────────────────┘
+         │                          │                          │
+         └──────────────────────────┼──────────────────────────┘
+                                    ▼
+                    ┌────────────────────────────┐
+                    │    SECURITY DEFINER        │
+                    │    FUNCTIONS               │
+                    │                            │
+                    │ • has_role()               │
+                    │ • can_transition()         │
+                    │ • field_locked()           │
+                    │ • check_guard_*()          │
+                    └────────────────────────────┘
+```
+
+### 22.3 Column Masking Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COLUMN MASKING FLOW                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                           ┌──────────────┐
+                           │  Raw Column  │
+                           │  Value       │
+                           └──────────────┘
+                                  │
+                                  ▼
+                    ┌─────────────────────────┐
+                    │   Role-Based Check      │
+                    │   mask_<column>()       │
+                    └─────────────────────────┘
+                           │         │
+              ┌────────────┘         └────────────┐
+              ▼                                   ▼
+     ┌─────────────────┐                ┌─────────────────┐
+     │  Authorized     │                │  Unauthorized   │
+     │  (Unmasked)     │                │  (Masked)       │
+     │                 │                │                 │
+     │  123456789      │                │  XXX-XXX-***    │
+     └─────────────────┘                └─────────────────┘
+
+Mask Patterns:
+┌──────────────────┬─────────────────────────────────────────┐
+│ Field            │ Mask Pattern                            │
+├──────────────────┼─────────────────────────────────────────┤
+│ national_id      │ XXX-XXX-*** (last 3 visible)            │
+│ phone_number     │ ***-**** (all hidden)                   │
+│ email            │ ***@domain.com (domain visible)         │
+│ bank_account     │ ****-****-XXXX (last 4 visible)         │
+│ income_amount    │ [PROTECTED] (fully hidden)              │
+└──────────────────┴─────────────────────────────────────────┘
+```
+
+### 22.4 Status-Lock Enforcement
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      STATUS-BASED FIELD LOCKING                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Status Timeline:
+intake → validation → eligibility_check → under_review → approved → payment_pending → payment_processed → closed
+
+Lock Points:
+       │              │                  │               │                   │
+       ▼              ▼                  ▼               ▼                   ▼
+  wizard_data    bis_verified      eligibility     decision_notes      payment_fields
+  LOCKED after   LOCKED after      LOCKED after    LOCKED after        LOCKED after
+  validation     validation        under_review    approved            payment_processed
+
+Field Lock Matrix:
+┌────────────────────┬─────────────────────────────────────────────────────────┐
+│ Field Group        │ Status Where Editable                                   │
+├────────────────────┼─────────────────────────────────────────────────────────┤
+│ wizard_data        │ intake ONLY                                             │
+│ eligibility_result │ eligibility_check ONLY                                  │
+│ reviewer_notes     │ under_review ONLY                                       │
+│ payment_amount     │ approved, payment_pending ONLY                          │
+│ fraud_score        │ fraud_investigation ONLY                                │
+└────────────────────┴─────────────────────────────────────────────────────────┘
+```
+
+### 22.5 Phase 8 Deliverables
+
+| Document | Purpose |
+|----------|---------|
+| RLS-Policy-Definitions.md | SQL-like policy specs for 21 tables |
+| Security-Definer-Functions.md | 21 helper function specifications |
+| Policy-Activation-Sequence.md | 12-step safe activation order |
+| Column-Masking-Specification.md | Field masking rules and patterns |
+| Workflow-Security-Bindings.md | Status-field-role constraints |
+| Policy-Test-Suite.md | 20 validation test scenarios |
+
+### 22.6 Test Validation Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         TEST VALIDATION FLOW                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌────────────────────┐     ┌────────────────────┐     ┌────────────────────┐
+│ Role Access Tests  │     │ Workflow Tests     │     │ Document Tests     │
+│ (10 scenarios)     │     │ (5 scenarios)      │     │ (5 scenarios)      │
+├────────────────────┤     ├────────────────────┤     ├────────────────────┤
+│ • Cross-role       │     │ • Status lock      │     │ • Ownership        │
+│   denial           │     │   enforcement      │     │   verification     │
+│ • Scope boundary   │     │ • Transition       │     │ • Fraud flag       │
+│   enforcement      │     │   authorization    │     │   access           │
+│ • Admin bypass     │     │ • Field lock       │     │ • Upload           │
+│   verification     │     │   validation       │     │   restrictions     │
+└────────────────────┘     └────────────────────┘     └────────────────────┘
+         │                          │                          │
+         └──────────────────────────┼──────────────────────────┘
+                                    ▼
+                    ┌────────────────────────────┐
+                    │    VALIDATION REPORT       │
+                    │                            │
+                    │ • Pass/Fail per scenario   │
+                    │ • Role coverage matrix     │
+                    │ • Security gap analysis    │
+                    └────────────────────────────┘
+```
+
+### 22.7 Items Requiring Clarification (Phase 8)
+
+| Item | Type | Impact |
+|------|------|--------|
+| Multi-district supervisor access rules | Policy | Requires ministerial decision |
+| Cross-department case transfer authorization | Policy | Requires workflow extension |
+| Data retention impact on RLS policies | Legal | Requires compliance review |
+| Override audit retention period | Compliance | Requires policy definition |
+
+---
+
+**END OF CONSOLIDATED ARCHITECTURE v6.0 (Phase 8 Updated)**
