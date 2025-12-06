@@ -1,6 +1,6 @@
 # Admin Layout Stabilization Plan
 
-> **Version:** 1.1.0  
+> **Version:** 1.2.0  
 > **Status:** ✅ VERIFIED – Ready for Phase 9 MVP Integration  
 > **Purpose:** Lock in the Darkone admin layout before wiring MVP business logic  
 > **Dependencies:** Phase X (Darkone 1:1 React Conversion) ✅ COMPLETE
@@ -62,15 +62,29 @@ This document defines the strategy for stabilizing the Darkone admin layout befo
 
 | Element Type | Location in Dashboard | Extraction Status |
 |--------------|----------------------|-------------------|
-| Stat Cards (KPI tiles) | Top row - 4 cards | 🔲 Not extracted |
-| Revenue Chart Container | Left column | 🔲 Not extracted |
-| Sessions Chart Container | Right column | 🔲 Not extracted |
-| New Accounts Table | Bottom left | 🔲 Not extracted |
-| Recent Transactions Table | Bottom right | 🔲 Not extracted |
-| Badge (Verified/Pending) | Tables | 🔲 Not extracted |
-| Avatar with status | Tables | 🔲 Not extracted |
+| Stat Cards (KPI tiles) | Top row - 4 cards | ✅ Data extracted to demo file |
+| Revenue Chart Container | Left column | ✅ Component with optional props |
+| Sessions Chart Container | Right column | ✅ Component with optional props |
+| New Accounts Table | Bottom left | ✅ Data extracted to demo file |
+| Recent Transactions Table | Bottom right | ✅ Data extracted to demo file |
+| Badge (Verified/Pending) | Tables | ✅ Class mapping in demo file |
+| Avatar with status | Tables | ✅ Data extracted to demo file |
 
-### 3.2 Proposed Component Extraction (Phase 9)
+### 3.2 Demo Data Files (Layout Cleanup Phase)
+
+| File | Purpose | Status |
+|------|---------|--------|
+| `src/components/darkone/demo/dashboardData.ts` | KPI cards, tables, badge mappings | ✅ Created |
+| `src/components/darkone/demo/chartConfigs.ts` | Chart series, labels, colors | ✅ Created |
+| `src/components/darkone/demo/index.ts` | Barrel export | ✅ Created |
+
+### 3.3 Placeholder Components
+
+| Component | Purpose | Status |
+|-----------|---------|--------|
+| `AdminComingSoonPage` | Reusable coming soon page | ✅ Created |
+
+### 3.4 Proposed Component Extraction (Phase 9)
 
 | Component Name | Purpose | Source |
 |----------------|---------|--------|
@@ -93,28 +107,18 @@ This document defines the strategy for stabilizing the Darkone admin layout befo
 4. **DO** replace hardcoded demo text with neutral placeholders
 5. **DO** ensure all components accept props for dynamic data
 
-### 4.2 Cleanup Steps (To Be Executed After Approval)
+### 4.2 Cleanup Steps - COMPLETED (2024-12-06)
 
-1. **Step 1:** Extract `DarkoneCard` from Dashboard
-   - Single card wrapper with `header` and `children` props
-   - No styling changes
-
-2. **Step 2:** Extract `DarkoneStatWidget` 
-   - Props: `title`, `value`, `change`, `icon`, `iconBg`
-   - Replace hardcoded numbers with placeholder values
-
-3. **Step 3:** Extract `DarkoneTable`
-   - Props: `columns`, `data`, `striped`, `hover`
-   - Works with any data shape
-
-4. **Step 4:** Extract `DarkoneBadge`
-   - Props: `variant` (success/warning/danger/info), `children`
-   - Maps to Bootstrap badge classes
-
-5. **Step 5:** Replace demo-specific content
-   - "$12.87M" → "[Revenue Value]"
-   - "Bitless Bucket" → "[Account Name]"
-   - Chart areas → "[Chart Placeholder]"
+| Step | Description | Status |
+|------|-------------|--------|
+| 1 | Extract demo data to `dashboardData.ts` | ✅ Complete |
+| 2 | Extract chart configs to `chartConfigs.ts` | ✅ Complete |
+| 3 | Update Dashboard.tsx to use extracted data | ✅ Complete |
+| 4 | Create `AdminComingSoonPage` placeholder component | ✅ Complete |
+| 5 | Simplify Maps placeholder pages | ✅ Complete |
+| 6 | Simplify Icons placeholder pages | ✅ Complete |
+| 7 | Simplify Layouts placeholder pages | ✅ Complete |
+| 8 | Add optional props to chart components | ✅ Complete |
 
 ---
 
@@ -122,13 +126,13 @@ This document defines the strategy for stabilizing the Darkone admin layout befo
 
 ### 5.1 Pre-MVP Integration Checks
 
-- [ ] All admin routes load without console errors
-- [ ] All images/icons render correctly (no 404s)
-- [ ] Theme toggle works on all pages
-- [ ] Sidebar toggle works on all pages
-- [ ] Sidebar navigation links resolve correctly
-- [ ] Footer appears on all pages
-- [ ] No dead imports in any component
+- [x] All admin routes load without console errors
+- [x] All images/icons render correctly (no 404s)
+- [x] Theme toggle works on all pages
+- [x] Sidebar toggle works on all pages
+- [x] Sidebar navigation links resolve correctly
+- [x] Footer appears on all pages
+- [x] No dead imports in any component
 
 ### 5.2 Empty State Handling
 
@@ -172,10 +176,11 @@ To add a new admin page:
 
 ## 7. Known Limitations
 
-1. **Charts:** ApexCharts not yet integrated; using placeholder divs
-2. **Maps:** Google/Vector maps not yet integrated; pages exist as placeholders
-3. **File Upload:** Dropzone not integrated; using native file input
-4. **Rich Editor:** Quill.js not integrated; using textarea placeholder
+1. **World Map:** jsVectorMap not integrated; using styled placeholder
+2. **Google Maps:** Requires API key; using placeholder page
+3. **Vector Maps:** jsVectorMap not integrated; using placeholder page
+4. **File Upload:** Dropzone not integrated; using native file input
+5. **Rich Editor:** Quill.js not integrated; using textarea placeholder
 
 ---
 
@@ -183,7 +188,7 @@ To add a new admin page:
 
 ### Status: ✅ VERIFIED - READY FOR PHASE 9
 
-**Phase X Verification Complete (2025-12-06):**
+**Phase X Verification Complete (2024-12-06):**
 
 All four dashboard states verified working:
 - ✅ Dark mode + Expanded sidebar
@@ -191,25 +196,61 @@ All four dashboard states verified working:
 - ✅ Light mode + Condensed sidebar
 - ✅ Dark mode + Condensed sidebar
 
-**Pending Actions for Phase 9:**
+**Layout Cleanup Phase Complete (2024-12-06):**
 
-The following actions are **proposed only** and will be executed during Phase 9 MVP implementation:
-
-1. Component extraction (DarkoneCard, DarkoneStatWidget, etc.)
-2. Demo content replacement with real MVP data
-3. Empty state handling additions
+- ✅ Demo data extracted to centralized files
+- ✅ Chart components accept optional props for future data injection
+- ✅ AdminComingSoonPage placeholder component created
+- ✅ Low-priority placeholder pages simplified
+- ✅ Dashboard imports data from demo files
+- ✅ No inline styles in World Map placeholder
+- ✅ All routes verified working
 
 **Layout is stable and ready for MVP module wiring.**
 
 ---
 
-## 9. Next Steps After Approval
+## 9. Layout Cleanup Phase – COMPLETE
 
-1. Execute component extraction (Steps 4.2.1 - 4.2.5)
-2. Verify all error-proofing checks (Section 5.1)
-3. Document final component API in dedicated component docs
-4. Begin Phase 9 MVP module wiring
+**Date:** 2024-12-06  
+**Version:** 1.2.0
+
+### Summary
+
+The Layout Cleanup Phase has been completed successfully. The following changes were made:
+
+**Files Created:**
+- `src/components/darkone/demo/dashboardData.ts` - Centralized dashboard demo data
+- `src/components/darkone/demo/chartConfigs.ts` - Centralized chart configurations
+- `src/components/darkone/demo/index.ts` - Barrel export for demo data
+- `src/components/darkone/placeholders/AdminComingSoonPage.tsx` - Reusable placeholder page
+
+**Files Updated:**
+- `src/pages/admin/Dashboard.tsx` - Now imports from demo data files
+- `src/components/darkone/charts/RevenueChart.tsx` - Added optional series/categories props
+- `src/components/darkone/charts/SalesCategoryChart.tsx` - Added optional series/labels props
+- `src/pages/admin/maps/MapsGoogle.tsx` - Simplified with AdminComingSoonPage
+- `src/pages/admin/maps/MapsVector.tsx` - Simplified with AdminComingSoonPage
+- `src/pages/admin/icons/IconsBoxicons.tsx` - Simplified with AdminComingSoonPage
+- `src/pages/admin/icons/IconsSolar.tsx` - Simplified with AdminComingSoonPage
+- `src/pages/admin/layouts/LayoutsPlaceholder.tsx` - Simplified with AdminComingSoonPage
+
+**Zero-Regression Verification:**
+- ✅ Visual parity preserved (light/dark mode)
+- ✅ All sidebar routes work without 404s
+- ✅ No TypeScript errors
+- ✅ No console runtime errors
+- ✅ No Tailwind/ShadCN classes in Darkone tree
 
 ---
 
-**END OF ADMIN LAYOUT STABILIZATION PLAN v1.0.0**
+## 10. Next Steps After Approval
+
+1. ~~Execute layout cleanup (completed)~~
+2. Begin Phase 9 MVP module wiring
+3. Wire authentication to Supabase
+4. Create Case Management module structure
+
+---
+
+**END OF ADMIN LAYOUT STABILIZATION PLAN v1.2.0**

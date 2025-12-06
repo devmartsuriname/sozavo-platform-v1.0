@@ -72,6 +72,37 @@ SoZaVo Platform is a web-based social services management system consisting of:
 
 ---
 
+## 1.3 Darkone Admin Theme Implementation
+
+The Admin System uses the Darkone Bootstrap-based admin template, converted to React components:
+
+### Theme Architecture
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| AdminLayout | `src/components/darkone/layout/AdminLayout.tsx` | Root wrapper, theme initialization |
+| Sidebar | `src/components/darkone/layout/Sidebar.tsx` | Navigation menu |
+| Topbar | `src/components/darkone/layout/Topbar.tsx` | Header with theme/sidebar toggles |
+| Footer | `src/components/darkone/layout/Footer.tsx` | Page footer |
+| PageTitle | `src/components/darkone/layout/PageTitle.tsx` | Breadcrumb component |
+
+### Theme Persistence
+- **Theme mode**: Stored in `localStorage` as `"darkone-theme"` (values: `"light"` or `"dark"`)
+- **Sidebar state**: Stored in `localStorage` as `"darkone-sidebar-size"` (values: `"default"` or `"condensed"`)
+- Both are applied via `data-bs-theme` and `data-sidebar-size` attributes on `document.documentElement`
+
+### CSS Variables (Light/Dark Mode)
+The theme uses CSS variables defined in `public/darkone/css/darkone.css`:
+- Light mode: `--bs-sidebar-bg: white`, `--bs-topbar-bg: white`, `--bs-body-bg: #f8f9fa`
+- Dark mode: `--bs-sidebar-bg: #1e2228`, `--bs-topbar-bg: #1e2228`, `--bs-body-bg: #13161a`
+
+### Demo Data Separation
+Dashboard demo data is centralized in `src/components/darkone/demo/`:
+- `dashboardData.ts` - KPI cards, tables, badge mappings
+- `chartConfigs.ts` - Chart series, labels, colors
+- This separation allows easy replacement with real data in MVP phase
+
+---
+
 ## 2. Logical Components
 
 ### 2.1 Frontend Applications

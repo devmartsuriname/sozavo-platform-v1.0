@@ -1,7 +1,13 @@
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { revenueChartSeries, revenueChartCategories, chartColors } from '@/components/darkone/demo';
 
-const RevenueChart = () => {
+interface RevenueChartProps {
+  series?: typeof revenueChartSeries;
+  categories?: string[];
+}
+
+const RevenueChart = ({ series = revenueChartSeries, categories = revenueChartCategories }: RevenueChartProps) => {
   const options: ApexOptions = {
     chart: {
       height: 330,
@@ -34,10 +40,7 @@ const RevenueChart = () => {
       },
     },
     xaxis: {
-      categories: [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-      ],
+      categories,
       axisTicks: {
         show: false,
       },
@@ -91,7 +94,7 @@ const RevenueChart = () => {
         borderRadius: 3,
       },
     },
-    colors: ["#7e67fe", "#17c553", "#7942ed"],
+    colors: chartColors,
     tooltip: {
       shared: true,
       y: [{
@@ -120,24 +123,6 @@ const RevenueChart = () => {
       }],
     },
   };
-
-  const series = [
-    {
-      name: "Page Views",
-      type: "bar",
-      data: [34, 65, 46, 68, 49, 61, 42, 44, 78, 52, 63, 67],
-    },
-    {
-      name: "Clicks",
-      type: "area",
-      data: [8, 12, 7, 17, 21, 11, 5, 9, 7, 29, 12, 35],
-    },
-    {
-      name: "Revenue",
-      type: "area",
-      data: [12, 16, 11, 22, 28, 25, 15, 29, 35, 45, 42, 48],
-    }
-  ];
 
   return (
     <ReactApexChart 

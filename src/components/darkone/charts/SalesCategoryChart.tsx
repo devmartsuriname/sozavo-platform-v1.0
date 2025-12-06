@@ -1,7 +1,16 @@
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
+import { salesCategoryChartSeries, salesCategoryChartLabels, chartColors } from '@/components/darkone/demo';
 
-const SalesCategoryChart = () => {
+interface SalesCategoryChartProps {
+  series?: number[];
+  labels?: string[];
+}
+
+const SalesCategoryChart = ({ 
+  series = salesCategoryChartSeries, 
+  labels = salesCategoryChartLabels 
+}: SalesCategoryChartProps) => {
   const options: ApexOptions = {
     chart: {
       height: 180,
@@ -27,8 +36,8 @@ const SalesCategoryChart = () => {
         }
       }
     },
-    labels: ["Direct", "Affilliate", "Sponsored"],
-    colors: ["#7e67fe", "#17c553", "#7942ed"],
+    labels,
+    colors: chartColors,
     dataLabels: {
       enabled: false
     },
@@ -44,8 +53,6 @@ const SalesCategoryChart = () => {
       type: 'gradient'
     }
   };
-
-  const series = [44.25, 52.68, 45.98];
 
   return (
     <ReactApexChart 
