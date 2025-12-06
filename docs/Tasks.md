@@ -288,6 +288,38 @@
 
 ---
 
+## Phase 9 (NEW): Admin MVP Implementation
+
+| Task ID | Description | Layer | Priority | Dependencies | Status |
+|---------|-------------|-------|----------|--------------|--------|
+| P9-BE-01 | Implement Auth & RLS Foundation (Slice 0) | SEC | MUST | None | Planned |
+| P9-BE-02 | Implement getCases query (Slice 1) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-03 | Implement getCaseById query (Slice 1) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-04 | Implement getCitizenById query (Slice 1) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-05 | Implement getCaseEvents query (Slice 2) | DATA | MUST | P9-BE-02 | Planned |
+| P9-BE-06 | Implement getEligibilityEvaluation query (Slice 3) | DATA | MUST | P9-BE-02 | Planned |
+| P9-BE-07 | Implement getDocumentsByCase query (Slice 4) | DATA | MUST | P9-BE-02 | Planned |
+| P9-BE-08 | Implement getPaymentBatches query (Slice 5) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-09 | Implement getPaymentItems query (Slice 5) | DATA | MUST | P9-BE-08 | Planned |
+| P9-BE-10 | Implement getFraudSignals query (Slice 6) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-11 | Implement getFraudRiskScores query (Slice 6) | DATA | MUST | P9-BE-10 | Planned |
+| P9-BE-12 | Implement getServiceTypes query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-13 | Implement getOffices query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-14 | Implement getEligibilityRules query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-15 | Implement getWorkflowDefinitions query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
+| P9-ADM-01 | Set up Darkone Admin shell with auth | FE | MUST | P9-BE-01 | Planned |
+| P9-ADM-02 | Build Case Search page | FE | MUST | P9-BE-02 | Planned |
+| P9-ADM-03 | Build Case Detail page | FE | MUST | P9-BE-03 | Planned |
+| P9-ADM-04 | Build Intake Review panel | FE | MUST | P9-BE-06 | Planned |
+| P9-ADM-05 | Build Documents viewer | FE | MUST | P9-BE-07 | Planned |
+| P9-ADM-06 | Build Payments overview | FE | MUST | P9-BE-08 | Planned |
+| P9-ADM-07 | Build Fraud overview | FE | MUST | P9-BE-10 | Planned |
+| P9-ADM-08 | Build Config panel | FE | MUST | P9-BE-12 | Planned |
+| P9-TEST-01 | RLS policy test suite execution | SEC | MUST | P9-BE-01 | Planned |
+| P9-TEST-02 | Role-based access validation | SEC | MUST | P9-ADM-01 | Planned |
+
+---
+
 ## Phases 18–29: Strategic Phases
 
 These phases are documented at high level; detailed task breakdown pending.
