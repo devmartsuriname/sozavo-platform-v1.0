@@ -9,6 +9,10 @@ import NotFound from "./pages/NotFound";
 // Darkone Admin imports
 import AdminLayout from "./components/darkone/layout/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
+import SignIn from "./pages/admin/auth/SignIn";
+import SignUp from "./pages/admin/auth/SignUp";
+import TablesBasic from "./pages/admin/tables/TablesBasic";
+import TablesGridJS from "./pages/admin/tables/TablesGridJS";
 
 const queryClient = new QueryClient();
 
@@ -21,10 +25,15 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           
-          {/* Admin Routes */}
+          {/* Admin Auth Routes (standalone, no layout) */}
+          <Route path="/admin/auth/signin" element={<SignIn />} />
+          <Route path="/admin/auth/signup" element={<SignUp />} />
+          
+          {/* Admin Routes with Layout */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<Dashboard />} />
-            {/* Future admin routes will be added here */}
+            <Route path="tables/basic" element={<TablesBasic />} />
+            <Route path="tables/gridjs" element={<TablesGridJS />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
