@@ -6,13 +6,19 @@ import {
   type CaseDetailWithRelations, 
   type TimelineEvent 
 } from "@/integrations/supabase/queries/cases";
+import {
+  getEligibilitySummary,
+  getEligibilityRulesForService,
+  type EligibilityEvaluation,
+  type EligibilityRule,
+} from "@/integrations/supabase/queries/eligibility";
 import PageTitle from "@/components/darkone/layout/PageTitle";
 import CaseDetailHeader from "@/components/admin/cases/CaseDetailHeader";
 import CaseInfoPanel from "@/components/admin/cases/CaseInfoPanel";
 import CitizenInfoPanel from "@/components/admin/cases/CitizenInfoPanel";
 import ServiceInfoPanel from "@/components/admin/cases/ServiceInfoPanel";
 import CaseTimeline from "@/components/admin/cases/CaseTimeline";
-import CaseEligibilityPlaceholder from "@/components/admin/cases/placeholders/CaseEligibilityPlaceholder";
+import CaseEligibilityPanel from "@/components/admin/cases/CaseEligibilityPanel";
 import CaseDocumentsPlaceholder from "@/components/admin/cases/placeholders/CaseDocumentsPlaceholder";
 import CasePaymentsPlaceholder from "@/components/admin/cases/placeholders/CasePaymentsPlaceholder";
 import CaseFraudPlaceholder from "@/components/admin/cases/placeholders/CaseFraudPlaceholder";
@@ -30,6 +36,12 @@ const CaseDetailPage = () => {
   const [isLoadingTimeline, setIsLoadingTimeline] = useState(true);
   const [errorTimeline, setErrorTimeline] = useState<string | null>(null);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[] | null>(null);
+
+  // Eligibility state
+  const [isLoadingEligibility, setIsLoadingEligibility] = useState(true);
+  const [errorEligibility, setErrorEligibility] = useState<string | null>(null);
+  const [eligibilityEval, setEligibilityEval] = useState<EligibilityEvaluation | null>(null);
+  const [eligibilityRules, setEligibilityRules] = useState<EligibilityRule[] | null>(null);
 
   // Fetch case details
   useEffect(() => {
@@ -76,6 +88,36 @@ const CaseDetailPage = () => {
 
     fetchTimeline();
   }, [id]);
+
+  // Fetch eligibility data after case is loaded
+  useEffect(() => {
+    if (!id || !caseData) return;
+
+    const fetchEligibility = async () => {
+      setIsLoadingEligibility(true);
+      setErrorEligibility(null);
+
+      // Fetch evaluation
+      const evalResult = await getEligibilitySummary(id);
+      if (evalResult.error) {
+        setErrorEligibility(evalResult.error.message);
+      } else {
+        setEligibilityEval(evalResult.data);
+      }
+
+      // Fetch rules for service type
+      if (caseData.service_type_id) {
+        const rulesResult = await getEligibilityRulesForService(caseData.service_type_id);
+        if (!rulesResult.error) {
+          setEligibilityRules(rulesResult.data);
+        }
+      }
+
+      setIsLoadingEligibility(false);
+    };
+
+    fetchEligibility();
+  }, [id, caseData]);
 
   const handleBack = () => {
     navigate('/admin/cases');
@@ -179,7 +221,12 @@ const CaseDetailPage = () => {
             isLoading={isLoadingTimeline}
             error={errorTimeline}
           />
-          <CaseEligibilityPlaceholder />
+          <CaseEligibilityPanel
+            evaluation={eligibilityEval}
+            rules={eligibilityRules}
+            isLoading={isLoadingEligibility}
+            error={errorEligibility}
+          />
           <CaseDocumentsPlaceholder />
           <CasePaymentsPlaceholder />
           <CaseFraudPlaceholder />

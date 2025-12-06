@@ -1,8 +1,96 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.5 (Phase 9D-2A Update)  
+> **Version:** 1.6 (Phase 9D-2B Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-2B – Eligibility UI Module
+
+### Overview
+
+Phase 9D-2B implements the read-only Eligibility UI module, displaying eligibility evaluations and rules on the Case Detail page.
+
+### Query Layer Created
+
+**File:** `src/integrations/supabase/queries/eligibility.ts`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getEligibilitySummary` | `(caseId: string) → Promise<{data, error}>` | Returns most recent eligibility evaluation for a case |
+| `getEligibilityRulesForService` | `(serviceTypeId: string) → Promise<{data, error}>` | Returns active eligibility rules for a service type |
+
+### Types Exported
+
+```typescript
+interface EligibilityEvaluation {
+  id: string;
+  case_id: string;
+  result: string;
+  criteria_results: Record<string, boolean>;
+  evaluated_at: string;
+  evaluated_by: string | null;
+  override_by: string | null;
+  override_reason: string | null;
+}
+
+interface EligibilityRule {
+  id: string;
+  rule_name: string;
+  rule_type: string;
+  is_mandatory: boolean;
+  priority: number;
+  is_active: boolean;
+  error_message: string;
+  service_type_id: string;
+  condition: Record<string, unknown>;
+}
+```
+
+### Components Created
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| EligibilityResultBadge | `src/components/admin/cases/EligibilityResultBadge.tsx` | Maps result to visual badge (Eligible/Ineligible/Pending) |
+| CaseEligibilityPanel | `src/components/admin/cases/CaseEligibilityPanel.tsx` | Displays eligibility summary and criteria results table |
+
+### Result Badge Mapping
+
+| Result Value | Badge Variant | Label |
+|--------------|---------------|-------|
+| `ELIGIBLE` / `approved` | success (soft) | Eligible |
+| `INELIGIBLE` / `rejected` | danger (soft) | Ineligible |
+| `pending` / null / other | secondary (soft) | Pending |
+
+### Data Flow
+
+```
+CaseDetailPage
+    │
+    ├── getCaseById(id) → caseData (includes service_type_id)
+    │
+    ├── After caseData loads:
+    │   ├── getEligibilitySummary(id) → eligibility_evaluations table
+    │   │       │
+    │   │       └── Returns: { result, criteria_results, evaluated_at, override_reason, ... }
+    │   │
+    │   └── getEligibilityRulesForService(service_type_id) → eligibility_rules table
+    │           │
+    │           └── Returns: [ { rule_name, is_mandatory, ... }, ... ]
+    │
+    └── CaseEligibilityPanel
+        ├── EligibilityResultBadge (result → visual badge)
+        ├── Override info (if override_reason exists)
+        └── Criteria Results Table (matched with rules for metadata)
+```
+
+### Read-Only Constraints
+
+- No create, update, or delete operations
+- No eligibility recalculation actions
+- No rule editing capabilities
+- Display only: evaluation summary + criteria breakdown
 
 ---
 
