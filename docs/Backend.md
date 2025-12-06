@@ -763,4 +763,31 @@ try {
 
 ---
 
-**END OF CONSOLIDATED BACKEND DOCUMENTATION v3.0**
+## 16. Phase 6 – Engine Runtime & Integration Layer
+
+### 16.1 Phase 6 Documentation Artifacts
+
+| Document | Purpose | Status |
+|----------|---------|--------|
+| Engine-Runtime-Configuration.md | Runtime load order, context, state isolation, error propagation | Complete |
+| Integration-Stubs.md | BIS, Subema, Notification service contracts | Complete |
+| Service-Layer-Specification.md | Engine-to-DAL bindings, execution pipelines | Complete |
+| Event-Routing-Framework.md | Event types, routing rules, retry logic | Complete |
+| Access-Control-PreModel.md | Actor/resource/action matrices for Phase 7 RLS | Complete |
+| Engine-Orchestration-Plan.md | Orchestration topology, failure paths, output contracts | Complete |
+| Test-Scenario-Suite.md | 8 dry-run validation scenarios | Complete |
+
+### 16.2 Key Phase 6 Additions
+
+- **Runtime Context**: Standardized citizen, case, session, and version pointer structures
+- **Engine State Isolation**: Rules ensuring no cross-case state sharing
+- **Integration Stubs**: Non-executable contracts for BIS, Subema, Email, SMS
+- **Service Layer Bindings**: Engine-to-DAL model mappings
+- **Event Routing**: 25+ event types with subscriber routing matrix
+- **Access Control Pre-Model**: Role-action-resource matrix for RLS preparation
+- **Orchestration Patterns**: Saga and choreography patterns defined
+- **Test Scenarios**: 8 scenarios covering happy paths and edge cases
+
+---
+
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v4.0 (Phase 6 Updated)**
