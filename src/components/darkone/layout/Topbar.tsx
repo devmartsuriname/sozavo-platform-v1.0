@@ -24,6 +24,13 @@ const Topbar = () => {
     const newSize = currentSize === "condensed" ? "default" : "condensed";
     document.documentElement.setAttribute("data-sidebar-size", newSize);
     localStorage.setItem("darkone-sidebar-size", newSize);
+    
+    // Toggle sidebar-enable class for mobile support (matches original app.js behavior)
+    if (newSize === "condensed") {
+      document.body.classList.add("sidebar-enable");
+    } else {
+      document.body.classList.remove("sidebar-enable");
+    }
   };
 
   return (

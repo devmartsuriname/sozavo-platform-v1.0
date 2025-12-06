@@ -1,10 +1,11 @@
 # Phase X – Darkone Admin React Conversion
 
 > **Status:** ✅ COMPLETE – Ready for Phase 9  
-> **Version:** 1.2.0  
+> **Version:** 1.3.0  
 > **Last Updated:** 2025-01-06  
 > **Scope:** 1:1 React conversion of Darkone HTML Admin Template  
-> **Compliance:** Zero Framework Injection (ZFI), Zero Logic Rule (ZLR)
+> **Compliance:** Zero Framework Injection (ZFI), Zero Logic Rule (ZLR)  
+> **Related:** [AdminLayout-Stabilization-Plan.md](./AdminLayout-Stabilization-Plan.md)
 
 ---
 
@@ -173,15 +174,23 @@ The theme toggle in `Topbar.tsx`:
 The sidebar toggle in `Topbar.tsx`:
 1. Toggles `data-sidebar-size` attribute between `"default"` and `"condensed"`
 2. Persists state to `localStorage` as `darkone-sidebar-size`
-3. `AdminLayout.tsx` initializes the sidebar size on mount
-4. CSS rules in `darkone.css` control sidebar width and element visibility based on `data-sidebar-size`
+3. Adds/removes `sidebar-enable` class on `document.body` for mobile support
+4. `AdminLayout.tsx` initializes the sidebar size on mount from localStorage
+5. CSS rules in `darkone.css` control sidebar width and element visibility based on `data-sidebar-size`
 
 ### Condensed State Behavior
 - Sidebar width reduces from 250px to 75px
 - Navigation text labels are hidden, only icons visible
 - Menu titles and dropdown arrows are hidden
-- Page content and topbar expand to fill space
+- Page content and topbar expand to fill available space
 - On hover, sidebar expands to full width temporarily
+- Logo switches from `logo-lg` to `logo-sm` when condensed
+
+### Logo Visibility Rules
+- **Light Mode Default:** `.logo-dark` visible, `.logo-light` hidden
+- **Dark Mode:** `.logo-light` visible, `.logo-dark` hidden
+- **Condensed Sidebar:** `.logo-lg` hidden, `.logo-sm` visible
+- **Condensed + Hover:** `.logo-lg` visible, `.logo-sm` hidden
 
 ---
 
@@ -309,6 +318,29 @@ Phase 9 (Admin MVP Wiring) can now safely:
 
 ---
 
-*Document Version: 1.1.0*  
+## Layout Import Verification
+
+### Verified Assets
+- ✅ `public/darkone/css/darkone.css` - Theme CSS with light/dark mode variables
+- ✅ `public/darkone/images/logo-*.png` - 3 logo variants (dark, light, sm)
+- ✅ `public/darkone/images/users/` - 6 avatar images
+- ✅ `public/darkone/fonts/` - Boxicons font files
+
+### Verified Components
+- ✅ `AdminLayout.tsx` - Root wrapper initializes theme and sidebar from localStorage
+- ✅ `Sidebar.tsx` - Full menu with correct logo switching for themes
+- ✅ `Topbar.tsx` - Theme toggle, sidebar toggle, notifications, user menu
+- ✅ `Footer.tsx` - Footer text matches template
+- ✅ `PageTitle.tsx` - Breadcrumb component
+
+### Verified Behaviors
+- ✅ Theme toggle (light ↔ dark) with localStorage persistence
+- ✅ Sidebar toggle (default ↔ condensed) with localStorage persistence
+- ✅ Logo visibility rules for theme and sidebar state
+- ✅ Hover expansion for condensed sidebar
+
+---
+
+*Document Version: 1.3.0*  
 *Last Updated: 2025-01-06*  
 *Phase X Status: COMPLETE*

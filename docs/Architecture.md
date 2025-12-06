@@ -1253,14 +1253,26 @@ The sidebar supports condensed (icons-only) and expanded states via `data-sideba
 - `data-sidebar-size="default"` - Full 250px sidebar with text labels
 - `data-sidebar-size="condensed"` - Compact 75px sidebar with icons only
 - Sidebar state persisted to `localStorage` as `darkone-sidebar-size`
-- Hover expansion: condensed sidebar expands on hover
+- `sidebar-enable` class added to `document.body` for mobile support
+- Hover expansion: condensed sidebar expands on hover temporarily
 
-### 23.3 CSS Variables
+### 23.3 Logo Visibility Rules
+Logo visibility is controlled by CSS rules based on theme and sidebar state:
+- **Light Mode:** `.logo-dark` visible (dark logo for contrast on white sidebar)
+- **Dark Mode:** `.logo-light` visible (light logo for contrast on dark sidebar)
+- **Condensed Sidebar:** `.logo-lg` hidden, `.logo-sm` visible
+- **Condensed + Hover:** `.logo-lg` visible, `.logo-sm` hidden
+
+### 23.4 CSS Variables
 All theme colors are controlled via CSS variables in `public/darkone/css/darkone.css`:
 - Light mode variables defined at `:root` level
 - Dark mode overrides in `[data-bs-theme="dark"]` block
 - Sidebar dimensions: `--bs-sidebar-width` (250px), `--bs-sidebar-width-sm` (75px)
 
+### 23.5 Related Documentation
+- [PhaseX-Darkone-React.md](./PhaseX-Darkone-React.md) - Component inventory and compliance checklist
+- [AdminLayout-Stabilization-Plan.md](./AdminLayout-Stabilization-Plan.md) - Pre-MVP stabilization plan
+
 ---
 
-**END OF CONSOLIDATED ARCHITECTURE v6.0 (Phase 8 Updated)**
+**END OF CONSOLIDATED ARCHITECTURE v6.1 (Phase X Updated)**

@@ -954,10 +954,20 @@ The Darkone admin template uses HTML data attributes for theme control:
 
 ### 14.3 Implementation Notes
 - Theme toggle implemented in `Topbar.tsx` - sets `data-bs-theme` on `document.documentElement`
-- Sidebar toggle implemented in `Topbar.tsx` - sets `data-sidebar-size` on `document.documentElement`
+- Sidebar toggle implemented in `Topbar.tsx` - sets `data-sidebar-size` on `document.documentElement` and toggles `sidebar-enable` class on `document.body`
 - `AdminLayout.tsx` initializes sidebar size from localStorage on mount
 - All CSS driven by `public/darkone/css/darkone.css` - no inline styles or Tailwind
 
+### 14.4 Logo Visibility Rules
+- Light Mode: `.logo-dark` visible, `.logo-light` hidden
+- Dark Mode: `.logo-light` visible, `.logo-dark` hidden
+- Condensed Sidebar: `.logo-sm` visible, `.logo-lg` hidden
+- Condensed + Hover: `.logo-lg` visible, `.logo-sm` hidden
+
+### 14.5 Related Documentation
+- [PhaseX-Darkone-React.md](./PhaseX-Darkone-React.md) - Component inventory
+- [AdminLayout-Stabilization-Plan.md](./AdminLayout-Stabilization-Plan.md) - Pre-MVP stabilization plan
+
 ---
 
-**END OF CONSOLIDATED BACKEND DOCUMENTATION v6.0 (Phase 8 Updated)**
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v6.1 (Phase X Updated)**
