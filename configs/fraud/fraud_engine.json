@@ -1,0 +1,225 @@
+{
+  "metadata": {
+    "engine_name": "Fraud Detection Engine",
+    "engine_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "description": "Defines fraud signals, scoring algorithms, and escalation rules for SoZaVo platform",
+    "change_history": [
+      {
+        "version": "1.0.0",
+        "date": "2024-01-01",
+        "author": "System",
+        "description": "Initial fraud engine specification from Phase 14 documentation"
+      }
+    ]
+  },
+  "fraud_signals": [
+    {
+      "signal_id": "FRAUD_DUPLICATE_NATIONAL_ID",
+      "signal_name": "Duplicate National ID",
+      "description": "Multiple active cases with the same national ID",
+      "category": "identity",
+      "severity": "high",
+      "detection_logic": {
+        "query": "COUNT(cases) WHERE citizen.national_id = current_national_id AND current_status NOT IN ('closed', 'rejected')",
+        "threshold_operator": "greater_than",
+        "threshold_value": 1
+      },
+      "score_points": 40,
+      "auto_flag": true,
+      "requires_manual_review": true
+    },
+    {
+      "signal_id": "FRAUD_DUPLICATE_ADDRESS",
+      "signal_name": "Multiple Cases Same Address",
+      "description": "Unusually high number of cases from the same address",
+      "category": "address",
+      "severity": "medium",
+      "detection_logic": {
+        "query": "COUNT(cases) WHERE citizen.address = current_address AND created_at > (now() - interval '90 days')",
+        "threshold_operator": "greater_than",
+        "threshold_value": 3
+      },
+      "score_points": 20,
+      "auto_flag": false,
+      "requires_manual_review": true
+    },
+    {
+      "signal_id": "FRAUD_INCOME_INCONSISTENCY",
+      "signal_name": "Income Inconsistency",
+      "description": "Reported income differs significantly from previous records",
+      "category": "financial",
+      "severity": "medium",
+      "detection_logic": {
+        "comparison": "previous_case.total_monthly_income vs current_case.total_monthly_income",
+        "threshold_percentage": 50,
+        "threshold_operator": "greater_than"
+      },
+      "score_points": 25,
+      "auto_flag": false,
+      "requires_manual_review": true
+    },
+    {
+      "signal_id": "FRAUD_RAPID_REAPPLICATION",
+      "signal_name": "Rapid Reapplication",
+      "description": "New application submitted within 30 days of rejection",
+      "category": "behavioral",
+      "severity": "low",
+      "detection_logic": {
+        "query": "days_since_last_rejection",
+        "threshold_operator": "less_than",
+        "threshold_value": 30
+      },
+      "score_points": 15,
+      "auto_flag": false,
+      "requires_manual_review": false
+    },
+    {
+      "signal_id": "FRAUD_BIS_MISMATCH",
+      "signal_name": "BIS Data Mismatch",
+      "description": "Submitted data does not match BIS verification",
+      "category": "identity",
+      "severity": "high",
+      "detection_logic": {
+        "comparison": "wizard_data fields vs bis_verified_data fields",
+        "fields": ["first_name", "last_name", "date_of_birth", "address"],
+        "mismatch_threshold": 1
+      },
+      "score_points": 35,
+      "auto_flag": true,
+      "requires_manual_review": true
+    },
+    {
+      "signal_id": "FRAUD_DECEASED_APPLICANT",
+      "signal_name": "Deceased Applicant",
+      "description": "BIS indicates applicant is deceased",
+      "category": "identity",
+      "severity": "critical",
+      "detection_logic": {
+        "field": "bis_data.is_deceased",
+        "threshold_operator": "equals",
+        "threshold_value": true
+      },
+      "score_points": 100,
+      "auto_flag": true,
+      "requires_manual_review": true,
+      "auto_reject": true
+    }
+  ],
+  "scoring_algorithm": {
+    "algorithm_name": "Weighted Sum Scoring",
+    "algorithm_version": "1.0.0",
+    "description": "Calculates fraud risk score based on weighted signal points",
+    "calculation_method": "SUM(detected_signal_points)",
+    "normalization": {
+      "enabled": true,
+      "max_score": 100,
+      "formula": "MIN(raw_score, 100)"
+    },
+    "risk_levels": [
+      {
+        "level_id": "LOW",
+        "level_name": "Low Risk",
+        "score_range": { "min": 0, "max": 20 },
+        "ui_color": "green",
+        "action": "proceed_normal"
+      },
+      {
+        "level_id": "MEDIUM",
+        "level_name": "Medium Risk",
+        "score_range": { "min": 21, "max": 50 },
+        "ui_color": "yellow",
+        "action": "flag_for_review"
+      },
+      {
+        "level_id": "HIGH",
+        "level_name": "High Risk",
+        "score_range": { "min": 51, "max": 75 },
+        "ui_color": "orange",
+        "action": "require_senior_review"
+      },
+      {
+        "level_id": "CRITICAL",
+        "level_name": "Critical Risk",
+        "score_range": { "min": 76, "max": 100 },
+        "ui_color": "red",
+        "action": "escalate_to_department_head"
+      }
+    ]
+  },
+  "workflow_integration": {
+    "trigger_points": [
+      {
+        "trigger_id": "INTAKE_SUBMISSION",
+        "workflow_state": "intake",
+        "event": "case_submitted",
+        "action": "run_fraud_scan",
+        "signals_checked": ["FRAUD_DUPLICATE_NATIONAL_ID", "FRAUD_DUPLICATE_ADDRESS", "FRAUD_RAPID_REAPPLICATION"]
+      },
+      {
+        "trigger_id": "BIS_VERIFICATION",
+        "workflow_state": "validation",
+        "event": "bis_lookup_complete",
+        "action": "run_fraud_scan",
+        "signals_checked": ["FRAUD_BIS_MISMATCH", "FRAUD_DECEASED_APPLICANT"]
+      },
+      {
+        "trigger_id": "ELIGIBILITY_CHECK",
+        "workflow_state": "eligibility_check",
+        "event": "eligibility_evaluated",
+        "action": "run_fraud_scan",
+        "signals_checked": ["FRAUD_INCOME_INCONSISTENCY"]
+      }
+    ],
+    "case_event_logging": {
+      "event_type": "fraud_scan_performed",
+      "captured_data": ["signals_detected", "fraud_score", "risk_level", "recommended_action"]
+    }
+  },
+  "escalation_rules": [
+    {
+      "escalation_id": "ESC_CRITICAL_TO_HEAD",
+      "trigger_risk_level": "CRITICAL",
+      "escalate_to_role": "department_head",
+      "notification_method": ["portal", "email"],
+      "sla_hours": 4,
+      "description": "Critical risk cases must be reviewed by department head within 4 hours"
+    },
+    {
+      "escalation_id": "ESC_HIGH_TO_REVIEWER",
+      "trigger_risk_level": "HIGH",
+      "escalate_to_role": "case_reviewer",
+      "notification_method": ["portal"],
+      "sla_hours": 24,
+      "description": "High risk cases require senior reviewer within 24 hours"
+    },
+    {
+      "escalation_id": "ESC_AUTO_REJECT_DECEASED",
+      "trigger_signal": "FRAUD_DECEASED_APPLICANT",
+      "action": "auto_reject",
+      "rejection_reason": "Applicant identity flagged - BIS verification failed",
+      "notification_to_audit": true
+    }
+  ],
+  "audit_requirements": {
+    "log_all_scans": true,
+    "retention_period_days": 2555,
+    "accessible_to_roles": ["audit", "department_head", "system_admin"],
+    "data_captured": [
+      "scan_timestamp",
+      "case_id",
+      "signals_checked",
+      "signals_detected",
+      "fraud_score",
+      "risk_level",
+      "action_taken",
+      "reviewer_id"
+    ]
+  },
+  "cross_references": {
+    "data_dictionary": ["Section 8.5 fraud_risk_scores"],
+    "prd_requirements": ["REQ-SEC-006"],
+    "architecture": "Section 13 Fraud Engine",
+    "governance": "Fraud Detection Policy (Phase 15)"
+  }
+}

@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "service_type": "AB",
+    "service_name": "Algemene Bijstand (General Assistance)",
+    "wizard_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "total_steps": 7,
+    "estimated_time_minutes": 15
+  },
+  "steps": [
+    {
+      "step_id": "AB_STEP_01_IDENTIFICATION",
+      "step_number": 1,
+      "step_name": "Identification",
+      "description": "Citizen identification and BIS verification",
+      "fields": [
+        {
+          "field_id": "national_id",
+          "label": "National ID Number",
+          "type": "text",
+          "required": true,
+          "validation": {
+            "pattern": "^[0-9]{9}$",
+            "min_length": 9,
+            "max_length": 9
+          },
+          "data_dictionary_ref": "citizens.national_id",
+          "bis_lookup_trigger": true
+        }
+      ],
+      "required_dependencies": [],
+      "conditional_visibility": null,
+      "expected_outputs": ["national_id", "bis_verification_status"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-001", "REQ-FUN-009"]
+      }
+    },
+    {
+      "step_id": "AB_STEP_02_PERSONAL_INFO",
+      "step_number": 2,
+      "step_name": "Personal Information",
+      "description": "Basic personal details (may be prefilled from BIS)",
+      "fields": [
+        {
+          "field_id": "first_name",
+          "label": "First Name",
+          "type": "text",
+          "required": true,
+          "validation": { "min_length": 1, "max_length": 100 },
+          "data_dictionary_ref": "citizens.first_name",
+          "prefill_source": "bis_data.voornamen"
+        },
+        {
+          "field_id": "last_name",
+          "label": "Last Name",
+          "type": "text",
+          "required": true,
+          "validation": { "min_length": 1, "max_length": 100 },
+          "data_dictionary_ref": "citizens.last_name",
+          "prefill_source": "bis_data.achternaam"
+        },
+        {
+          "field_id": "date_of_birth",
+          "label": "Date of Birth",
+          "type": "date",
+          "required": true,
+          "validation": { "max_date": "today", "min_age_years": 18 },
+          "data_dictionary_ref": "citizens.date_of_birth",
+          "prefill_source": "bis_data.geboortedatum"
+        },
+        {
+          "field_id": "gender",
+          "label": "Gender",
+          "type": "select",
+          "required": false,
+          "options": ["Male", "Female", "Other"],
+          "data_dictionary_ref": "citizens.gender"
+        },
+        {
+          "field_id": "phone",
+          "label": "Phone Number",
+          "type": "tel",
+          "required": false,
+          "validation": { "pattern": "^[+]?[0-9\\s-]{7,15}$" },
+          "data_dictionary_ref": "citizens.phone"
+        },
+        {
+          "field_id": "email",
+          "label": "Email Address",
+          "type": "email",
+          "required": false,
+          "validation": { "pattern": "^[^@]+@[^@]+\\.[^@]+$" },
+          "data_dictionary_ref": "citizens.email"
+        }
+      ],
+      "required_dependencies": ["AB_STEP_01_IDENTIFICATION"],
+      "conditional_visibility": null,
+      "expected_outputs": ["first_name", "last_name", "date_of_birth", "gender", "phone", "email"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": ["AB_MIN_AGE_18"],
+        "prd_requirements": ["REQ-FUN-002"]
+      }
+    },
+    {
+      "step_id": "AB_STEP_03_ADDRESS",
+      "step_number": 3,
+      "step_name": "Address Information",
+      "description": "Residential address and district",
+      "fields": [
+        {
+          "field_id": "address",
+          "label": "Street Address",
+          "type": "text",
+          "required": true,
+          "validation": { "min_length": 5, "max_length": 255 },
+          "data_dictionary_ref": "citizens.address",
+          "prefill_source": "bis_data.adres"
+        },
+        {
+          "field_id": "district",
+          "label": "District",
+          "type": "select",
+          "required": true,
+          "options": ["Paramaribo", "Wanica", "Nickerie", "Coronie", "Saramacca", "Commewijne", "Marowijne", "Para", "Brokopondo", "Sipaliwini"],
+          "data_dictionary_ref": "citizens.district"
+        },
+        {
+          "field_id": "country_of_residence",
+          "label": "Country of Residence",
+          "type": "select",
+          "required": true,
+          "options": ["Suriname"],
+          "default": "Suriname",
+          "data_dictionary_ref": "citizens.country_of_residence"
+        }
+      ],
+      "required_dependencies": ["AB_STEP_02_PERSONAL_INFO"],
+      "conditional_visibility": null,
+      "expected_outputs": ["address", "district", "country_of_residence"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": ["AB_RESIDENCY_REQUIRED"],
+        "prd_requirements": ["REQ-FUN-002"]
+      }
+    },
+    {
+      "step_id": "AB_STEP_04_HOUSEHOLD",
+      "step_number": 4,
+      "step_name": "Household Composition",
+      "description": "Household members and dependents",
+      "fields": [
+        {
+          "field_id": "household_members",
+          "label": "Household Members",
+          "type": "repeater",
+          "required": false,
+          "item_fields": [
+            { "field_id": "member_name", "label": "Full Name", "type": "text", "required": true },
+            { "field_id": "member_relationship", "label": "Relationship", "type": "select", "required": true, "options": ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+            { "field_id": "member_date_of_birth", "label": "Date of Birth", "type": "date", "required": true },
+            { "field_id": "member_national_id", "label": "National ID", "type": "text", "required": false }
+          ],
+          "data_dictionary_ref": "citizens.household_members"
+        }
+      ],
+      "required_dependencies": ["AB_STEP_03_ADDRESS"],
+      "conditional_visibility": null,
+      "expected_outputs": ["household_members", "household_size"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens, Section 4.16 households",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-003"]
+      }
+    },
+    {
+      "step_id": "AB_STEP_05_INCOME",
+      "step_number": 5,
+      "step_name": "Income Information",
+      "description": "Household income sources and amounts",
+      "fields": [
+        {
+          "field_id": "has_employment_income",
+          "label": "Do you or household members have employment income?",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "field_id": "employment_income",
+          "label": "Monthly Employment Income (SRD)",
+          "type": "number",
+          "required": false,
+          "validation": { "min": 0, "max": 1000000 },
+          "conditional_visibility": "has_employment_income === true",
+          "data_dictionary_ref": "incomes.income_amount"
+        },
+        {
+          "field_id": "has_other_income",
+          "label": "Do you have other sources of income?",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "field_id": "other_income",
+          "label": "Monthly Other Income (SRD)",
+          "type": "number",
+          "required": false,
+          "validation": { "min": 0, "max": 1000000 },
+          "conditional_visibility": "has_other_income === true",
+          "data_dictionary_ref": "incomes.income_amount"
+        },
+        {
+          "field_id": "total_monthly_income",
+          "label": "Total Monthly Household Income (SRD)",
+          "type": "calculated",
+          "calculation": "employment_income + other_income",
+          "data_dictionary_ref": "Section 10.1 derived fields"
+        }
+      ],
+      "required_dependencies": ["AB_STEP_04_HOUSEHOLD"],
+      "conditional_visibility": null,
+      "expected_outputs": ["employment_income", "other_income", "total_monthly_income"],
+      "cross_links": {
+        "data_dictionary": "Section 4.17 incomes, Section 10.1 derived",
+        "eligibility_rules": ["AB_INCOME_MAX_20000"],
+        "prd_requirements": ["REQ-FUN-004"]
+      }
+    },
+    {
+      "step_id": "AB_STEP_06_DOCUMENTS",
+      "step_number": 6,
+      "step_name": "Document Upload",
+      "description": "Required supporting documents",
+      "fields": [
+        {
+          "field_id": "id_card_document",
+          "label": "ID Card (Front and Back)",
+          "type": "file",
+          "required": true,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = id_card"
+        },
+        {
+          "field_id": "income_proof_document",
+          "label": "Proof of Income",
+          "type": "file",
+          "required": true,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "conditional_visibility": "total_monthly_income > 0",
+          "data_dictionary_ref": "documents.document_type = income_proof"
+        },
+        {
+          "field_id": "residency_proof_document",
+          "label": "Proof of Residency",
+          "type": "file",
+          "required": false,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = residency_proof"
+        }
+      ],
+      "required_dependencies": ["AB_STEP_05_INCOME"],
+      "conditional_visibility": null,
+      "expected_outputs": ["uploaded_document_ids"],
+      "cross_links": {
+        "data_dictionary": "Section 4.8 documents, Section 4.11 document_requirements",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-027", "REQ-FUN-028"]
+      }
+    },
+    {
+      "step_id": "AB_STEP_07_CONFIRM",
+      "step_number": 7,
+      "step_name": "Review & Confirm",
+      "description": "Review all entered information and submit",
+      "fields": [
+        {
+          "field_id": "consent_declaration",
+          "label": "I declare that all information provided is accurate and complete",
+          "type": "checkbox",
+          "required": true
+        },
+        {
+          "field_id": "consent_data_sharing",
+          "label": "I consent to my data being shared with relevant government agencies for verification",
+          "type": "checkbox",
+          "required": true
+        }
+      ],
+      "required_dependencies": ["AB_STEP_06_DOCUMENTS"],
+      "conditional_visibility": null,
+      "expected_outputs": ["consent_declaration", "consent_data_sharing", "submission_timestamp"],
+      "cross_links": {
+        "data_dictionary": "Section 4.6 cases.wizard_data",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-005", "REQ-FUN-006"]
+      }
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 4.3", "Section 4.6", "Section 4.8", "Section 4.17"],
+    "prd_requirements": ["REQ-FUN-001 to REQ-FUN-006"],
+    "eligibility_config": "configs/eligibility/general_assistance.json"
+  }
+}
