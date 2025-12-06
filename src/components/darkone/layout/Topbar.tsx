@@ -214,7 +214,7 @@ const Topbar = () => {
                   />
                 </span>
               </a>
-              <div className={`dropdown-menu dropdown-menu-end ${userMenuOpen ? "show" : ""}`}>
+              <div className={`dropdown-menu dropdown-menu-end ${userMenuOpen ? "show" : ""}`} style={{ position: 'absolute', top: '100%', right: 0, marginTop: '2px' }}>
                 <h6 className="dropdown-header">Welcome!</h6>
                 <a className="dropdown-item" href="#">
                   <Icon icon="solar:user-outline" className="align-middle me-2 fs-18" />
