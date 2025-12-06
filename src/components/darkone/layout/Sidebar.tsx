@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import Icon from "../ui/Icon";
 
 interface NavItem {
   title: string;
@@ -147,7 +148,7 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
       <li className="nav-item">
         <span className="nav-link disabled" style={{ opacity: 0.5, cursor: "not-allowed" }}>
           <span className="nav-icon">
-            <iconify-icon icon={item.icon}></iconify-icon>
+            <Icon icon={item.icon} />
           </span>
           <span className="nav-text">{item.title}</span>
         </span>
@@ -168,7 +169,7 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
           aria-expanded={isOpen}
         >
           <span className="nav-icon">
-            <iconify-icon icon={item.icon}></iconify-icon>
+            <Icon icon={item.icon} />
           </span>
           <span className="nav-text">{item.title}</span>
         </a>
@@ -196,7 +197,7 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
     <li className="nav-item">
       <Link className={`nav-link ${isActive ? "active" : ""}`} to={item.href || "#"}>
         <span className="nav-icon">
-          <iconify-icon icon={item.icon}></iconify-icon>
+          <Icon icon={item.icon} />
         </span>
         <span className="nav-text">{item.title}</span>
         {item.badge && (

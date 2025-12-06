@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Icon from "../ui/Icon";
 
 const Topbar = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -13,7 +14,7 @@ const Topbar = () => {
             {/* Menu Toggle Button */}
             <div className="topbar-item">
               <button type="button" className="button-toggle-menu topbar-button">
-                <iconify-icon icon="solar:hamburger-menu-outline" className="fs-24 align-middle"></iconify-icon>
+                <Icon icon="solar:hamburger-menu-outline" className="fs-24 align-middle" />
               </button>
             </div>
 
@@ -26,7 +27,9 @@ const Topbar = () => {
                   placeholder="admin,widgets..."
                   autoComplete="off"
                 />
-                <iconify-icon icon="solar:magnifer-outline" className="search-widget-icon"></iconify-icon>
+                <span className="search-widget-icon">
+                  <Icon icon="solar:magnifer-outline" />
+                </span>
               </div>
             </form>
           </div>
@@ -35,8 +38,7 @@ const Topbar = () => {
             {/* Theme Color (Light/Dark) */}
             <div className="topbar-item">
               <button type="button" className="topbar-button" id="light-dark-mode">
-                <iconify-icon icon="solar:moon-outline" className="fs-22 align-middle light-mode"></iconify-icon>
-                <iconify-icon icon="solar:sun-2-outline" className="fs-22 align-middle dark-mode" style={{ display: "none" }}></iconify-icon>
+                <Icon icon="solar:moon-outline" className="fs-22 align-middle" />
               </button>
             </div>
 
@@ -48,7 +50,7 @@ const Topbar = () => {
                 id="page-header-notifications-dropdown"
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
               >
-                <iconify-icon icon="solar:bell-bing-outline" className="fs-22 align-middle"></iconify-icon>
+                <Icon icon="solar:bell-bing-outline" className="fs-22 align-middle" />
                 <span className="position-absolute topbar-badge fs-10 translate-middle badge bg-danger rounded-pill">
                   5<span className="visually-hidden">unread messages</span>
                 </span>
@@ -130,7 +132,7 @@ const Topbar = () => {
                             className="avatar-title rounded-circle fs-20"
                             style={{ backgroundColor: "rgba(240, 147, 78, 0.18)", color: "#f0934e" }}
                           >
-                            <iconify-icon icon="solar:leaf-outline"></iconify-icon>
+                            <Icon icon="solar:leaf-outline" />
                           </span>
                         </div>
                       </div>
@@ -188,24 +190,24 @@ const Topbar = () => {
               <div className={`dropdown-menu dropdown-menu-end ${userMenuOpen ? "show" : ""}`}>
                 <h6 className="dropdown-header">Welcome!</h6>
                 <a className="dropdown-item" href="#">
-                  <iconify-icon icon="solar:user-outline" className="align-middle me-2 fs-18"></iconify-icon>
+                  <Icon icon="solar:user-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">My Account</span>
                 </a>
                 <a className="dropdown-item" href="#">
-                  <iconify-icon icon="solar:wallet-outline" className="align-middle me-2 fs-18"></iconify-icon>
+                  <Icon icon="solar:wallet-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">Pricing</span>
                 </a>
                 <a className="dropdown-item" href="#">
-                  <iconify-icon icon="solar:help-outline" className="align-middle me-2 fs-18"></iconify-icon>
+                  <Icon icon="solar:help-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">Help</span>
                 </a>
                 <Link className="dropdown-item" to="/admin/auth/lock-screen">
-                  <iconify-icon icon="solar:lock-keyhole-outline" className="align-middle me-2 fs-18"></iconify-icon>
+                  <Icon icon="solar:lock-keyhole-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">Lock screen</span>
                 </Link>
                 <div className="dropdown-divider my-1"></div>
                 <Link className="dropdown-item text-danger" to="/admin/auth/signin">
-                  <iconify-icon icon="solar:logout-3-outline" className="align-middle me-2 fs-18"></iconify-icon>
+                  <Icon icon="solar:logout-3-outline" className="align-middle me-2 fs-18" />
                   <span className="align-middle">Logout</span>
                 </Link>
               </div>
