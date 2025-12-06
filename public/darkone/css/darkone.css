@@ -1,0 +1,812 @@
+/**
+ * Darkone Admin Template - Core Styles
+ * This CSS is scoped to .darkone-admin to prevent conflicts with existing styles
+ */
+
+/* Google Font - Play */
+@import url('https://fonts.googleapis.com/css2?family=Play:wght@400;700&display=swap');
+
+/* CSS Variables for Darkone */
+:root {
+  --bs-logo-lg-height: 24px;
+  --bs-logo-sm-height: 28px;
+  --bs-sidebar-width: 260px;
+  --bs-sidebar-width-sm: 70px;
+  --bs-sidebar-item-icon-size: 22px;
+  --bs-sidebar-item-font-size: 0.9375rem;
+  --bs-sidebar-item-padding-x: 0.75rem;
+  --bs-sidebar-item-padding-y: 0.5rem;
+  --bs-sidebar-item-margin-y: 0.125rem;
+  --bs-sidebar-bg: #171b1e;
+  --bs-sidebar-item-color: #8486a7;
+  --bs-sidebar-item-hover-bg: rgba(255, 255, 255, 0.05);
+  --bs-sidebar-item-hover-color: #ffffff;
+  --bs-sidebar-border-color: rgba(255, 255, 255, 0.1);
+  --bs-topbar-height: 70px;
+  --bs-topbar-bg: #ffffff;
+  --bs-topbar-item-color: #5d7186;
+  --bs-topbar-search-bg: #f8f9fa;
+  --bs-footer-height: 60px;
+  --bs-primary: #7e67fe;
+  --bs-secondary: #424e5a;
+  --bs-success: #21d760;
+  --bs-info: #1ab0f8;
+  --bs-warning: #f0934e;
+  --bs-danger: #ed321f;
+  --bs-light: #eef2f7;
+  --bs-dark: #21252e;
+  --bs-body-bg: #f8f7fa;
+  --bs-body-color: #5d7186;
+  --bs-card-border-color: rgba(0, 0, 0, 0.08);
+  --bs-card-bg: #ffffff;
+}
+
+[data-bs-theme="dark"] {
+  --bs-sidebar-bg: #1a1f24;
+  --bs-topbar-bg: #22282e;
+  --bs-topbar-item-color: #aab8c5;
+  --bs-topbar-search-bg: #2a3139;
+  --bs-body-bg: #22282e;
+  --bs-body-color: #aab8c5;
+  --bs-card-bg: #2a3139;
+  --bs-card-border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Base Styles - Scoped to .darkone-admin */
+.darkone-admin {
+  font-family: "Play", sans-serif;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  min-height: 100vh;
+}
+
+.darkone-admin * {
+  box-sizing: border-box;
+}
+
+/* App Wrapper */
+.darkone-admin .app-wrapper {
+  height: 100%;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Page Content */
+.darkone-admin .page-content {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  min-height: calc(100vh - var(--bs-topbar-height));
+  padding: 1.5rem 0.75rem 60px 0.75rem;
+  margin-left: var(--bs-sidebar-width);
+}
+
+/* Sidebar */
+.darkone-admin .app-sidebar {
+  position: fixed;
+  width: var(--bs-sidebar-width);
+  height: 100%;
+  background-color: var(--bs-sidebar-bg);
+  z-index: 1002;
+  left: 0;
+  top: 0;
+  transition: all 0.3s ease-in-out;
+  border-right: 1px solid var(--bs-sidebar-border-color);
+  overflow: hidden;
+}
+
+.darkone-admin .logo-box {
+  height: var(--bs-topbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--bs-sidebar-border-color);
+}
+
+.darkone-admin .logo-box .logo-lg {
+  height: var(--bs-logo-lg-height);
+}
+
+.darkone-admin .logo-box .logo-sm {
+  height: var(--bs-logo-sm-height);
+  margin-right: 0.5rem;
+}
+
+.darkone-admin .logo-dark {
+  display: none;
+}
+
+.darkone-admin .logo-light {
+  display: flex;
+  align-items: center;
+}
+
+/* Navigation */
+.darkone-admin .navbar-nav {
+  list-style: none;
+  padding: 0.75rem;
+  margin: 0;
+}
+
+.darkone-admin .menu-title {
+  color: var(--bs-sidebar-item-color);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: var(--bs-sidebar-item-padding-y) var(--bs-sidebar-item-padding-x);
+  margin-top: 0.5rem;
+}
+
+.darkone-admin .nav-item {
+  margin: var(--bs-sidebar-item-margin-y) 0;
+}
+
+.darkone-admin .nav-link {
+  display: flex;
+  align-items: center;
+  padding: var(--bs-sidebar-item-padding-y) var(--bs-sidebar-item-padding-x);
+  color: var(--bs-sidebar-item-color);
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+  font-size: var(--bs-sidebar-item-font-size);
+}
+
+.darkone-admin .nav-link:hover {
+  background-color: var(--bs-sidebar-item-hover-bg);
+  color: var(--bs-sidebar-item-hover-color);
+}
+
+.darkone-admin .nav-link.active {
+  background-color: var(--bs-primary);
+  color: #ffffff;
+}
+
+.darkone-admin .nav-icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.625rem;
+  font-size: var(--bs-sidebar-item-icon-size);
+}
+
+.darkone-admin .nav-text {
+  flex: 1;
+}
+
+.darkone-admin .menu-arrow::after {
+  content: "";
+  display: inline-block;
+  border: solid var(--bs-sidebar-item-color);
+  border-width: 0 1.5px 1.5px 0;
+  padding: 2.5px;
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease-in-out;
+  margin-left: auto;
+}
+
+.darkone-admin .nav-link[aria-expanded="true"].menu-arrow::after {
+  transform: rotate(45deg);
+}
+
+.darkone-admin .sub-navbar-nav {
+  list-style: none;
+  padding-left: 2.25rem;
+  margin: 0;
+}
+
+.darkone-admin .sub-nav-link {
+  display: block;
+  padding: 0.375rem 0.75rem;
+  color: var(--bs-sidebar-item-color);
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.darkone-admin .sub-nav-link:hover {
+  color: var(--bs-sidebar-item-hover-color);
+}
+
+/* Topbar */
+.darkone-admin .app-topbar {
+  top: 0;
+  z-index: 1005;
+  position: sticky;
+  transition: all 0.3s ease-in-out;
+  height: var(--bs-topbar-height);
+  background-color: var(--bs-topbar-bg);
+  padding-left: var(--bs-sidebar-width);
+  border-bottom: 1px solid var(--bs-card-border-color);
+}
+
+.darkone-admin .navbar-header {
+  display: flex;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  height: 100%;
+}
+
+.darkone-admin .topbar-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--bs-topbar-height);
+}
+
+.darkone-admin .topbar-button {
+  border: none;
+  border-radius: 50%;
+  background-color: var(--bs-topbar-search-bg);
+  transition: all 0.3s ease-in-out;
+  color: var(--bs-topbar-item-color);
+  padding: 0.5rem;
+  position: relative;
+  cursor: pointer;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.darkone-admin .topbar-button:hover {
+  color: var(--bs-primary);
+}
+
+.darkone-admin .app-search {
+  position: relative;
+}
+
+.darkone-admin .app-search .form-control {
+  border: none;
+  padding-left: 40px;
+  padding-right: 15px;
+  background-color: var(--bs-topbar-search-bg);
+  box-shadow: none;
+  height: 38px;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  color: var(--bs-body-color);
+}
+
+.darkone-admin .app-search .search-widget-icon {
+  position: absolute;
+  z-index: 10;
+  font-size: 18px;
+  left: 11px;
+  top: 50%;
+  color: #8486a7;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+/* Footer */
+.darkone-admin .footer {
+  bottom: 0;
+  right: 0;
+  left: 0;
+  position: absolute;
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  color: var(--bs-body-color);
+  height: var(--bs-footer-height);
+  border-top: 1px solid var(--bs-card-border-color);
+}
+
+/* Page Title */
+.darkone-admin .page-title-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.darkone-admin .page-title-box h4 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--bs-body-color);
+}
+
+.darkone-admin .breadcrumb {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.darkone-admin .breadcrumb-item + .breadcrumb-item::before {
+  content: "/";
+  padding: 0 0.5rem;
+  color: var(--bs-body-color);
+}
+
+.darkone-admin .breadcrumb-item a {
+  color: var(--bs-primary);
+  text-decoration: none;
+}
+
+.darkone-admin .breadcrumb-item.active {
+  color: var(--bs-body-color);
+}
+
+/* Cards */
+.darkone-admin .card {
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-card-border-color);
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.darkone-admin .card-body {
+  padding: 1.25rem;
+}
+
+.darkone-admin .card-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--bs-card-border-color);
+  background-color: transparent;
+}
+
+.darkone-admin .card-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.darkone-admin .card-height-100 {
+  height: calc(100% - 1.5rem);
+}
+
+/* Avatar */
+.darkone-admin .avatar-md {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.darkone-admin .avatar-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.darkone-admin .avatar-xs {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.darkone-admin .avatar-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Badge */
+.darkone-admin .badge {
+  display: inline-block;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+}
+
+.darkone-admin .badge-pill {
+  border-radius: 50rem;
+}
+
+.darkone-admin .bg-primary { background-color: var(--bs-primary) !important; color: #fff; }
+.darkone-admin .bg-success { background-color: var(--bs-success) !important; color: #fff; }
+.darkone-admin .bg-danger { background-color: var(--bs-danger) !important; color: #fff; }
+.darkone-admin .bg-warning { background-color: var(--bs-warning) !important; color: #fff; }
+.darkone-admin .bg-info { background-color: var(--bs-info) !important; color: #fff; }
+
+.darkone-admin .badge-soft-success {
+  background-color: rgba(33, 215, 96, 0.18);
+  color: var(--bs-success);
+}
+
+.darkone-admin .badge-soft-warning {
+  background-color: rgba(240, 147, 78, 0.18);
+  color: var(--bs-warning);
+}
+
+.darkone-admin .badge-soft-danger {
+  background-color: rgba(237, 50, 31, 0.18);
+  color: var(--bs-danger);
+}
+
+.darkone-admin .bg-soft-primary {
+  background-color: rgba(126, 103, 254, 0.18);
+}
+
+/* Tables */
+.darkone-admin .table {
+  width: 100%;
+  margin-bottom: 1rem;
+  color: var(--bs-body-color);
+  border-collapse: collapse;
+}
+
+.darkone-admin .table th,
+.darkone-admin .table td {
+  padding: 0.75rem;
+  vertical-align: middle;
+  border-top: 1px solid var(--bs-card-border-color);
+}
+
+.darkone-admin .table thead th {
+  vertical-align: bottom;
+  border-bottom: 2px solid var(--bs-card-border-color);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  color: #6c757d;
+}
+
+.darkone-admin .table-hover tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.darkone-admin .table-centered th,
+.darkone-admin .table-centered td {
+  vertical-align: middle;
+}
+
+.darkone-admin .table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Buttons */
+.darkone-admin .btn {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+
+.darkone-admin .btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.darkone-admin .btn-primary {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: #fff;
+}
+
+.darkone-admin .btn-light {
+  background-color: var(--bs-light);
+  border-color: var(--bs-light);
+  color: var(--bs-dark);
+}
+
+.darkone-admin .btn-outline-light {
+  background-color: transparent;
+  border-color: var(--bs-card-border-color);
+  color: var(--bs-body-color);
+}
+
+.darkone-admin .btn-outline-light:hover,
+.darkone-admin .btn-outline-light.active {
+  background-color: var(--bs-light);
+}
+
+/* Grid System */
+.darkone-admin .container-fluid {
+  width: 100%;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.darkone-admin .row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.75rem;
+  margin-left: -0.75rem;
+}
+
+.darkone-admin .col-12 { flex: 0 0 100%; max-width: 100%; padding: 0 0.75rem; }
+.darkone-admin .col-6 { flex: 0 0 50%; max-width: 50%; padding: 0 0.75rem; }
+
+@media (min-width: 768px) {
+  .darkone-admin .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+}
+
+@media (min-width: 992px) {
+  .darkone-admin .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+}
+
+@media (min-width: 1200px) {
+  .darkone-admin .col-xl-3 { flex: 0 0 25%; max-width: 25%; }
+  .darkone-admin .col-xl-6 { flex: 0 0 50%; max-width: 50%; }
+}
+
+/* Utility Classes */
+.darkone-admin .d-flex { display: flex !important; }
+.darkone-admin .d-none { display: none !important; }
+.darkone-admin .d-block { display: block !important; }
+.darkone-admin .align-items-center { align-items: center !important; }
+.darkone-admin .justify-content-between { justify-content: space-between !important; }
+.darkone-admin .gap-2 { gap: 0.5rem !important; }
+.darkone-admin .flex-grow-1 { flex-grow: 1 !important; }
+.darkone-admin .flex-shrink-0 { flex-shrink: 0 !important; }
+.darkone-admin .text-center { text-align: center !important; }
+.darkone-admin .text-end { text-align: right !important; }
+.darkone-admin .text-muted { color: #6c757d !important; }
+.darkone-admin .text-dark { color: var(--bs-dark) !important; }
+.darkone-admin .text-primary { color: var(--bs-primary) !important; }
+.darkone-admin .text-danger { color: var(--bs-danger) !important; }
+.darkone-admin .text-success { color: var(--bs-success) !important; }
+.darkone-admin .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.darkone-admin .mb-0 { margin-bottom: 0 !important; }
+.darkone-admin .mb-1 { margin-bottom: 0.25rem !important; }
+.darkone-admin .mb-2 { margin-bottom: 0.5rem !important; }
+.darkone-admin .mt-2 { margin-top: 0.5rem !important; }
+.darkone-admin .mt-3 { margin-top: 1rem !important; }
+.darkone-admin .ms-1 { margin-left: 0.25rem !important; }
+.darkone-admin .ms-2 { margin-left: 0.5rem !important; }
+.darkone-admin .ms-auto { margin-left: auto !important; }
+.darkone-admin .me-2 { margin-right: 0.5rem !important; }
+.darkone-admin .me-auto { margin-right: auto !important; }
+.darkone-admin .p-2 { padding: 0.5rem !important; }
+.darkone-admin .pt-0 { padding-top: 0 !important; }
+.darkone-admin .pb-1 { padding-bottom: 0.25rem !important; }
+.darkone-admin .py-1 { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+.darkone-admin .fw-medium { font-weight: 500 !important; }
+.darkone-admin .fw-semibold { font-weight: 600 !important; }
+.darkone-admin .fs-10 { font-size: 0.625rem !important; }
+.darkone-admin .fs-16 { font-size: 1rem !important; }
+.darkone-admin .fs-18 { font-size: 1.125rem !important; }
+.darkone-admin .fs-20 { font-size: 1.25rem !important; }
+.darkone-admin .fs-22 { font-size: 1.375rem !important; }
+.darkone-admin .fs-24 { font-size: 1.5rem !important; }
+.darkone-admin .fs-32 { font-size: 2rem !important; }
+.darkone-admin .rounded { border-radius: 0.375rem !important; }
+.darkone-admin .rounded-circle { border-radius: 50% !important; }
+.darkone-admin .rounded-pill { border-radius: 50rem !important; }
+.darkone-admin .img-fluid { max-width: 100%; height: auto; }
+.darkone-admin .position-relative { position: relative !important; }
+.darkone-admin .position-absolute { position: absolute !important; }
+.darkone-admin .float-end { float: right !important; }
+.darkone-admin .border-bottom { border-bottom: 1px solid var(--bs-card-border-color) !important; }
+.darkone-admin .border-dashed { border-style: dashed !important; }
+.darkone-admin .bg-light { background-color: var(--bs-light) !important; }
+.darkone-admin .bg-opacity-50 { opacity: 0.5; }
+.darkone-admin .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.darkone-admin .align-middle { vertical-align: middle !important; }
+
+@media (min-width: 768px) {
+  .darkone-admin .d-md-block { display: block !important; }
+}
+
+/* Dropdown */
+.darkone-admin .dropdown {
+  position: relative;
+}
+
+.darkone-admin .dropdown-toggle::after {
+  display: none;
+}
+
+.darkone-admin .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  display: none;
+  min-width: 10rem;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-card-border-color);
+  border-radius: 0.375rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.darkone-admin .dropdown-menu.show {
+  display: block;
+}
+
+.darkone-admin .dropdown-menu-end {
+  right: 0;
+  left: auto;
+}
+
+.darkone-admin .dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  clear: both;
+  font-weight: 400;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  background-color: transparent;
+  border: 0;
+}
+
+.darkone-admin .dropdown-item:hover {
+  background-color: var(--bs-light);
+}
+
+.darkone-admin .dropdown-header {
+  display: block;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0;
+  font-size: 0.75rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+.darkone-admin .dropdown-divider {
+  height: 0;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  border-top: 1px solid var(--bs-card-border-color);
+}
+
+.darkone-admin .dropdown-lg {
+  min-width: 320px;
+}
+
+/* Topbar Badge */
+.darkone-admin .topbar-badge {
+  right: -7px;
+  top: 7px !important;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* Scrollbar for sidebar */
+.darkone-admin .scrollbar {
+  height: calc(100% - var(--bs-topbar-height));
+  overflow-y: auto;
+}
+
+.darkone-admin .scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.darkone-admin .scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+/* Collapse */
+.darkone-admin .collapse {
+  display: none;
+}
+
+.darkone-admin .collapse.show {
+  display: block;
+}
+
+/* Animated Stars */
+.darkone-admin .animated-stars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Chart container placeholder */
+.darkone-admin .apex-charts {
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  font-size: 0.875rem;
+}
+
+.darkone-admin #world-map-markers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #adb5bd;
+  font-size: 0.875rem;
+}
+
+/* Form Control */
+.darkone-admin .form-control {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--bs-body-color);
+  background-color: var(--bs-card-bg);
+  background-clip: padding-box;
+  border: 1px solid var(--bs-card-border-color);
+  border-radius: 0.25rem;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.darkone-admin .form-control:focus {
+  border-color: var(--bs-primary);
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(126, 103, 254, 0.25);
+}
+
+/* Text decoration */
+.darkone-admin .text-decoration-underline {
+  text-decoration: underline !important;
+}
+
+/* Link styling */
+.darkone-admin a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.darkone-admin a:hover {
+  color: var(--bs-primary);
+}
+
+/* H3 styling for cards */
+.darkone-admin h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.darkone-admin h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.darkone-admin h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.darkone-admin p {
+  margin: 0;
+}
+
+/* Mini Chart Containers */
+.darkone-admin [id^="chart0"] {
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Text wrap */
+.darkone-admin .text-wrap {
+  white-space: normal !important;
+}
