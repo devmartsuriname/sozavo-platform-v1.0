@@ -123,12 +123,13 @@
   width: var(--bs-sidebar-width);
   height: 100%;
   background-color: var(--bs-sidebar-bg);
-  z-index: 1002;
+  z-index: 1010;
   left: 0;
   top: 0;
   transition: all 0.3s ease-in-out;
   border-right: 1px solid var(--bs-sidebar-border-color);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .darkone-admin .logo-box {
@@ -139,6 +140,7 @@
   padding: 0 1rem;
   border-bottom: 1px solid var(--bs-sidebar-border-color);
   background-color: var(--bs-sidebar-bg);
+  flex-shrink: 0;
 }
 
 .darkone-admin .logo-box a {
@@ -1522,7 +1524,8 @@
 /* Scrollbar styling */
 .darkone-admin .scrollbar {
   overflow-y: auto;
-  height: calc(100% - var(--bs-topbar-height) - 60px);
+  flex: 1;
+  min-height: 0;
 }
 
 .darkone-admin .scrollbar::-webkit-scrollbar {
