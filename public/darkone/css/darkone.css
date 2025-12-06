@@ -935,18 +935,134 @@
 }
 
 /* Auth Logo - Light/Dark Toggle */
-.authentication-bg .auth-logo .logo-light {
-  display: block;
-}
-.authentication-bg .auth-logo .logo-dark {
+.auth-logo .logo-light {
   display: none;
 }
-[data-bs-theme="light"] .authentication-bg .auth-logo .logo-light {
-  display: none;
-}
-[data-bs-theme="light"] .authentication-bg .auth-logo .logo-dark {
+.auth-logo .logo-dark {
   display: block;
 }
+[data-bs-theme="dark"] .auth-logo .logo-light {
+  display: block;
+}
+[data-bs-theme="dark"] .auth-logo .logo-dark {
+  display: none;
+}
+
+/* Auth Page Additional Classes */
+.authentication-bg .btn-dark {
+  background-color: #212529;
+  border-color: #212529;
+  color: #fff;
+}
+
+.authentication-bg .btn-dark:hover {
+  background-color: #1a1e21;
+  border-color: #151719;
+}
+
+.authentication-bg .btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.authentication-bg .fw-bold {
+  font-weight: 700 !important;
+}
+
+.authentication-bg .fw-medium {
+  font-weight: 500 !important;
+}
+
+.authentication-bg .small {
+  font-size: 0.875em;
+}
+
+.authentication-bg .text-white {
+  color: #fff !important;
+}
+
+.authentication-bg .text-white.text-opacity-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.authentication-bg .text-dark {
+  color: #212529 !important;
+}
+
+.authentication-bg .form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.5rem;
+  padding-left: 0;
+}
+
+.authentication-bg .form-check-input {
+  width: 1em;
+  height: 1em;
+  margin: 0;
+  background-color: var(--bs-card-bg);
+  border: 1px solid var(--bs-card-border-color);
+  border-radius: 0.25em;
+  cursor: pointer;
+}
+
+.authentication-bg .form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.authentication-bg .form-check-label {
+  cursor: pointer;
+}
+
+.authentication-bg .d-grid {
+  display: grid;
+}
+
+.authentication-bg .d-flex {
+  display: flex;
+}
+
+.authentication-bg .justify-content-between {
+  justify-content: space-between;
+}
+
+.authentication-bg .align-items-center {
+  align-items: center;
+}
+
+.authentication-bg .text-decoration-none {
+  text-decoration: none !important;
+}
+
+.authentication-bg .text-decoration-none:hover {
+  text-decoration: underline !important;
+}
+
+.authentication-bg a.text-white {
+  color: #fff !important;
+}
+
+.authentication-bg a.text-white:hover {
+  color: #fff !important;
+}
+
+[data-bs-theme="dark"] .authentication-bg .text-dark {
+  color: #fff !important;
+}
+
+[data-bs-theme="dark"] .authentication-bg .btn-dark {
+  background-color: #f8f9fa;
+  border-color: #f8f9fa;
+  color: #212529;
+}
+
+[data-bs-theme="dark"] .authentication-bg .btn-dark:hover {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
 
 /* =====================================================
    Nav Tabs Component

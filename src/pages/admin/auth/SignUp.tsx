@@ -9,11 +9,9 @@ const SignUp = () => {
                 <div className="card-body p-5">
                   <div className="text-center">
                     <div className="mx-auto mb-4 text-center auth-logo">
-                      <a href="/admin" className="logo-dark">
-                        <img src="/darkone/images/logo-dark.png" height="32" alt="logo dark" />
-                      </a>
-                      <a href="/admin" className="logo-light">
-                        <img src="/darkone/images/logo-light.png" height="28" alt="logo light" />
+                      <a href="/admin">
+                        <img src="/darkone/images/logo-dark.png" height="32" alt="logo" className="logo-dark" />
+                        <img src="/darkone/images/logo-light.png" height="28" alt="logo" className="logo-light" />
                       </a>
                     </div>
                     <h4 className="fw-bold text-dark mb-2">Sign Up</h4>
