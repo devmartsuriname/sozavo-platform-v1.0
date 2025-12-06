@@ -1,5 +1,6 @@
 import PageTitle from "@/components/darkone/layout/PageTitle";
 import Icon from "@/components/darkone/ui/Icon";
+import { SparklineChart, RevenueChart, SalesCategoryChart } from "@/components/darkone/charts";
 
 const Dashboard = () => {
   return (
@@ -24,7 +25,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div id="chart01"></div>
+            <SparklineChart data={[25, 28, 32, 38, 43, 55, 60, 48, 42, 51, 35]} />
           </div>
         </div>
 
@@ -44,7 +45,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div id="chart02"></div>
+            <SparklineChart data={[87, 54, 4, 76, 31, 95, 70, 92, 53, 9, 6]} />
           </div>
         </div>
 
@@ -64,7 +65,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div id="chart03"></div>
+            <SparklineChart data={[41, 42, 35, 42, 6, 12, 13, 22, 42, 94, 95]} />
           </div>
         </div>
 
@@ -84,7 +85,7 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-            <div id="chart04"></div>
+            <SparklineChart data={[8, 41, 40, 48, 77, 35, 0, 77, 63, 100, 71]} />
           </div>
         </div>
       </div>
@@ -104,8 +105,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="card-body pt-0">
-              <div id="dash-performance-chart" className="apex-charts">
-                [Revenue Chart Placeholder]
+              <div className="apex-charts">
+                <RevenueChart />
               </div>
             </div>
           </div>
@@ -124,8 +125,8 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="card-body">
-              <div id="conversions" className="apex-charts">
-                [Sales Chart Placeholder]
+              <div className="apex-charts">
+                <SalesCategoryChart />
               </div>
               <div className="table-responsive mb-n1 mt-2">
                 <table className="table table-nowrap table-borderless table-sm table-centered mb-0">
@@ -180,8 +181,19 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="card-body pt-0">
-              <div id="world-map-markers" className="mt-3" style={{ height: "309px" }}>
-                [World Map Placeholder]
+              <div 
+                className="mt-3 d-flex align-items-center justify-content-center rounded" 
+                style={{ 
+                  height: "309px",
+                  backgroundColor: 'rgba(169, 183, 197, 0.1)',
+                  border: '1px dashed rgba(169, 183, 197, 0.3)'
+                }}
+              >
+                <div className="text-center">
+                  <i className="bx bx-globe fs-48 text-primary"></i>
+                  <p className="text-muted mb-0 mt-2">World Map</p>
+                  <small className="text-muted">jsVectorMap integration</small>
+                </div>
               </div>
             </div>
           </div>
