@@ -1,9 +1,105 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.3 (Phase 9D-2A Update)  
+> **Version:** 3.4 (Phase 9D-2B Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-2B – Eligibility UI Architecture
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       ELIGIBILITY UI MODULE (Phase 9D-2B)                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   QUERY LAYER (src/integrations/supabase/queries/eligibility.ts)            │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ getEligibilitySummary(caseId)                                         │  │
+│   │   → eligibility_evaluations.select().eq('case_id').maybeSingle()     │  │
+│   │   → Returns: EligibilityEvaluation | null                            │  │
+│   │                                                                       │  │
+│   │ getEligibilityRulesForService(serviceTypeId)                          │  │
+│   │   → eligibility_rules.select().eq('service_type_id').eq('is_active') │  │
+│   │   → Returns: EligibilityRule[]                                        │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   COMPONENTS                                                                 │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ EligibilityResultBadge                                                │  │
+│   │   → Maps result string to DarkoneBadge variant                       │  │
+│   │   → ELIGIBLE/approved → success (soft)                               │  │
+│   │   → INELIGIBLE/rejected → danger (soft)                              │  │
+│   │   → pending/null → secondary (soft)                                  │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CaseEligibilityPanel (replaces CaseEligibilityPlaceholder)           │  │
+│   │   ├── Loading skeleton (placeholder-glow)                            │  │
+│   │   ├── Error alert (alert-danger)                                     │  │
+│   │   ├── Empty state ("No evaluation available")                        │  │
+│   │   └── Evaluation display:                                            │  │
+│   │       ├── Result badge + Evaluated At                                │  │
+│   │       ├── Override info (alert-info, if override_reason exists)      │  │
+│   │       └── Criteria Results Table:                                    │  │
+│   │           ├── Rule Name (matched from rules or formatted key)        │  │
+│   │           ├── Mandatory (Yes/No badge or —)                          │  │
+│   │           └── Result (Pass/Fail badge)                               │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       ELIGIBILITY UI DATA FLOW                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌───────────────────┐                                                      │
+│   │  CaseDetailPage   │                                                      │
+│   │  (useEffect #1)   │ ─── getCaseById(id) ───▶ caseData                    │
+│   └─────────┬─────────┘                                                      │
+│             │                                                                │
+│             │ caseData loaded (triggers useEffect #3)                        │
+│             ▼                                                                │
+│   ┌───────────────────┐                                                      │
+│   │  CaseDetailPage   │                                                      │
+│   │  (useEffect #3)   │                                                      │
+│   └─────────┬─────────┘                                                      │
+│             │                                                                │
+│             ├── getEligibilitySummary(id)                                    │
+│             │         │                                                      │
+│             │         ▼ RLS: has_case_access(case_id)                        │
+│             │   ┌─────────────────────────────────────┐                      │
+│             │   │   eligibility_evaluations table     │                      │
+│             │   │   → result, criteria_results, ...   │                      │
+│             │   └─────────────────────────────────────┘                      │
+│             │                                                                │
+│             └── getEligibilityRulesForService(service_type_id)               │
+│                       │                                                      │
+│                       ▼ RLS: authenticated read access                       │
+│                 ┌─────────────────────────────────────┐                      │
+│                 │     eligibility_rules table         │                      │
+│                 │     → rule_name, is_mandatory, ...  │                      │
+│                 └─────────────────────────────────────┘                      │
+│                                                                              │
+│             │                         │                                      │
+│             ▼                         ▼                                      │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    CaseEligibilityPanel                      │           │
+│   │   evaluation={...}  rules={...}  isLoading  error            │           │
+│   │       │                 │                                    │           │
+│   │       ▼                 ▼                                    │           │
+│   │   EligibilityResultBadge   Criteria Results Table            │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
