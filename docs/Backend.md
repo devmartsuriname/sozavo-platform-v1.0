@@ -1,0 +1,689 @@
+# SoZaVo Platform v1.0 – Backend Documentation
+
+> **Version:** 1.0 (Consolidated)  
+> **Status:** Reference Document  
+> **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## 1. Backend Overview
+
+### 1.1 Technology Stack
+| Component | Technology |
+|-----------|------------|
+| Database | PostgreSQL (Supabase) |
+| Authentication | Supabase Auth |
+| File Storage | Supabase Storage |
+| Edge Functions | Supabase Edge Functions (Deno) |
+| Real-time | Supabase Realtime (subscriptions) |
+
+### 1.2 Backend Responsibilities
+- Data persistence and integrity
+- Authentication and authorization
+- Row-level security enforcement
+- External system integrations
+- Scheduled tasks and background jobs
+- File storage management
+
+---
+
+## 2. Database Schema
+
+### 2.1 Table Creation Order
+Tables must be created in dependency order:
+
+1. `service_types`
+2. `offices`
+3. `citizens`
+4. `users`
+5. `cases`
+6. `case_events`
+7. `documents`
+8. `eligibility_rules`
+9. `eligibility_evaluations`
+10. `document_requirements`
+11. `workflow_definitions`
+12. `payments`
+13. `notifications`
+14. `portal_notifications`
+
+### 2.2 Core Tables
+
+#### service_types
+```sql
+CREATE TABLE service_types (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  code TEXT UNIQUE NOT NULL,
+  description TEXT,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### citizens
+```sql
+CREATE TABLE citizens (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  national_id TEXT UNIQUE NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  date_of_birth DATE NOT NULL,
+  gender TEXT,
+  address TEXT,
+  district TEXT,
+  phone TEXT,
+  email TEXT,
+  household_members JSONB DEFAULT '[]',
+  bis_verified BOOLEAN DEFAULT false,
+  bis_verified_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### cases
+```sql
+CREATE TABLE cases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_reference TEXT UNIQUE NOT NULL,
+  citizen_id UUID REFERENCES citizens(id) NOT NULL,
+  service_type_id UUID REFERENCES service_types(id) NOT NULL,
+  current_status TEXT NOT NULL DEFAULT 'intake',
+  case_handler_id UUID REFERENCES users(id),
+  intake_office_id UUID REFERENCES offices(id),
+  wizard_data JSONB DEFAULT '{}',
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### case_events
+```sql
+CREATE TABLE case_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id UUID REFERENCES cases(id) NOT NULL,
+  event_type TEXT NOT NULL,
+  actor_id UUID REFERENCES users(id),
+  previous_status TEXT,
+  new_status TEXT,
+  meta JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### documents
+```sql
+CREATE TABLE documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id UUID REFERENCES cases(id) NOT NULL,
+  document_type TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  file_size INTEGER,
+  mime_type TEXT,
+  status TEXT DEFAULT 'pending',
+  expires_at DATE,
+  verified_by UUID REFERENCES users(id),
+  verified_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### eligibility_evaluations
+```sql
+CREATE TABLE eligibility_evaluations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id UUID REFERENCES cases(id) NOT NULL,
+  result TEXT NOT NULL,
+  criteria_results JSONB NOT NULL,
+  override_reason TEXT,
+  overridden_by UUID REFERENCES users(id),
+  evaluated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+#### payments
+```sql
+CREATE TABLE payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id UUID REFERENCES cases(id) NOT NULL,
+  amount DECIMAL(12,2) NOT NULL,
+  payment_type TEXT NOT NULL,
+  payment_date DATE,
+  status TEXT DEFAULT 'pending',
+  subema_reference TEXT,
+  subema_synced_at TIMESTAMPTZ,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### 2.3 Enumerations
+```sql
+CREATE TYPE case_status AS ENUM (
+  'intake',
+  'validation',
+  'eligibility_check',
+  'under_review',
+  'approved',
+  'rejected',
+  'payment_pending',
+  'payment_processed',
+  'closed',
+  'on_hold'
+);
+
+CREATE TYPE document_type AS ENUM (
+  'id_card',
+  'income_proof',
+  'medical_certificate',
+  'birth_certificate',
+  'school_enrollment',
+  'address_proof',
+  'marriage_certificate',
+  'other'
+);
+
+CREATE TYPE document_status AS ENUM (
+  'pending',
+  'verified',
+  'rejected',
+  'expired'
+);
+
+CREATE TYPE user_role AS ENUM (
+  'system_admin',
+  'district_intake_officer',
+  'case_handler',
+  'case_reviewer',
+  'department_head',
+  'audit'
+);
+
+CREATE TYPE payment_status AS ENUM (
+  'pending',
+  'processed',
+  'failed'
+);
+```
+
+### 2.4 Required Indexes
+```sql
+CREATE INDEX idx_cases_citizen ON cases(citizen_id);
+CREATE INDEX idx_cases_status ON cases(current_status);
+CREATE INDEX idx_cases_handler ON cases(case_handler_id);
+CREATE INDEX idx_cases_service ON cases(service_type_id);
+CREATE INDEX idx_case_events_case ON case_events(case_id);
+CREATE INDEX idx_documents_case ON documents(case_id);
+CREATE INDEX idx_citizens_national_id ON citizens(national_id);
+CREATE INDEX idx_payments_case ON payments(case_id);
+CREATE INDEX idx_payments_status ON payments(status);
+```
+
+---
+
+## 3. Row-Level Security (RLS)
+
+### 3.1 RLS-Enabled Tables
+- citizens
+- cases
+- case_events
+- documents
+- eligibility_evaluations
+- payments
+- users
+- offices
+
+### 3.2 Policy Patterns
+
+#### Helper Function
+```sql
+CREATE OR REPLACE FUNCTION get_user_context()
+RETURNS TABLE (
+  user_id UUID,
+  user_role TEXT,
+  user_office_id UUID,
+  user_district_id UUID
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    id,
+    role,
+    office_id,
+    district_id
+  FROM users
+  WHERE auth_user_id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+#### Citizens Table Policies
+```sql
+-- Handlers see citizens in their district
+CREATE POLICY "handlers_read_district_citizens"
+ON citizens FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM users u
+    WHERE u.auth_user_id = auth.uid()
+    AND u.role IN ('case_handler', 'district_intake_officer')
+    AND u.district_id = citizens.district
+  )
+);
+
+-- Reviewers and admins see all
+CREATE POLICY "reviewers_admins_read_all"
+ON citizens FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM users u
+    WHERE u.auth_user_id = auth.uid()
+    AND u.role IN ('case_reviewer', 'department_head', 'system_admin', 'audit')
+  )
+);
+```
+
+#### Cases Table Policies
+```sql
+-- Handlers see cases assigned to them or in their district
+CREATE POLICY "handlers_read_cases"
+ON cases FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM users u
+    WHERE u.auth_user_id = auth.uid()
+    AND (
+      u.role = 'system_admin'
+      OR cases.case_handler_id = u.id
+      OR (u.role = 'district_intake_officer' AND cases.intake_office_id = u.office_id)
+    )
+  )
+);
+
+-- Reviewers see cases under_review
+CREATE POLICY "reviewers_read_under_review"
+ON cases FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM users u
+    WHERE u.auth_user_id = auth.uid()
+    AND u.role = 'case_reviewer'
+    AND cases.current_status = 'under_review'
+  )
+);
+```
+
+### 3.3 Secure Query Pattern
+All queries must use authenticated Supabase client:
+
+```typescript
+// Correct pattern
+const { data, error } = await supabase
+  .from('cases')
+  .select('*')
+  .eq('current_status', 'under_review');
+
+// NEVER use service role key in frontend
+```
+
+---
+
+## 4. Edge Functions
+
+### 4.1 Function Overview
+
+| Function | Purpose | Auth Required |
+|----------|---------|---------------|
+| bis-lookup | Query BIS for citizen data | Yes |
+| subema-sync | Sync payments with Subema | Yes |
+| eligibility-evaluate | Run eligibility check | Yes |
+| send-notification | Send email/SMS notifications | Yes |
+| generate-report | Generate CSV reports | Yes |
+
+### 4.2 BIS Lookup Function
+
+**Endpoint:** `/functions/v1/bis-lookup`
+
+**Request:**
+```json
+{
+  "national_id": "123456789"
+}
+```
+
+**Response:**
+```json
+{
+  "found": true,
+  "data": {
+    "national_id": "123456789",
+    "first_name": "Jan",
+    "last_name": "Jansen",
+    "date_of_birth": "1985-03-15",
+    "address": "Kernkampweg 42",
+    "district": "Paramaribo"
+  }
+}
+```
+
+**Error Response:**
+```json
+{
+  "found": false,
+  "error": "Citizen not found in BIS"
+}
+```
+
+### 4.3 Subema Sync Function
+
+**Endpoint:** `/functions/v1/subema-sync`
+
+**Request:**
+```json
+{
+  "action": "submit_batch",
+  "payment_ids": ["uuid1", "uuid2"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "processed": 2,
+  "results": [
+    { "payment_id": "uuid1", "subema_reference": "SUB-2024-001" },
+    { "payment_id": "uuid2", "subema_reference": "SUB-2024-002" }
+  ]
+}
+```
+
+### 4.4 Standard Edge Function Template
+
+```typescript
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+serve(async (req) => {
+  // Handle CORS preflight
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      }
+    );
+
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+    if (userError) throw new Error("Unauthorized");
+
+    const body = await req.json();
+    
+    // Function logic here
+    
+    return new Response(
+      JSON.stringify({ success: true }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error:", error.message);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+});
+```
+
+---
+
+## 5. Authentication
+
+### 5.1 Internal Users (Admin System)
+- Email/password authentication
+- User record in `users` table linked to `auth.users`
+- Role stored in `users.role`
+- Session management via Supabase Auth
+
+### 5.2 Citizens (Public Portal)
+- Email/password authentication
+- Stored in `auth.users`
+- Linked to `citizens` table via lookup
+- Separate from internal user pool
+
+### 5.3 Session Handling
+```typescript
+// Check authentication
+const { data: { user }, error } = await supabase.auth.getUser();
+
+// Get user role
+const { data: userData } = await supabase
+  .from('users')
+  .select('role, office_id, district_id')
+  .eq('auth_user_id', user.id)
+  .single();
+```
+
+---
+
+## 6. Storage
+
+### 6.1 Bucket Structure
+```
+documents/
+├── cases/
+│   └── {case_id}/
+│       └── {document_type}_{timestamp}.{ext}
+└── temp/
+    └── {upload_id}.{ext}
+```
+
+### 6.2 Storage Policies
+- Documents bucket: authenticated access only
+- Read access follows case access rules
+- Upload requires authenticated user
+- Delete restricted to admins
+
+### 6.3 Upload Pattern
+```typescript
+const { data, error } = await supabase.storage
+  .from('documents')
+  .upload(`cases/${caseId}/${fileName}`, file);
+```
+
+---
+
+## 7. Business Logic Engines
+
+### 7.1 Workflow Engine
+**Location:** `src/integrations/engines/workflowEngine.ts`
+
+**Responsibilities:**
+- Validate status transitions
+- Apply transitions with actor context
+- Log events to case_events
+- Enforce role permissions
+
+**Key Functions:**
+- `transitionCase(caseId, newStatus, actorId)`
+- `getValidTransitions(currentStatus, userRole)`
+- `isTransitionAllowed(from, to, serviceType)`
+
+### 7.2 Eligibility Engine
+**Location:** `src/integrations/engines/eligibilityEngine.ts`
+
+**Responsibilities:**
+- Load rules for service type
+- Evaluate criteria against case data
+- Store evaluation results
+- Support manual overrides
+
+**Key Functions:**
+- `evaluateEligibility(caseId)`
+- `getEligibilityRules(serviceTypeId)`
+- `overrideEligibility(evaluationId, reason, actorId)`
+
+### 7.3 Document Validation Engine
+**Location:** `src/integrations/engines/documentValidationEngine.ts`
+
+**Responsibilities:**
+- Check required documents
+- Validate document status
+- Track expiration
+- Generate missing document list
+
+**Key Functions:**
+- `validateDocuments(caseId)`
+- `getRequiredDocuments(serviceTypeId)`
+- `getMissingDocuments(caseId)`
+
+---
+
+## 8. Data Operations
+
+### 8.1 Query Functions Location
+All query functions in: `src/integrations/supabase/queries/`
+
+| File | Purpose |
+|------|---------|
+| cases.ts | Case CRUD operations |
+| citizens.ts | Citizen CRUD operations |
+| documents.ts | Document operations |
+| reports.ts | Reporting queries |
+| eligibility.ts | Eligibility operations |
+
+### 8.2 Standard Query Pattern
+```typescript
+export async function getCaseById(caseId: string) {
+  const { data, error } = await supabase
+    .from('cases')
+    .select(`
+      *,
+      citizen:citizens(*),
+      service_type:service_types(*),
+      handler:users(*)
+    `)
+    .eq('id', caseId)
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+```
+
+### 8.3 Pagination Pattern
+```typescript
+export async function getCases(page: number, pageSize: number = 20) {
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+  
+  const { data, error, count } = await supabase
+    .from('cases')
+    .select('*', { count: 'exact' })
+    .range(from, to)
+    .order('created_at', { ascending: false });
+  
+  return { data, count, page, pageSize };
+}
+```
+
+---
+
+## 9. MVP vs Extended Backend
+
+### 9.1 MVP Backend (Phases 1–9)
+- Database schema creation
+- Basic CRUD operations
+- Authentication setup
+- RLS policies
+- Document storage
+- Eligibility engine
+- Workflow engine
+- Portal notifications (internal)
+
+### 9.2 Extended Backend (Phases 10–17)
+- BIS integration edge function
+- Subema integration edge function
+- Payment processing logic
+- Email notifications
+- SMS notifications
+- Audit logging enhancements
+- Fraud detection rules
+- Performance optimizations
+
+---
+
+## 10. Error Handling
+
+### 10.1 Database Errors
+```typescript
+try {
+  const { data, error } = await supabase.from('cases').insert(caseData);
+  if (error) {
+    if (error.code === '23505') {
+      throw new Error('Duplicate case reference');
+    }
+    if (error.code === '42501') {
+      throw new Error('Permission denied');
+    }
+    throw error;
+  }
+} catch (e) {
+  console.error('Database error:', e);
+  throw e;
+}
+```
+
+### 10.2 Edge Function Errors
+- Log all errors with context
+- Return structured error responses
+- Never expose internal details to client
+
+---
+
+## 11. Scheduled Tasks
+
+### 11.1 Planned Tasks (Extended Phase)
+| Task | Frequency | Purpose |
+|------|-----------|---------|
+| payment-sync | Daily | Sync payment status with Subema |
+| document-expiry-check | Daily | Flag expired documents |
+| notification-digest | Daily | Send notification summaries |
+| audit-log-archive | Weekly | Archive old audit logs |
+
+---
+
+## 12. Secrets Management
+
+### 12.1 Required Secrets
+| Secret | Purpose |
+|--------|---------|
+| BIS_API_KEY | BIS integration authentication |
+| BIS_API_URL | BIS API endpoint |
+| SUBEMA_API_KEY | Subema payment integration |
+| SUBEMA_API_URL | Subema API endpoint |
+| RESEND_API_KEY | Email sending (future) |
+
+### 12.2 Secret Usage
+- Stored in Supabase project secrets
+- Accessed via `Deno.env.get()` in edge functions
+- Never exposed to frontend
+
+---
+
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v1.0**
