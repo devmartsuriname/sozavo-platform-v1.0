@@ -77,9 +77,8 @@ const RevenueChart = () => {
       offsetX: 0,
       offsetY: 5,
       markers: {
-        width: 9,
-        height: 9,
-        radius: 6,
+        size: 6,
+        strokeWidth: 0,
       },
       itemMargin: {
         horizontal: 10,
