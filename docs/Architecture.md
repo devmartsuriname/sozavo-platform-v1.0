@@ -1,9 +1,113 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.0 (Consolidated & Stabilized)  
+> **Version:** 3.1 (Phase 9D-0 Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-0 Database Layer
+
+### Database Schema Overview
+
+The complete database schema has been created following Data Dictionary v1.0 specifications:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DATABASE LAYER (PostgreSQL)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ENUMS (9)                              SECURITY DEFINER FUNCTIONS (10+)   │
+│   ├── case_status (10 values)            ├── has_role()                     │
+│   ├── document_type (10 values)          ├── is_admin()                     │
+│   ├── document_status (4 values)         ├── current_user_id()              │
+│   ├── payment_status (4 values)          ├── get_user_internal_id()         │
+│   ├── batch_status (8 values)            ├── has_case_access()              │
+│   ├── payment_item_status (6 values)     ├── is_case_handler()              │
+│   ├── fraud_severity (4 values)          ├── is_finance_officer()           │
+│   ├── risk_level (5 values)              ├── is_fraud_officer()             │
+│   └── audit_event_type (12 values)       └── ... (more role checks)         │
+│                                                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   CORE TABLES (22)                                                           │
+│   ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐             │
+│   │ service_types   │  │ offices         │  │ users           │             │
+│   │ (3 seeded)      │  │ (3 seeded)      │  │ (internal staff)│             │
+│   └─────────────────┘  └─────────────────┘  └─────────────────┘             │
+│           │                    │                    │                        │
+│           ▼                    ▼                    ▼                        │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                         cases                                │           │
+│   │ FK: citizen_id, service_type_id, intake_office_id,          │           │
+│   │     case_handler_id, reviewer_id, intake_officer_id          │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│           │          │          │          │          │                      │
+│           ▼          ▼          ▼          ▼          ▼                      │
+│   ┌───────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐        │
+│   │case_events│ │documents │ │eligibility│ │payments  │ │fraud_    │        │
+│   │           │ │          │ │evaluations│ │          │ │signals   │        │
+│   └───────────┘ └──────────┘ └──────────┘ └──────────┘ └──────────┘        │
+│                                    │              │          │               │
+│                                    ▼              ▼          ▼               │
+│                            ┌──────────┐  ┌──────────┐ ┌──────────┐          │
+│                            │payment_  │  │payment_  │ │fraud_risk│          │
+│                            │batches   │  │items     │ │scores    │          │
+│                            └──────────┘  └──────────┘ └──────────┘          │
+│                                                                              │
+│   SUPPORTING TABLES:                                                         │
+│   households, incomes, notifications, portal_notifications,                  │
+│   subema_sync_logs, wizard_definitions, eligibility_rules,                   │
+│   document_requirements, workflow_definitions                                │
+│                                                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ROW-LEVEL SECURITY (All 22 tables enabled)                                │
+│   ├── Open (authenticated): service_types, offices, users, citizens...     │
+│   ├── Case-based: cases, case_events, documents, eligibility_evaluations   │
+│   ├── Role-restricted: payment_batches (finance), fraud_signals (fraud)    │
+│   └── User-scoped: notifications (own), portal_notifications (own)         │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Table Dependencies (Creation Order)
+
+```
+Level 0 (No Dependencies):
+  ├── service_types
+  └── offices
+
+Level 1 (Depends on Level 0):
+  ├── users (FK: offices)
+  ├── citizens (FK: auth.users for portal_user_id)
+  ├── eligibility_rules (FK: service_types)
+  ├── document_requirements (FK: service_types)
+  ├── workflow_definitions (FK: service_types)
+  └── wizard_definitions (FK: service_types)
+
+Level 2 (Depends on Level 1):
+  ├── cases (FK: citizens, service_types, offices, users)
+  ├── households (FK: citizens)
+  └── payment_batches (FK: users)
+
+Level 3 (Depends on Level 2):
+  ├── case_events (FK: cases, users)
+  ├── documents (FK: cases, citizens, users)
+  ├── eligibility_evaluations (FK: cases, users)
+  ├── payments (FK: cases, citizens)
+  ├── fraud_signals (FK: cases, users)
+  ├── fraud_risk_scores (FK: cases)
+  ├── incomes (FK: citizens, cases, users)
+  ├── notifications (FK: users, cases)
+  └── portal_notifications (FK: citizens, cases)
+
+Level 4 (Depends on Level 3):
+  ├── payment_items (FK: payment_batches, payments, citizens)
+  └── subema_sync_logs (FK: payments)
+```
+
 ---
 
 ## 1. Architecture Overview

@@ -1,8 +1,89 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.2 (Phase 9C Update)  
+> **Version:** 1.3 (Phase 9D-0 Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-0 Implementation Status
+
+### Database Schema Creation (Complete)
+
+Phase 9D-0 created the complete database schema for the Admin MVP modules following Data Dictionary v1.0 specifications.
+
+#### Enums Created (9 total)
+| Enum | Values | Purpose |
+|------|--------|---------|
+| `case_status` | intake, validation, eligibility_check, under_review, approved, rejected, payment_pending, payment_processed, closed, on_hold | Case lifecycle states |
+| `document_type` | id_card, income_proof, medical_certificate, birth_certificate, school_enrollment, residency_proof, bank_statement, marriage_certificate, death_certificate, household_composition | Document classification |
+| `document_status` | pending, verified, rejected, expired | Document verification states |
+| `payment_status` | pending, processed, failed, cancelled | Payment processing states |
+| `batch_status` | draft, pending_approval, approved, submitted, processing, completed, failed, cancelled | Batch lifecycle states |
+| `payment_item_status` | pending, submitted, processing, completed, failed, returned | Individual payment item states |
+| `fraud_severity` | low, medium, high, critical | Fraud signal severity levels |
+| `risk_level` | minimal, low, medium, high, critical | Risk score categories |
+| `audit_event_type` | create, read, update, delete, login, logout, export, import, approval, rejection, override, escalation | Audit event classification |
+
+#### Tables Created (22 total)
+| # | Table | RLS | Purpose |
+|---|-------|-----|---------|
+| 1 | `service_types` | ✓ | Social service definitions (AB, FB, KB) |
+| 2 | `offices` | ✓ | District office locations |
+| 3 | `users` | ✓ | Internal staff profiles (separate from auth.users) |
+| 4 | `citizens` | ✓ | Central Citizen Record (CCR) |
+| 5 | `cases` | ✓ | Social service case records |
+| 6 | `case_events` | ✓ | Case audit trail |
+| 7 | `documents` | ✓ | Document metadata |
+| 8 | `eligibility_rules` | ✓ | Eligibility criteria definitions |
+| 9 | `eligibility_evaluations` | ✓ | Eligibility evaluation results |
+| 10 | `document_requirements` | ✓ | Required documents per service |
+| 11 | `workflow_definitions` | ✓ | Status transition rules |
+| 12 | `payments` | ✓ | Payment records |
+| 13 | `payment_batches` | ✓ | Payment batch groupings |
+| 14 | `payment_items` | ✓ | Individual batch payment items |
+| 15 | `fraud_signals` | ✓ | Detected fraud indicators |
+| 16 | `fraud_risk_scores` | ✓ | Aggregated risk scores per case |
+| 17 | `notifications` | ✓ | Internal staff notifications |
+| 18 | `portal_notifications` | ✓ | Citizen-facing notifications |
+| 19 | `households` | ✓ | Household composition records |
+| 20 | `incomes` | ✓ | Income records for eligibility |
+| 21 | `subema_sync_logs` | ✓ | Subema integration audit trail |
+| 22 | `wizard_definitions` | ✓ | Wizard step configurations |
+
+#### Security Definer Functions Created (10 total)
+| Function | Purpose |
+|----------|---------|
+| `current_user_id()` | Returns `auth.uid()` |
+| `get_user_internal_id()` | Returns internal `users.id` from auth user |
+| `has_case_access(_case_id)` | MVP placeholder (returns TRUE for authenticated) |
+| `is_case_handler()` | Checks if user has case_handler role |
+| `is_case_reviewer()` | Checks if user has case_reviewer role |
+| `is_finance_officer()` | Checks if user has finance_officer role |
+| `is_fraud_officer()` | Checks if user has fraud_officer role |
+| `is_department_head()` | Checks if user has department_head role |
+| `is_audit_viewer()` | Checks if user has audit_viewer role |
+| `is_district_intake_officer()` | Checks if user has district_intake_officer role |
+
+#### RLS Policies Created (22 SELECT policies)
+All tables have RLS enabled with read-only policies for MVP:
+- **Open to authenticated**: service_types, offices, users, citizens, eligibility_rules, document_requirements, workflow_definitions, households, wizard_definitions
+- **Case-access based**: cases, case_events, documents, eligibility_evaluations, payments, incomes
+- **Role-restricted**: payment_batches, payment_items (finance), fraud_signals, fraud_risk_scores (fraud), subema_sync_logs (finance)
+- **User-scoped**: notifications (own), portal_notifications (own citizen)
+
+#### Seed Data Inserted
+- 3 service types (AB, FB, KB)
+- 3 offices (Paramaribo, Nickerie, Wanica)
+- 3 sample citizens
+- 3 sample cases (different statuses)
+- 2 case events
+- 2 documents
+- 1 eligibility evaluation
+- 1 payment batch
+- 1 payment
+- 1 fraud signal
+- 1 fraud risk score
 
 ---
 
