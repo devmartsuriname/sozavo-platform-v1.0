@@ -1,45 +1,55 @@
+import { Link } from "react-router-dom";
+
 const SignIn = () => {
   return (
     <div className="authentication-bg">
-      <div className="account-pages">
-        <div className="card border-0 shadow-lg">
-          <div className="card-body p-5">
-            <div className="text-center">
-              <div className="mx-auto mb-4 text-center auth-logo">
-                <a href="/admin">
-                  <img src="/darkone/images/logo-dark.png" height="32" alt="logo" className="logo-dark" />
-                  <img src="/darkone/images/logo-light.png" height="28" alt="logo" className="logo-light" />
-                </a>
-              </div>
-              <h4 className="fw-bold mb-2">Welcome Back!</h4>
-              <p className="text-muted">Sign in to your account to continue</p>
-            </div>
-            <form action="/admin" className="mt-4">
-              <div className="mb-3">
-                <label htmlFor="email" className="form-label">Email Address</label>
-                <input type="email" className="form-control" id="email" placeholder="Enter your email" />
-              </div>
-              <div className="mb-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <label htmlFor="password" className="form-label">Password</label>
-                  <a href="/admin/auth/reset-password" className="text-decoration-none small text-muted">Forgot password?</a>
+      <div className="account-pages py-5">
+        <div className="container">
+          <div className="row justify-content-center">
+            <div className="col-md-6 col-lg-5 col-xl-4">
+              <div className="card border-0 shadow-lg">
+                <div className="card-body p-5">
+                  <div className="mx-auto mb-4 text-center auth-logo">
+                    <Link to="/admin" className="logo-dark">
+                      <img src="/darkone/images/logo-dark.png" height="32" alt="logo" />
+                    </Link>
+                    <Link to="/admin" className="logo-light">
+                      <img src="/darkone/images/logo-light.png" height="28" alt="logo" />
+                    </Link>
+                  </div>
+                  <div className="text-center">
+                    <h4 className="fw-bold mb-2">Welcome Back!</h4>
+                    <p className="text-muted">Sign in to your account to continue</p>
+                  </div>
+                  <form action="/admin" className="mt-4">
+                    <div className="mb-3">
+                      <label htmlFor="email" className="form-label">Email Address</label>
+                      <input type="email" className="form-control" id="email" placeholder="Enter your email" />
+                    </div>
+                    <div className="mb-3">
+                      <div className="d-flex justify-content-between align-items-center">
+                        <label htmlFor="password" className="form-label">Password</label>
+                        <Link to="/admin/auth/reset-password" className="text-decoration-none small text-muted">Forgot password?</Link>
+                      </div>
+                      <input type="password" className="form-control" id="password" placeholder="Enter your password" />
+                    </div>
+                    <div className="form-check mb-3">
+                      <input type="checkbox" className="form-check-input" id="remember-me" />
+                      <label className="form-check-label" htmlFor="remember-me">Remember me</label>
+                    </div>
+                    <div className="d-grid">
+                      <button className="btn btn-dark btn-lg fw-medium" type="submit">Sign In</button>
+                    </div>
+                  </form>
                 </div>
-                <input type="password" className="form-control" id="password" placeholder="Enter your password" />
               </div>
-              <div className="form-check mb-3">
-                <input type="checkbox" className="form-check-input" id="remember-me" />
-                <label className="form-check-label" htmlFor="remember-me">Remember me</label>
-              </div>
-              <div className="d-grid">
-                <button className="btn btn-dark btn-lg fw-medium" type="submit">Sign In</button>
-              </div>
-            </form>
+              <p className="text-center mt-4 text-white text-opacity-50">
+                Don't have an account?{" "}
+                <Link to="/admin/auth/signup" className="text-decoration-none text-white fw-bold">Sign Up</Link>
+              </p>
+            </div>
           </div>
         </div>
-        <p className="text-center mt-4 text-white text-opacity-50">
-          Don't have an account?{" "}
-          <a href="/admin/auth/signup" className="text-decoration-none text-white fw-bold">Sign Up</a>
-        </p>
       </div>
     </div>
   );
