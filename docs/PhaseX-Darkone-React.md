@@ -1,7 +1,7 @@
 # Phase X – Darkone Admin React Conversion
 
 > **Status:** ✅ COMPLETE – Ready for Phase 9  
-> **Version:** 1.1.0  
+> **Version:** 1.2.0  
 > **Last Updated:** 2025-01-06  
 > **Scope:** 1:1 React conversion of Darkone HTML Admin Template  
 > **Compliance:** Zero Framework Injection (ZFI), Zero Logic Rule (ZLR)
@@ -165,6 +165,23 @@ The theme toggle in `Topbar.tsx`:
 2. Persists preference to `localStorage` as `darkone-theme`
 3. Applies theme via `data-bs-theme` attribute on `document.documentElement`
 4. Switches icon between `solar:moon-outline` (light) and `solar:sun-outline` (dark)
+
+---
+
+## Sidebar Toggle Implementation
+
+The sidebar toggle in `Topbar.tsx`:
+1. Toggles `data-sidebar-size` attribute between `"default"` and `"condensed"`
+2. Persists state to `localStorage` as `darkone-sidebar-size`
+3. `AdminLayout.tsx` initializes the sidebar size on mount
+4. CSS rules in `darkone.css` control sidebar width and element visibility based on `data-sidebar-size`
+
+### Condensed State Behavior
+- Sidebar width reduces from 250px to 75px
+- Navigation text labels are hidden, only icons visible
+- Menu titles and dropdown arrows are hidden
+- Page content and topbar expand to fill space
+- On hover, sidebar expands to full width temporarily
 
 ---
 

@@ -19,6 +19,13 @@ const Topbar = () => {
     setIsDarkMode(!isDarkMode);
   };
 
+  const toggleSidebar = () => {
+    const currentSize = document.documentElement.getAttribute("data-sidebar-size") || "default";
+    const newSize = currentSize === "condensed" ? "default" : "condensed";
+    document.documentElement.setAttribute("data-sidebar-size", newSize);
+    localStorage.setItem("darkone-sidebar-size", newSize);
+  };
+
   return (
     <header className="app-topbar">
       <div className="container-fluid">
@@ -26,7 +33,7 @@ const Topbar = () => {
           <div className="d-flex align-items-center gap-2">
             {/* Menu Toggle Button */}
             <div className="topbar-item">
-              <button type="button" className="button-toggle-menu topbar-button">
+              <button type="button" className="button-toggle-menu topbar-button" onClick={toggleSidebar}>
                 <Icon icon="solar:hamburger-menu-outline" className="fs-24 align-middle" />
               </button>
             </div>
