@@ -452,6 +452,23 @@ serve(async (req) => {
 
 ---
 
+## 4.5 Admin Theme Persistence
+
+The Darkone admin theme uses browser localStorage for persisting user preferences:
+
+| Key | Values | Purpose |
+|-----|--------|---------|
+| `darkone-theme` | `"light"` \| `"dark"` | Theme mode preference |
+| `darkone-sidebar-size` | `"default"` \| `"condensed"` | Sidebar collapsed state |
+
+**Implementation Notes:**
+- Theme is initialized on `AdminLayout` mount
+- Applied via HTML attributes: `data-bs-theme` and `data-sidebar-size`
+- CSS variables in `darkone.css` respond to these attributes
+- No database storage required for theme preferences
+
+---
+
 ## 5. Authentication
 
 ### 5.1 Internal Users (Admin System)

@@ -1,6 +1,14 @@
 import PageTitle from "@/components/darkone/layout/PageTitle";
 import Icon from "@/components/darkone/ui/Icon";
 import { SparklineChart, RevenueChart, SalesCategoryChart } from "@/components/darkone/charts";
+import {
+  kpiCards,
+  salesCategories,
+  newAccounts,
+  recentTransactions,
+  statusBadgeClass,
+  transactionBadgeClass,
+} from "@/components/darkone/demo";
 
 const Dashboard = () => {
   return (
@@ -9,85 +17,26 @@ const Dashboard = () => {
 
       {/* Stats Cards Row */}
       <div className="row">
-        {/* Card 1 - Total Income */}
-        <div className="col-md-6 col-xl-3">
-          <div className="card">
-            <div className="card-body">
-              <div className="row">
-                <div className="col-6">
-                  <p className="text-muted mb-0 text-truncate">Total Income</p>
-                  <h3 className="text-dark mt-2 mb-0">$78.8k</h3>
-                </div>
-                <div className="col-6">
-                  <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <Icon icon="solar:globus-outline" className="fs-32 avatar-title text-primary" />
+        {kpiCards.map((card) => (
+          <div key={card.id} className="col-md-6 col-xl-3">
+            <div className="card">
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-6">
+                    <p className="text-muted mb-0 text-truncate">{card.title}</p>
+                    <h3 className="text-dark mt-2 mb-0">{card.value}</h3>
+                  </div>
+                  <div className="col-6">
+                    <div className="ms-auto avatar-md bg-soft-primary rounded">
+                      <Icon icon={card.icon} className="fs-32 avatar-title text-primary" />
+                    </div>
                   </div>
                 </div>
               </div>
+              <SparklineChart data={card.sparklineData} />
             </div>
-            <SparklineChart data={[25, 28, 32, 38, 43, 55, 60, 48, 42, 51, 35]} />
           </div>
-        </div>
-
-        {/* Card 2 - New Users */}
-        <div className="col-md-6 col-xl-3">
-          <div className="card">
-            <div className="card-body">
-              <div className="row">
-                <div className="col-6">
-                  <p className="text-muted mb-0 text-truncate">New Users</p>
-                  <h3 className="text-dark mt-2 mb-0">2,150</h3>
-                </div>
-                <div className="col-6">
-                  <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <Icon icon="solar:users-group-two-rounded-broken" className="fs-32 avatar-title text-primary" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <SparklineChart data={[87, 54, 4, 76, 31, 95, 70, 92, 53, 9, 6]} />
-          </div>
-        </div>
-
-        {/* Card 3 - Orders */}
-        <div className="col-md-6 col-xl-3">
-          <div className="card">
-            <div className="card-body">
-              <div className="row">
-                <div className="col-6">
-                  <p className="text-muted mb-0 text-truncate">Orders</p>
-                  <h3 className="text-dark mt-2 mb-0">1,784</h3>
-                </div>
-                <div className="col-6">
-                  <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <Icon icon="solar:cart-5-broken" className="fs-32 avatar-title text-primary" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <SparklineChart data={[41, 42, 35, 42, 6, 12, 13, 22, 42, 94, 95]} />
-          </div>
-        </div>
-
-        {/* Card 4 - Conversion Rate */}
-        <div className="col-md-6 col-xl-3">
-          <div className="card">
-            <div className="card-body">
-              <div className="row">
-                <div className="col-6">
-                  <p className="text-muted mb-0 text-truncate">Conversion Rate</p>
-                  <h3 className="text-dark mt-2 mb-0">12.3%</h3>
-                </div>
-                <div className="col-6">
-                  <div className="ms-auto avatar-md bg-soft-primary rounded">
-                    <Icon icon="solar:pie-chart-2-broken" className="fs-32 avatar-title text-primary" />
-                  </div>
-                </div>
-              </div>
-            </div>
-            <SparklineChart data={[8, 41, 40, 48, 77, 35, 0, 77, 63, 100, 71]} />
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Charts Row */}
@@ -138,30 +87,18 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>Grocery</td>
-                      <td>187,232</td>
-                      <td>
-                        48.63%
-                        <span className="badge badge-soft-success float-end">2.5% Up</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Electronics</td>
-                      <td>126,874</td>
-                      <td>
-                        36.08%
-                        <span className="badge badge-soft-success float-end">8.5% Up</span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>Other</td>
-                      <td>90,127</td>
-                      <td>
-                        23.41%
-                        <span className="badge badge-soft-danger float-end">10.98% Down</span>
-                      </td>
-                    </tr>
+                    {salesCategories.map((row) => (
+                      <tr key={row.category}>
+                        <td>{row.category}</td>
+                        <td>{row.orders}</td>
+                        <td>
+                          {row.percentage}
+                          <span className={`badge ${row.trend === 'up' ? 'badge-soft-success' : 'badge-soft-danger'} float-end`}>
+                            {row.trendValue}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -181,14 +118,7 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="card-body pt-0">
-              <div 
-                className="mt-3 d-flex align-items-center justify-content-center rounded" 
-                style={{ 
-                  height: "309px",
-                  backgroundColor: 'rgba(169, 183, 197, 0.1)',
-                  border: '1px dashed rgba(169, 183, 197, 0.3)'
-                }}
-              >
+              <div className="mt-3 d-flex align-items-center justify-content-center rounded bg-light bg-opacity-50 border border-dashed" style={{ height: "309px" }}>
                 <div className="text-center">
                   <i className="bx bx-globe fs-48 text-primary"></i>
                   <p className="text-muted mb-0 mt-2">World Map</p>
@@ -222,66 +152,20 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>#US523</td>
-                      <td>24 April, 2024</td>
-                      <td>
-                        <img src="/darkone/images/users/avatar-2.jpg" alt="avatar-2" className="img-fluid avatar-xs rounded-circle" />
-                        <span className="align-middle ms-1">Dan Adrick</span>
-                      </td>
-                      <td>
-                        <span className="badge badge-soft-success">Verified</span>
-                      </td>
-                      <td>@omions</td>
-                    </tr>
-                    <tr>
-                      <td>#US652</td>
-                      <td>24 April, 2024</td>
-                      <td>
-                        <img src="/darkone/images/users/avatar-3.jpg" alt="avatar-3" className="img-fluid avatar-xs rounded-circle" />
-                        <span className="align-middle ms-1">Daniel Olsen</span>
-                      </td>
-                      <td>
-                        <span className="badge badge-soft-success">Verified</span>
-                      </td>
-                      <td>@alliates</td>
-                    </tr>
-                    <tr>
-                      <td>#US862</td>
-                      <td>20 April, 2024</td>
-                      <td>
-                        <img src="/darkone/images/users/avatar-4.jpg" alt="avatar-4" className="img-fluid avatar-xs rounded-circle" />
-                        <span className="align-middle ms-1">Jack Roldan</span>
-                      </td>
-                      <td>
-                        <span className="badge badge-soft-warning">Pending</span>
-                      </td>
-                      <td>@griys</td>
-                    </tr>
-                    <tr>
-                      <td>#US756</td>
-                      <td>18 April, 2024</td>
-                      <td>
-                        <img src="/darkone/images/users/avatar-5.jpg" alt="avatar-5" className="img-fluid avatar-xs rounded-circle" />
-                        <span className="align-middle ms-1">Betty Cox</span>
-                      </td>
-                      <td>
-                        <span className="badge badge-soft-success">Verified</span>
-                      </td>
-                      <td>@reffon</td>
-                    </tr>
-                    <tr>
-                      <td>#US420</td>
-                      <td>18 April, 2024</td>
-                      <td>
-                        <img src="/darkone/images/users/avatar-6.jpg" alt="avatar-6" className="img-fluid avatar-xs rounded-circle" />
-                        <span className="align-middle ms-1">Carlos Johnson</span>
-                      </td>
-                      <td>
-                        <span className="badge badge-soft-danger">Blocked</span>
-                      </td>
-                      <td>@bebo</td>
-                    </tr>
+                    {newAccounts.map((account) => (
+                      <tr key={account.id}>
+                        <td>{account.id}</td>
+                        <td>{account.date}</td>
+                        <td>
+                          <img src={account.avatar} alt={account.name} className="img-fluid avatar-xs rounded-circle" />
+                          <span className="align-middle ms-1">{account.name}</span>
+                        </td>
+                        <td>
+                          <span className={`badge ${statusBadgeClass[account.status]}`}>{account.status}</span>
+                        </td>
+                        <td>{account.username}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -309,51 +193,17 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td>#98521</td>
-                      <td>24 April, 2024</td>
-                      <td>$120.55</td>
-                      <td>
-                        <span className="badge bg-success">Cr</span>
-                      </td>
-                      <td>Commissions</td>
-                    </tr>
-                    <tr>
-                      <td>#20158</td>
-                      <td>24 April, 2024</td>
-                      <td>$9.68</td>
-                      <td>
-                        <span className="badge bg-success">Cr</span>
-                      </td>
-                      <td>Affiliates</td>
-                    </tr>
-                    <tr>
-                      <td>#36589</td>
-                      <td>20 April, 2024</td>
-                      <td>$105.22</td>
-                      <td>
-                        <span className="badge bg-danger">Dr</span>
-                      </td>
-                      <td>Grocery</td>
-                    </tr>
-                    <tr>
-                      <td>#95362</td>
-                      <td>18 April, 2024</td>
-                      <td>$80.59</td>
-                      <td>
-                        <span className="badge bg-success">Cr</span>
-                      </td>
-                      <td>Refunds</td>
-                    </tr>
-                    <tr>
-                      <td>#75214</td>
-                      <td>18 April, 2024</td>
-                      <td>$750.95</td>
-                      <td>
-                        <span className="badge bg-danger">Dr</span>
-                      </td>
-                      <td>Bill Payments</td>
-                    </tr>
+                    {recentTransactions.map((transaction) => (
+                      <tr key={transaction.id}>
+                        <td>{transaction.id}</td>
+                        <td>{transaction.date}</td>
+                        <td>{transaction.amount}</td>
+                        <td>
+                          <span className={`badge ${transactionBadgeClass[transaction.type]}`}>{transaction.type}</span>
+                        </td>
+                        <td>{transaction.description}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
