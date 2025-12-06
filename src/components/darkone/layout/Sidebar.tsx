@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Icon from "../ui/Icon";
+import { useAuth } from "@/integrations/supabase/AuthContext";
+import { ModuleKey, getAllowedModules } from "@/integrations/supabase/permissions/rolePermissions";
 
 interface NavItem {
   title: string;
@@ -9,15 +11,63 @@ interface NavItem {
   badge?: string;
   children?: { title: string; href: string; badge?: string }[];
   disabled?: boolean;
+  module?: ModuleKey; // Module key for role-based filtering
 }
 
-const menuItems: NavItem[] = [
+// Business modules - filtered by role
+const businessItems: NavItem[] = [
   {
     title: "Dashboard",
     href: "/admin",
     icon: "mingcute:home-3-line",
-    badge: "03",
+    module: "dashboard",
   },
+  {
+    title: "Cases",
+    href: "/admin/cases",
+    icon: "mingcute:file-line",
+    module: "cases",
+  },
+  {
+    title: "Eligibility",
+    href: "/admin/eligibility",
+    icon: "mingcute:checkbox-line",
+    module: "eligibility",
+  },
+  {
+    title: "Documents",
+    href: "/admin/documents",
+    icon: "mingcute:document-line",
+    module: "documents",
+  },
+  {
+    title: "Payments",
+    href: "/admin/payments",
+    icon: "mingcute:wallet-line",
+    module: "payments",
+  },
+  {
+    title: "Fraud & Risk",
+    href: "/admin/fraud",
+    icon: "mingcute:shield-line",
+    module: "fraud",
+  },
+  {
+    title: "Configuration",
+    href: "/admin/config",
+    icon: "mingcute:settings-3-line",
+    module: "config",
+  },
+  {
+    title: "User Management",
+    href: "/admin/users",
+    icon: "mingcute:group-line",
+    module: "users",
+  },
+];
+
+// Auth pages - always visible (for navigation reference)
+const authItems: NavItem[] = [
   {
     title: "Authentication",
     icon: "mingcute:user-3-line",
@@ -38,10 +88,12 @@ const menuItems: NavItem[] = [
   },
 ];
 
+// UI Kit items - only visible to system_admin (dev/demo pages)
 const uiKitItems: NavItem[] = [
   {
     title: "Base UI",
     icon: "mingcute:leaf-line",
+    module: "ui_kit",
     children: [
       { title: "Accordion", href: "/admin/ui/accordion" },
       { title: "Alerts", href: "/admin/ui/alerts" },
@@ -71,10 +123,12 @@ const uiKitItems: NavItem[] = [
     title: "Apex Charts",
     href: "/admin/charts",
     icon: "mingcute:chart-bar-line",
+    module: "ui_kit",
   },
   {
     title: "Forms",
     icon: "mingcute:box-line",
+    module: "ui_kit",
     children: [
       { title: "Basic Elements", href: "/admin/forms/basic" },
       { title: "Flatpicker", href: "/admin/forms/flatpicker" },
@@ -86,6 +140,7 @@ const uiKitItems: NavItem[] = [
   {
     title: "Tables",
     icon: "mingcute:table-line",
+    module: "ui_kit",
     children: [
       { title: "Basic Tables", href: "/admin/tables/basic" },
       { title: "Grid Js", href: "/admin/tables/gridjs" },
@@ -94,6 +149,7 @@ const uiKitItems: NavItem[] = [
   {
     title: "Icons",
     icon: "mingcute:dribbble-line",
+    module: "ui_kit",
     children: [
       { title: "Boxicons", href: "/admin/icons/boxicons" },
       { title: "Solar Icons", href: "/admin/icons/solar" },
@@ -102,6 +158,7 @@ const uiKitItems: NavItem[] = [
   {
     title: "Maps",
     icon: "mingcute:map-line",
+    module: "ui_kit",
     children: [
       { title: "Google Maps", href: "/admin/maps/google" },
       { title: "Vector Maps", href: "/admin/maps/vector" },
@@ -109,10 +166,12 @@ const uiKitItems: NavItem[] = [
   },
 ];
 
+// Other items - only visible to system_admin
 const otherItems: NavItem[] = [
   {
     title: "Layouts",
     icon: "mingcute:layout-line",
+    module: "ui_kit",
     children: [
       { title: "Dark Sidenav", href: "/admin/layouts/dark-sidenav" },
       { title: "Dark Topnav", href: "/admin/layouts/dark-topnav" },
@@ -121,20 +180,19 @@ const otherItems: NavItem[] = [
       { title: "Light Mode", href: "/admin/layouts/light", badge: "Hot" },
     ],
   },
-  {
-    title: "Menu Item",
-    icon: "mingcute:menu-line",
-    children: [
-      { title: "Menu Item 1", href: "#" },
-      { title: "Menu Item 2", href: "#" },
-    ],
-  },
-  {
-    title: "Disable Item",
-    icon: "mingcute:close-circle-line",
-    disabled: true,
-  },
 ];
+
+/**
+ * Filters menu items based on user's allowed modules
+ */
+function filterByModules(items: NavItem[], allowedModules: Set<ModuleKey>): NavItem[] {
+  return items.filter((item) => {
+    // Items without a module are always visible
+    if (!item.module) return true;
+    // Check if user has access to this module
+    return allowedModules.has(item.module);
+  });
+}
 
 const NavItemComponent = ({ item }: { item: NavItem }) => {
   const location = useLocation();
@@ -209,6 +267,19 @@ const NavItemComponent = ({ item }: { item: NavItem }) => {
 };
 
 const Sidebar = () => {
+  const { roles } = useAuth();
+  
+  // Compute allowed modules from user roles
+  const allowedModules = getAllowedModules(roles);
+  
+  // Filter menu items based on permissions
+  const visibleBusinessItems = filterByModules(businessItems, allowedModules);
+  const visibleUiKitItems = filterByModules(uiKitItems, allowedModules);
+  const visibleOtherItems = filterByModules(otherItems, allowedModules);
+  
+  // Show UI Kit section only if user has ui_kit permission
+  const showUiKit = allowedModules.has("ui_kit");
+
   return (
     <div className="app-sidebar">
       {/* Sidebar Logo */}
@@ -226,20 +297,32 @@ const Sidebar = () => {
 
       <div className="scrollbar">
         <ul className="navbar-nav" id="navbar-nav">
-          <li className="menu-title">Menu...</li>
-          {menuItems.map((item) => (
+          {/* Business Modules - Role Filtered */}
+          <li className="menu-title">Main Menu</li>
+          {visibleBusinessItems.map((item) => (
             <NavItemComponent key={item.title} item={item} />
           ))}
 
-          <li className="menu-title">UI Kit...</li>
-          {uiKitItems.map((item) => (
+          {/* Auth & Error Pages - Always visible for reference */}
+          <li className="menu-title">Pages</li>
+          {authItems.map((item) => (
             <NavItemComponent key={item.title} item={item} />
           ))}
 
-          <li className="menu-title">Other</li>
-          {otherItems.map((item) => (
-            <NavItemComponent key={item.title} item={item} />
-          ))}
+          {/* UI Kit - Only for system_admin */}
+          {showUiKit && (
+            <>
+              <li className="menu-title">UI Kit</li>
+              {visibleUiKitItems.map((item) => (
+                <NavItemComponent key={item.title} item={item} />
+              ))}
+
+              <li className="menu-title">Other</li>
+              {visibleOtherItems.map((item) => (
+                <NavItemComponent key={item.title} item={item} />
+              ))}
+            </>
+          )}
         </ul>
       </div>
 

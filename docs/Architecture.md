@@ -80,10 +80,51 @@ The Admin System uses the Darkone Bootstrap-based admin template, converted to R
 | Component | Location | Purpose |
 |-----------|----------|---------|
 | AdminLayout | `src/components/darkone/layout/AdminLayout.tsx` | Root wrapper, theme initialization |
-| Sidebar | `src/components/darkone/layout/Sidebar.tsx` | Navigation menu |
-| Topbar | `src/components/darkone/layout/Topbar.tsx` | Header with theme/sidebar toggles |
+| Sidebar | `src/components/darkone/layout/Sidebar.tsx` | Navigation menu with role-based filtering |
+| Topbar | `src/components/darkone/layout/Topbar.tsx` | Header with theme/sidebar toggles, user info |
 | Footer | `src/components/darkone/layout/Footer.tsx` | Page footer |
 | PageTitle | `src/components/darkone/layout/PageTitle.tsx` | Breadcrumb component |
+
+### Access Control Architecture (Phase 9C)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ACCESS CONTROL LAYER                                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐    │
+│   │   AuthContext    │────▶│   RequireAuth    │────▶│   RequireRole    │    │
+│   │  (session/roles) │     │ (auth check)     │     │ (module check)   │    │
+│   └──────────────────┘     └──────────────────┘     └──────────────────┘    │
+│           │                                                  │               │
+│           ▼                                                  ▼               │
+│   ┌──────────────────┐                          ┌──────────────────────┐    │
+│   │   user_roles     │                          │   rolePermissions    │    │
+│   │   (Supabase)     │                          │   (frontend map)     │    │
+│   └──────────────────┘                          └──────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Role-to-Module Mapping
+| Role | Modules |
+|------|---------|
+| `system_admin` | ALL (dashboard, cases, eligibility, documents, payments, fraud, config, users, ui_kit) |
+| `case_handler` | dashboard, cases, eligibility, documents |
+| `case_reviewer` | dashboard, cases, eligibility, documents |
+| `department_head` | dashboard, cases, eligibility, documents, payments, fraud, config |
+| `finance_officer` | dashboard, payments |
+| `fraud_officer` | dashboard, fraud, cases, documents |
+| `audit_viewer` | dashboard, config |
+| `district_intake_officer` | dashboard, cases, documents |
+
+### Access Control Files
+| File | Purpose |
+|------|---------|
+| `src/integrations/supabase/permissions/rolePermissions.ts` | Central permission mapping |
+| `src/components/auth/RequireAuth.tsx` | Authentication guard |
+| `src/components/auth/RequireRole.tsx` | Module authorization guard |
+| `src/pages/admin/AccessDenied.tsx` | Unauthorized access page |
 
 ### Theme Persistence
 - **Theme mode**: Stored in `localStorage` as `"darkone-theme"` (values: `"light"` or `"dark"`)

@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 // Auth
 import { AuthProvider } from "./integrations/supabase/AuthContext";
 import { RequireAuth } from "./components/auth/RequireAuth";
+import { RequireRole } from "./components/auth/RequireRole";
 
 // Darkone Admin imports
 import AdminLayout from "./components/darkone/layout/AdminLayout";
@@ -17,6 +18,7 @@ import SignIn from "./pages/admin/auth/SignIn";
 import SignUp from "./pages/admin/auth/SignUp";
 import ResetPassword from "./pages/admin/auth/ResetPassword";
 import LockScreen from "./pages/admin/auth/LockScreen";
+import AccessDenied from "./pages/admin/AccessDenied";
 import TablesBasic from "./pages/admin/tables/TablesBasic";
 import TablesGridJS from "./pages/admin/tables/TablesGridJS";
 import UITabs from "./pages/admin/ui/UITabs";
@@ -55,6 +57,9 @@ import LayoutsPlaceholder from "./pages/admin/layouts/LayoutsPlaceholder";
 import Page404 from "./pages/admin/pages/Page404";
 import Page404Alt from "./pages/admin/pages/Page404Alt";
 
+// Placeholder components for MVP modules (to be implemented in future phases)
+import AdminComingSoonPage from "./components/darkone/placeholders/AdminComingSoonPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -73,9 +78,10 @@ const App = () => (
             <Route path="/admin/auth/password" element={<ResetPassword />} />
             <Route path="/admin/auth/lock-screen" element={<LockScreen />} />
             
-            {/* Admin Error Pages (standalone, no layout) */}
+            {/* Admin Error/Access Pages (standalone, no layout) */}
             <Route path="/admin/pages/404" element={<Page404 />} />
             <Route path="/admin/pages/404-alt" element={<Page404Alt />} />
+            <Route path="/admin/access-denied" element={<AccessDenied />} />
             
             {/* Protected Admin Routes with Layout */}
             <Route path="/admin" element={
@@ -83,60 +89,258 @@ const App = () => (
                 <AdminLayout />
               </RequireAuth>
             }>
-              <Route index element={<Dashboard />} />
+              {/* Dashboard - requires dashboard permission */}
+              <Route index element={
+                <RequireRole allowed={["dashboard"]}>
+                  <Dashboard />
+                </RequireRole>
+              } />
               
-              {/* Tables */}
-              <Route path="tables/basic" element={<TablesBasic />} />
-              <Route path="tables/gridjs" element={<TablesGridJS />} />
+              {/* MVP Business Modules - Role Protected */}
+              <Route path="cases/*" element={
+                <RequireRole allowed={["cases"]}>
+                  <AdminComingSoonPage title="Cases" subTitle="Case Management" message="Case management module coming soon." />
+                </RequireRole>
+              } />
+              <Route path="eligibility/*" element={
+                <RequireRole allowed={["eligibility"]}>
+                  <AdminComingSoonPage title="Eligibility" subTitle="Eligibility Review" message="Eligibility review module coming soon." />
+                </RequireRole>
+              } />
+              <Route path="documents/*" element={
+                <RequireRole allowed={["documents"]}>
+                  <AdminComingSoonPage title="Documents" subTitle="Document Management" message="Document management module coming soon." />
+                </RequireRole>
+              } />
+              <Route path="payments/*" element={
+                <RequireRole allowed={["payments"]}>
+                  <AdminComingSoonPage title="Payments" subTitle="Payment Processing" message="Payment processing module coming soon." />
+                </RequireRole>
+              } />
+              <Route path="fraud/*" element={
+                <RequireRole allowed={["fraud"]}>
+                  <AdminComingSoonPage title="Fraud & Risk" subTitle="Fraud Detection" message="Fraud detection module coming soon." />
+                </RequireRole>
+              } />
+              <Route path="config/*" element={
+                <RequireRole allowed={["config"]}>
+                  <AdminComingSoonPage title="Configuration" subTitle="System Settings" message="System configuration module coming soon." />
+                </RequireRole>
+              } />
+              <Route path="users/*" element={
+                <RequireRole allowed={["users"]}>
+                  <AdminComingSoonPage title="User Management" subTitle="User Administration" message="User management module coming soon." />
+                </RequireRole>
+              } />
+              
+              {/* UI Kit Routes - system_admin only */}
+              <Route path="tables/basic" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <TablesBasic />
+                </RequireRole>
+              } />
+              <Route path="tables/gridjs" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <TablesGridJS />
+                </RequireRole>
+              } />
               
               {/* UI Components */}
-              <Route path="ui/tabs" element={<UITabs />} />
-              <Route path="ui/accordion" element={<UIAccordion />} />
-              <Route path="ui/alerts" element={<UIAlerts />} />
-              <Route path="ui/avatar" element={<UIAvatar />} />
-              <Route path="ui/badge" element={<UIBadge />} />
-              <Route path="ui/breadcrumb" element={<UIBreadcrumb />} />
-              <Route path="ui/buttons" element={<UIButtons />} />
-              <Route path="ui/card" element={<UICard />} />
-              <Route path="ui/carousel" element={<UICarousel />} />
-              <Route path="ui/collapse" element={<UICollapse />} />
-              <Route path="ui/dropdown" element={<UIDropdown />} />
-              <Route path="ui/list-group" element={<UIListGroup />} />
-              <Route path="ui/modal" element={<UIModal />} />
-              <Route path="ui/offcanvas" element={<UIOffcanvas />} />
-              <Route path="ui/pagination" element={<UIPagination />} />
-              <Route path="ui/placeholders" element={<UIPlaceholders />} />
-              <Route path="ui/popovers" element={<UIPopovers />} />
-              <Route path="ui/progress" element={<UIProgress />} />
-              <Route path="ui/scrollspy" element={<UIScrollspy />} />
-              <Route path="ui/spinners" element={<UISpinners />} />
-              <Route path="ui/toasts" element={<UIToasts />} />
-              <Route path="ui/tooltips" element={<UITooltips />} />
+              <Route path="ui/tabs" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UITabs />
+                </RequireRole>
+              } />
+              <Route path="ui/accordion" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIAccordion />
+                </RequireRole>
+              } />
+              <Route path="ui/alerts" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIAlerts />
+                </RequireRole>
+              } />
+              <Route path="ui/avatar" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIAvatar />
+                </RequireRole>
+              } />
+              <Route path="ui/badge" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIBadge />
+                </RequireRole>
+              } />
+              <Route path="ui/breadcrumb" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIBreadcrumb />
+                </RequireRole>
+              } />
+              <Route path="ui/buttons" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIButtons />
+                </RequireRole>
+              } />
+              <Route path="ui/card" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UICard />
+                </RequireRole>
+              } />
+              <Route path="ui/carousel" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UICarousel />
+                </RequireRole>
+              } />
+              <Route path="ui/collapse" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UICollapse />
+                </RequireRole>
+              } />
+              <Route path="ui/dropdown" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIDropdown />
+                </RequireRole>
+              } />
+              <Route path="ui/list-group" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIListGroup />
+                </RequireRole>
+              } />
+              <Route path="ui/modal" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIModal />
+                </RequireRole>
+              } />
+              <Route path="ui/offcanvas" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIOffcanvas />
+                </RequireRole>
+              } />
+              <Route path="ui/pagination" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIPagination />
+                </RequireRole>
+              } />
+              <Route path="ui/placeholders" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIPlaceholders />
+                </RequireRole>
+              } />
+              <Route path="ui/popovers" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIPopovers />
+                </RequireRole>
+              } />
+              <Route path="ui/progress" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIProgress />
+                </RequireRole>
+              } />
+              <Route path="ui/scrollspy" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIScrollspy />
+                </RequireRole>
+              } />
+              <Route path="ui/spinners" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UISpinners />
+                </RequireRole>
+              } />
+              <Route path="ui/toasts" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UIToasts />
+                </RequireRole>
+              } />
+              <Route path="ui/tooltips" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <UITooltips />
+                </RequireRole>
+              } />
               
               {/* Charts */}
-              <Route path="charts" element={<Charts />} />
+              <Route path="charts" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <Charts />
+                </RequireRole>
+              } />
               
               {/* Forms */}
-              <Route path="forms/basic" element={<FormsBasic />} />
-              <Route path="forms/validation" element={<FormsValidation />} />
-              <Route path="forms/flatpicker" element={<FormsFlatpicker />} />
-              <Route path="forms/file-upload" element={<FormsFileUpload />} />
-              <Route path="forms/editors" element={<FormsEditors />} />
+              <Route path="forms/basic" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <FormsBasic />
+                </RequireRole>
+              } />
+              <Route path="forms/validation" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <FormsValidation />
+                </RequireRole>
+              } />
+              <Route path="forms/flatpicker" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <FormsFlatpicker />
+                </RequireRole>
+              } />
+              <Route path="forms/file-upload" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <FormsFileUpload />
+                </RequireRole>
+              } />
+              <Route path="forms/editors" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <FormsEditors />
+                </RequireRole>
+              } />
               
               {/* Icons */}
-              <Route path="icons/boxicons" element={<IconsBoxicons />} />
-              <Route path="icons/solar" element={<IconsSolar />} />
+              <Route path="icons/boxicons" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <IconsBoxicons />
+                </RequireRole>
+              } />
+              <Route path="icons/solar" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <IconsSolar />
+                </RequireRole>
+              } />
               
               {/* Maps */}
-              <Route path="maps/google" element={<MapsGoogle />} />
-              <Route path="maps/vector" element={<MapsVector />} />
+              <Route path="maps/google" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <MapsGoogle />
+                </RequireRole>
+              } />
+              <Route path="maps/vector" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <MapsVector />
+                </RequireRole>
+              } />
               
               {/* Layouts */}
-              <Route path="layouts/dark-sidenav" element={<LayoutsPlaceholder />} />
-              <Route path="layouts/dark-topnav" element={<LayoutsPlaceholder />} />
-              <Route path="layouts/small-sidenav" element={<LayoutsPlaceholder />} />
-              <Route path="layouts/hidden-sidenav" element={<LayoutsPlaceholder />} />
-              <Route path="layouts/light" element={<LayoutsPlaceholder />} />
+              <Route path="layouts/dark-sidenav" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <LayoutsPlaceholder />
+                </RequireRole>
+              } />
+              <Route path="layouts/dark-topnav" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <LayoutsPlaceholder />
+                </RequireRole>
+              } />
+              <Route path="layouts/small-sidenav" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <LayoutsPlaceholder />
+                </RequireRole>
+              } />
+              <Route path="layouts/hidden-sidenav" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <LayoutsPlaceholder />
+                </RequireRole>
+              } />
+              <Route path="layouts/light" element={
+                <RequireRole allowed={["ui_kit"]}>
+                  <LayoutsPlaceholder />
+                </RequireRole>
+              } />
             </Route>
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
