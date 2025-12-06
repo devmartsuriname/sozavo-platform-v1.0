@@ -27,16 +27,17 @@ const caseStatuses: { value: CaseStatus; label: string }[] = [
   { value: 'on_hold', label: 'On Hold' },
 ];
 
-// MVP hardcoded options - will be replaced with dynamic data
+// Actual database UUIDs for service types and offices
 const serviceTypes = [
-  { id: 'ab', name: 'Algemene Bijstand (AB)' },
-  { id: 'fb', name: 'Financiële Bijstand (FB)' },
-  { id: 'kb', name: 'Kinderbijslag (KB)' },
+  { id: 'b2051de5-2aec-47c9-a94e-faeec6230eb2', name: 'Algemene Bijstand (AB)' },
+  { id: '03810046-83fc-4a96-b46b-ef842dfeb62c', name: 'Financiële Bijstand (FB)' },
+  { id: '1fcde430-bbd2-40a0-a47a-f343426befc5', name: 'Kinderbijslag (KB)' },
 ];
 
 const offices = [
-  { id: 'paramaribo', name: 'Paramaribo Office' },
-  { id: 'nickerie', name: 'Nickerie Office' },
+  { id: 'bad18cd4-afd5-43ea-959b-ef9eb56b6f53', name: 'Paramaribo Central Office' },
+  { id: '4bfa9116-7a00-43ea-a71d-9a099e7f83d9', name: 'Nickerie District Office' },
+  { id: 'ed89eae1-0824-4283-969e-e608a56d3f66', name: 'Wanica District Office' },
 ];
 
 const CaseFilters = ({
