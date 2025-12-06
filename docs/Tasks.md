@@ -507,4 +507,204 @@ This section identifies all tasks that cannot progress without external stakehol
 
 ---
 
+## Cross-Referenced Blockers
+
+This section links each blocked task to PRD requirements, architecture components, and data dictionary tables for traceability.
+
+### BIS Validation Blockers – Cross-References
+
+| Task Name | PRD Requirement | Architecture Component | Data Dictionary Table | Impact Level |
+|-----------|-----------------|------------------------|----------------------|--------------|
+| Create bis-lookup edge function | PRD-INT-001 (BIS Integration) | Section 5.1 (BIS Integration) | citizens, households | `blocks-MVP` |
+| Implement BIS field mapping | PRD-INT-002 (Field Mapping) | Section 5.1 (Field Mapping) | citizens (national_id, bis_person_id, first_name, last_name, date_of_birth, address) | `blocks-MVP` |
+| Store BIS_API_KEY secret | PRD-SEC-003 (Secrets Management) | Section 4 (Security Architecture) | N/A | `blocks-MVP` |
+| Implement CCR lookup function | PRD-CORE-005 (Citizen Registry) | Section 3.1 (Core Data Model) | citizens | `blocks-MVP` |
+| Create households table with BIS fields | PRD-DATA-007 (Household Data) | Section 3.1 (Core Data Model) | households | `blocks-Fraud` |
+| Implement residency rule | PRD-ELIG-003 (Residency Check) | Section 6.3 (Eligibility Engine) | citizens, eligibility_rules | `blocks-MVP` |
+
+### Subema Validation Blockers – Cross-References
+
+| Task Name | PRD Requirement | Architecture Component | Data Dictionary Table | Impact Level |
+|-----------|-----------------|------------------------|----------------------|--------------|
+| Create subema-sync edge function | PRD-INT-010 (Payment Processing) | Section 5.2 (Subema Integration) | payments, subema_sync_logs | `blocks-Payments` |
+| Implement payment batch submission | PRD-PAY-002 (Batch Payments) | Section 5.2 (Sync Operations) | payment_batches, payment_items | `blocks-Payments` |
+| Implement payment status sync | PRD-PAY-003 (Status Tracking) | Section 5.2 (Subema Integration) | payments, subema_sync_logs | `blocks-Payments` |
+| Store SUBEMA_API_KEY secret | PRD-SEC-004 (Secrets Management) | Section 4 (Security Architecture) | N/A | `blocks-Payments` |
+| Create `subema_reference` field | PRD-PAY-001 (Payment Records) | Section 3.1 (Core Data Model) | payments | `blocks-Payments` |
+| Create payment sync scheduler | PRD-PAY-004 (Automated Sync) | Section 5.2 (Subema Integration) | subema_sync_logs | `blocks-Go-Live` |
+
+### Legal/Compliance Blockers – Cross-References
+
+| Task Name | PRD Requirement | Architecture Component | Data Dictionary Table | Impact Level |
+|-----------|-----------------|------------------------|----------------------|--------------|
+| Implement compliance report | PRD-AUD-001 (Audit Trail) | Section 9.1 (Logging & Audit) | audit_events, case_events | `blocks-Go-Live` |
+| Create audit log archive function | PRD-AUD-002 (Data Retention) | Section 9.1 (Logging & Audit) | audit_events | `blocks-Go-Live` |
+| Implement citizen consent tracking | PRD-PRT-005 (Portal Consent) | Section 2.1 (Public Portal) | citizens, portal_notifications | `blocks-Public-Portal` |
+| Define data deletion policy | PRD-SEC-010 (Data Management) | Section 10.1 (Constraints) | All tables | `blocks-Go-Live` |
+
+### Ministerial Decision Blockers – Cross-References
+
+| Task Name | PRD Requirement | Architecture Component | Data Dictionary Table | Impact Level |
+|-----------|-----------------|------------------------|----------------------|--------------|
+| Implement income threshold rule | PRD-ELIG-001 (Eligibility Rules) | Section 6.3 (Eligibility Engine) | eligibility_rules, incomes | `blocks-MVP` |
+| Implement age range rule | PRD-ELIG-002 (Age Requirements) | Section 6.3 (Eligibility Engine) | eligibility_rules, citizens | `blocks-MVP` |
+| Implement household composition rule | PRD-ELIG-004 (Household Rules) | Section 6.3 (Eligibility Engine) | eligibility_rules, households | `blocks-MVP` |
+| Define payment amounts | PRD-PAY-005 (Benefit Amounts) | Section 7.4 (Payment Flow) | payments | `blocks-Payments` |
+| Create manual override function | PRD-ELIG-010 (Override Logic) | Section 6.3 (Eligibility Engine) | eligibility_evaluations | `blocks-MVP` |
+| Implement SMS notification | PRD-NOT-003 (SMS Channel) | Section 5 (Integration Architecture) | notifications | `blocks-Go-Live` |
+
+### Technical/Infrastructure Blockers – Cross-References
+
+| Task Name | PRD Requirement | Architecture Component | Data Dictionary Table | Impact Level |
+|-----------|-----------------|------------------------|----------------------|--------------|
+| Implement background job processing | PRD-PERF-001 (Performance) | Section 9.3 (Performance) | N/A | `blocks-Go-Live` |
+| Create materialized views for reports | PRD-REP-005 (Report Performance) | Section 9.3 (Performance) | N/A | `blocks-Go-Live` |
+| Implement real-time subscriptions | PRD-PRT-010 (Live Updates) | Section 2.2 (Backend Services) | N/A | `blocks-Public-Portal` |
+| Configure disaster recovery | PRD-OPS-001 (Operations) | Section 8.1 (Environment Structure) | N/A | `blocks-Go-Live` |
+| Store RESEND_API_KEY secret | PRD-NOT-001 (Email Notifications) | Section 4 (Security Architecture) | N/A | `blocks-Go-Live` |
+
+---
+
+## Impact Labels Summary
+
+| Impact Level | Description | Affected Phases | Task Count |
+|--------------|-------------|-----------------|------------|
+| `blocks-MVP` | Prevents MVP launch | Phases 1–9 | 10 |
+| `blocks-Payments` | Prevents payment processing | Phases 10, 12 | 6 |
+| `blocks-Fraud` | Prevents fraud detection | Phase 14 | 1 |
+| `blocks-Public-Portal` | Prevents citizen self-service | Phase 8 | 2 |
+| `blocks-Go-Live` | Prevents production deployment | All | 8 |
+
+---
+
+## Unresolved Policy Questions
+
+This section extracts policy decisions from eligibility rules, payments, fraud detection, and governance that require Ministry or legal approval.
+
+### Eligibility Policy Questions
+
+| Question ID | Policy Question | Blocking Phase | Required Stakeholder | Current Assumption | Risk |
+|-------------|-----------------|----------------|---------------------|-------------------|------|
+| POL-ELG-001 | What is the maximum monthly income threshold for General Assistance (AB)? | P9 | Ministry of Social Affairs | SRD 2,500 (placeholder) | High |
+| POL-ELG-002 | What is the maximum monthly income threshold for Social Assistance (FB)? | P9 | Ministry of Social Affairs | SRD 3,000 (placeholder) | High |
+| POL-ELG-003 | What is the maximum monthly income threshold for Child Allowance (KB)? | P9 | Ministry of Social Affairs | SRD 4,000 (placeholder) | High |
+| POL-ELG-004 | What is the minimum age for General Assistance applicants? | P9 | Ministry of Social Affairs | 18 years | Medium |
+| POL-ELG-005 | What is the maximum age for Child Allowance eligibility (child's age)? | P9 | Ministry of Social Affairs | 18 years | Medium |
+| POL-ELG-006 | What is the maximum number of dependents for benefit calculation? | P9 | Ministry of Social Affairs | No limit assumed | Low |
+| POL-ELG-007 | Is Suriname residency mandatory for all services? | P9 | Ministry of Social Affairs | Yes | Medium |
+| POL-ELG-008 | Are concurrent benefits from multiple services allowed? | P9 | Ministry of Social Affairs | No | Medium |
+
+### Payment Policy Questions
+
+| Question ID | Policy Question | Blocking Phase | Required Stakeholder | Current Assumption | Risk |
+|-------------|-----------------|----------------|---------------------|-------------------|------|
+| POL-PAY-001 | What is the base payment amount for General Assistance? | P10 | Ministry of Social Affairs | SRD 800/month (placeholder) | Critical |
+| POL-PAY-002 | What is the base payment amount for Social Assistance? | P10 | Ministry of Social Affairs | SRD 600/month (placeholder) | Critical |
+| POL-PAY-003 | What is the per-child allowance amount for Child Allowance? | P10 | Ministry of Social Affairs | SRD 200/child/month (placeholder) | Critical |
+| POL-PAY-004 | Are payment amounts adjusted for household size? | P10 | Ministry of Social Affairs | Yes (formula unknown) | High |
+| POL-PAY-005 | What is the payment schedule (monthly, bi-weekly, etc.)? | P10 | Ministry of Social Affairs | Monthly | Medium |
+| POL-PAY-006 | Are retroactive payments allowed for delayed approvals? | P10 | Ministry of Social Affairs | Yes (limit unknown) | Medium |
+| POL-PAY-007 | What is the payment cutoff date each month? | P12 | Ministry of Social Affairs | 25th of month | Low |
+
+### Fraud Detection Policy Questions
+
+| Question ID | Policy Question | Blocking Phase | Required Stakeholder | Current Assumption | Risk |
+|-------------|-----------------|----------------|---------------------|-------------------|------|
+| POL-FRD-001 | What income discrepancy percentage triggers a fraud alert? | P14 | Ministry of Social Affairs | 30% variance | Medium |
+| POL-FRD-002 | How should duplicate applications be handled (auto-reject or review)? | P14 | Ministry of Social Affairs | Flag for review | Medium |
+| POL-FRD-003 | What risk score threshold requires mandatory manual review? | P14 | Ministry of Social Affairs | 70/100 | Medium |
+| POL-FRD-004 | Should fraud signals block case progression automatically? | P14 | Ministry of Social Affairs | No (advisory only) | Low |
+| POL-FRD-005 | What is the statute of limitations for fraud investigation? | P14 | Legal Department | 5 years | Medium |
+
+### Governance Policy Questions
+
+| Question ID | Policy Question | Blocking Phase | Required Stakeholder | Current Assumption | Risk |
+|-------------|-----------------|----------------|---------------------|-------------------|------|
+| POL-GOV-001 | What is the minimum data retention period for case records? | P15 | Legal Department | 7 years | High |
+| POL-GOV-002 | What is the minimum data retention period for payment records? | P15 | Legal Department | 10 years | High |
+| POL-GOV-003 | Are citizens entitled to request data deletion? | P15 | Legal Department | No (public records) | High |
+| POL-GOV-004 | Who can authorize eligibility overrides? | P9 | Ministry of Social Affairs | Case Reviewer or above | Medium |
+| POL-GOV-005 | Who can authorize payment reversals? | P12 | Ministry of Social Affairs | Department Head | Medium |
+| POL-GOV-006 | What audit reports are required for compliance? | P15 | Legal Department | Undefined | High |
+
+---
+
+## External System Dependency Matrix
+
+### BIS (Civil Registry) Dependencies
+
+| Endpoint | Purpose | Required Fields | Authentication | Risk Level | Status |
+|----------|---------|-----------------|----------------|------------|--------|
+| `/api/person/lookup` | Citizen identity verification | `persoonsnummer`, `geboortedatum` | **Unknown** | Critical | **Unconfirmed** |
+| `/api/person/details` | Full citizen data retrieval | All CCR fields | **Unknown** | Critical | **Unconfirmed** |
+| `/api/household/lookup` | Household composition | `bis_household_id` | **Unknown** | High | **Unconfirmed** |
+| `/api/address/verify` | Address validation | `adres`, `district` | **Unknown** | Medium | **Unconfirmed** |
+
+**BIS Confirmation Requirements:**
+1. API base URL and version
+2. Authentication method (API key, OAuth 2.0, client certificate)
+3. Rate limiting and quota
+4. Request/response payload schemas
+5. Error code definitions
+6. Sandbox environment access
+7. SLA and support contacts
+
+### Subema (Payments) Dependencies
+
+| Endpoint | Purpose | Required Fields | Authentication | Risk Level | Status |
+|----------|---------|-----------------|----------------|------------|--------|
+| `/api/batch/submit` | Submit payment batch | Batch reference, items array | **Unknown** | Critical | **Unconfirmed** |
+| `/api/batch/status` | Query batch status | Batch reference | **Unknown** | Critical | **Unconfirmed** |
+| `/api/payment/status` | Query individual payment | Payment reference | **Unknown** | High | **Unconfirmed** |
+| `/api/payment/reverse` | Reverse failed payment | Payment reference, reason | **Unknown** | High | **Unconfirmed** |
+| Webhook (push) | Receive status updates | N/A | **Unknown** | Medium | **Unconfirmed** |
+
+**Subema Confirmation Requirements:**
+1. API base URL and version
+2. Authentication method
+3. Batch size limits
+4. Payment item schema
+5. Status callback mechanism (webhook vs polling)
+6. Processing time SLA
+7. Test environment access
+
+### Email Service Dependencies
+
+| Provider | Purpose | Required Config | Authentication | Risk Level | Status |
+|----------|---------|-----------------|----------------|------------|--------|
+| Resend | Transactional emails | API key, verified domain | API Key | Medium | **Assumed** |
+| SendGrid | Alternative provider | API key, sender identity | API Key | Medium | **Not Confirmed** |
+
+**Email Confirmation Requirements:**
+1. Confirm provider selection
+2. Sender domain verification
+3. Email template requirements
+4. Daily/monthly sending limits
+5. Unsubscribe/compliance requirements
+
+### SMS Service Dependencies
+
+| Provider | Purpose | Required Config | Authentication | Risk Level | Status |
+|----------|---------|-----------------|----------------|------------|--------|
+| TBD | SMS notifications | API key, sender ID | **Unknown** | Low | **Not Started** |
+
+**SMS Confirmation Requirements:**
+1. Provider selection
+2. Budget allocation
+3. Sender ID registration
+4. Character limits
+5. Delivery reporting
+
+---
+
+## Phase 24 Status
+
+> **Note:** Phase 24 is intentionally reserved for Frontend HTML Template Integration.
+> Implementation instructions will be provided separately with the HTML template.
+> No documentation, tasks, or dependencies should be created for Phase 24 at this time.
+
+**Status:** Reserved – Frontend HTML Template Integration (instructions will follow later)
+
+---
+
 **END OF CONSOLIDATED TASK BREAKDOWN v1.0**

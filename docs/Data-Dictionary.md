@@ -526,4 +526,318 @@ The following tables were referenced with varying names across documents and hav
 
 ---
 
+## 8. Additional Tables (Phases 12–15)
+
+### 8.1 `payment_batches`
+
+**Purpose:** Groups payments for batch submission to Subema.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P12 |
+| `batch_reference` | VARCHAR(50) | Batch identifier | Internal | Required | Generated, unique | P12 |
+| `status` | batch_status | Batch processing status | Workflow | Required | Enum value | P12 |
+| `total_amount` | DECIMAL(14,2) | Sum of all payments in batch | Calculated | Required | SRD currency | P12 |
+| `payment_count` | INTEGER | Number of payments in batch | Calculated | Required | | P12 |
+| `submitted_at` | TIMESTAMPTZ | Subema submission timestamp | Integration | Conditional | | P12 |
+| `processed_at` | TIMESTAMPTZ | Subema completion timestamp | Integration | Conditional | | P12 |
+| `created_by` | UUID | User who created batch | Internal | Required | FK to users | P12 |
+| `created_at` | TIMESTAMPTZ | Record creation timestamp | Internal | Required | Auto-generated | |
+
+---
+
+### 8.2 `payment_items`
+
+**Purpose:** Individual payment records within a batch.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P12 |
+| `batch_id` | UUID | Parent batch | Internal | Required | FK to payment_batches | P12 |
+| `payment_id` | UUID | Related payment record | Internal | Required | FK to payments | P10, P12 |
+| `citizen_id` | UUID | Payment recipient | Internal | Required | FK to citizens | P12 |
+| `amount` | DECIMAL(12,2) | Payment amount | Calculation | Required | SRD currency | P12 |
+| `status` | payment_item_status | Item processing status | Workflow | Required | Enum value | P12 |
+| `subema_item_reference` | VARCHAR(100) | Subema item transaction ID | Subema | Conditional | **Requires Validation – Subema field** | P12 |
+| `bank_account` | VARCHAR(50) | Recipient account | Intake | Conditional | | P12 |
+| `disbursement_method` | VARCHAR(20) | Payment method | Config | Required | bank, cash, mobile | P12 |
+| `error_message` | TEXT | Processing error details | Integration | Conditional | If failed | P12 |
+| `processed_at` | TIMESTAMPTZ | Individual processing timestamp | Integration | Conditional | | P12 |
+| `created_at` | TIMESTAMPTZ | Record creation timestamp | Internal | Required | Auto-generated | |
+
+---
+
+### 8.3 `payment_audit_logs`
+
+**Purpose:** Detailed audit trail for payment processing actions.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P12, P15 |
+| `payment_id` | UUID | Related payment | Internal | Required | FK to payments | P12 |
+| `action` | VARCHAR(50) | Audit action type | System | Required | created, submitted, processed, failed, cancelled | P12, P15 |
+| `actor_id` | UUID | User who performed action | Internal | Conditional | FK to users (NULL for system) | P12, P15 |
+| `old_status` | payment_status | Previous status | Workflow | Conditional | | P12 |
+| `new_status` | payment_status | New status | Workflow | Conditional | | P12 |
+| `meta` | JSONB | Additional action metadata | Various | Optional | | P12, P15 |
+| `created_at` | TIMESTAMPTZ | Action timestamp | Internal | Required | Auto-generated | |
+
+---
+
+### 8.4 `fraud_signals`
+
+**Purpose:** Stores detected fraud indicators for cases.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P14 |
+| `case_id` | UUID | Related case | Internal | Required | FK to cases | P14 |
+| `signal_type` | VARCHAR(50) | Type of fraud indicator | Engine | Required | duplicate_application, income_discrepancy, document_tampering, identity_mismatch | P14 |
+| `severity` | fraud_severity | Severity level | Engine | Required | Enum value | P14 |
+| `description` | TEXT | Signal description | Engine | Required | | P14 |
+| `evidence` | JSONB | Supporting evidence data | Engine | Optional | Details for investigation | P14 |
+| `status` | VARCHAR(20) | Investigation status | Workflow | Required | pending, investigating, confirmed, dismissed | P14 |
+| `reviewed_by` | UUID | Reviewer reference | Workflow | Conditional | FK to users | P14 |
+| `reviewed_at` | TIMESTAMPTZ | Review timestamp | Workflow | Conditional | | P14 |
+| `created_at` | TIMESTAMPTZ | Detection timestamp | Internal | Required | Auto-generated | |
+
+---
+
+### 8.5 `fraud_risk_scores`
+
+**Purpose:** Aggregated fraud risk assessment per case.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P14 |
+| `case_id` | UUID | Related case | Internal | Required | FK to cases, UNIQUE | P14 |
+| `risk_score` | DECIMAL(5,2) | Calculated risk score | Engine | Required | 0.00 to 100.00 | P14 |
+| `risk_level` | risk_level | Categorical risk level | Engine | Required | Enum value | P14 |
+| `signal_count` | INTEGER | Number of active signals | Engine | Required | | P14 |
+| `last_evaluated_at` | TIMESTAMPTZ | Last evaluation timestamp | Engine | Required | | P14 |
+| `created_at` | TIMESTAMPTZ | Record creation timestamp | Internal | Required | Auto-generated | |
+| `updated_at` | TIMESTAMPTZ | Last update timestamp | Internal | Required | Auto-updated | |
+
+---
+
+### 8.6 `fraud_review_logs`
+
+**Purpose:** Audit trail for fraud investigation actions.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P14, P15 |
+| `signal_id` | UUID | Related fraud signal | Internal | Required | FK to fraud_signals | P14 |
+| `action` | VARCHAR(50) | Review action | Workflow | Required | assigned, investigated, escalated, resolved, dismissed | P14 |
+| `actor_id` | UUID | User who performed action | Internal | Required | FK to users | P14, P15 |
+| `notes` | TEXT | Investigation notes | Workflow | Optional | | P14 |
+| `created_at` | TIMESTAMPTZ | Action timestamp | Internal | Required | Auto-generated | |
+
+---
+
+### 8.7 `audit_events`
+
+**Purpose:** System-wide audit event log for compliance.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P15 |
+| `event_type` | audit_event_type | Type of audit event | System | Required | Enum value | P15 |
+| `entity_type` | VARCHAR(50) | Affected entity type | System | Required | case, citizen, payment, document, user | P15 |
+| `entity_id` | UUID | Affected entity ID | System | Required | | P15 |
+| `actor_id` | UUID | User who performed action | System | Conditional | FK to users (NULL for system) | P15 |
+| `action` | VARCHAR(100) | Specific action performed | System | Required | | P15 |
+| `old_value` | JSONB | Previous state | System | Optional | For update events | P15 |
+| `new_value` | JSONB | New state | System | Optional | For update events | P15 |
+| `ip_address` | VARCHAR(45) | Client IP address | System | Optional | IPv4 or IPv6 | P15 |
+| `user_agent` | TEXT | Client user agent | System | Optional | | P15 |
+| `created_at` | TIMESTAMPTZ | Event timestamp | Internal | Required | Auto-generated | |
+
+---
+
+### 8.8 `wizard_definitions`
+
+**Purpose:** Configurable wizard step definitions per service type.
+
+| Field | Type | Description | Source | Required | Validation Notes | Cross-References |
+|-------|------|-------------|--------|----------|------------------|------------------|
+| `id` | UUID | Primary key | Internal | Required | Auto-generated | P3 |
+| `service_type_id` | UUID | Applicable service | Internal | Required | FK to service_types | P3 |
+| `step_order` | INTEGER | Step sequence number | Internal | Required | 1-indexed | P3 |
+| `step_key` | VARCHAR(50) | Step identifier | Internal | Required | identification, personal_info, etc. | P3 |
+| `step_title` | VARCHAR(200) | Display title | Internal | Required | | P3 |
+| `step_config` | JSONB | Step configuration | Internal | Required | Fields, validations, conditions | P3 |
+| `is_required` | BOOLEAN | Mandatory step | Internal | Required | Default: true | P3 |
+| `is_active` | BOOLEAN | Active status | Internal | Required | Default: true | P3 |
+| `created_at` | TIMESTAMPTZ | Record creation timestamp | Internal | Required | Auto-generated | |
+
+---
+
+## 9. Additional Enumerations (Phases 12–15)
+
+### 9.1 `batch_status`
+```sql
+CREATE TYPE public.batch_status AS ENUM (
+  'draft',
+  'pending_approval',
+  'approved',
+  'submitted',
+  'processing',
+  'completed',
+  'failed',
+  'cancelled'
+);
+```
+
+### 9.2 `payment_item_status`
+```sql
+CREATE TYPE public.payment_item_status AS ENUM (
+  'pending',
+  'submitted',
+  'processing',
+  'completed',
+  'failed',
+  'returned'
+);
+```
+
+### 9.3 `fraud_severity`
+```sql
+CREATE TYPE public.fraud_severity AS ENUM (
+  'low',
+  'medium',
+  'high',
+  'critical'
+);
+```
+
+### 9.4 `risk_level`
+```sql
+CREATE TYPE public.risk_level AS ENUM (
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'critical'
+);
+```
+
+### 9.5 `audit_event_type`
+```sql
+CREATE TYPE public.audit_event_type AS ENUM (
+  'create',
+  'read',
+  'update',
+  'delete',
+  'login',
+  'logout',
+  'export',
+  'import',
+  'approval',
+  'rejection',
+  'override',
+  'escalation'
+);
+```
+
+---
+
+## 10. Implied Fields & Derived Data
+
+This section documents fields that are referenced in business logic but are calculated/derived rather than stored directly in the database.
+
+### 10.1 Derived Fields
+
+| Derived Field | Source Table(s) | Derivation Logic | Used In | Storage |
+|---------------|-----------------|------------------|---------|---------|
+| `age_years` | citizens.date_of_birth | `EXTRACT(YEAR FROM AGE(date_of_birth))` | P9 (eligibility rules) | **Derived – not stored** |
+| `age_at_application` | citizens.date_of_birth, cases.created_at | `EXTRACT(YEAR FROM AGE(cases.created_at, citizens.date_of_birth))` | P9 (age rules) | **Derived – not stored** |
+| `total_household_members` | households.members | `JSONB_ARRAY_LENGTH(members) + 1` | P9 (household rules) | **Derived – not stored** |
+| `number_of_children` | households.members | Count members where age < 18 | P9 (child allowance) | **Derived – not stored** |
+| `number_of_dependents` | households.members | Count members where is_dependent = true | P9 (benefit calculation) | **Derived – not stored** |
+| `total_verified_monthly_income` | incomes | `SUM(amount) WHERE is_verified = true` | P9 (income threshold) | **Derived – not stored** |
+| `total_household_income` | incomes, households | Sum of all household member incomes | P9, P10 (eligibility, payments) | **Derived – not stored** |
+| `days_since_intake` | cases.created_at | `CURRENT_DATE - DATE(created_at)` | P6 (SLA monitoring) | **Derived – not stored** |
+| `avg_processing_time_days` | case_events | Avg time between intake and approval events | P6 (dashboard KPIs) | **Derived – not stored** |
+| `missing_documents_count` | documents, document_requirements | Required docs minus submitted verified docs | P5 (validation engine) | **Derived – not stored** |
+| `eligibility_pass_rate` | eligibility_evaluations | `COUNT(eligible) / COUNT(*)` per period | P6 (reporting) | **Derived – not stored** |
+| `payment_completion_rate` | payments | `COUNT(processed) / COUNT(*)` per batch | P12 (batch monitoring) | **Derived – not stored** |
+| `fraud_signal_density` | fraud_signals | Signal count per case or citizen | P14 (risk scoring) | **Derived – not stored** |
+
+### 10.2 Implicit Fields in JSONB
+
+The following fields are referenced in business logic within JSONB columns:
+
+| Parent Field | JSONB Path | Expected Type | Used In | Notes |
+|--------------|------------|---------------|---------|-------|
+| `citizens.household_members` | `[*].first_name` | string | P3 wizard | Member identification |
+| `citizens.household_members` | `[*].last_name` | string | P3 wizard | Member identification |
+| `citizens.household_members` | `[*].date_of_birth` | date | P9 eligibility | Age calculation |
+| `citizens.household_members` | `[*].relationship` | string | P9 eligibility | child, spouse, parent, other |
+| `citizens.household_members` | `[*].is_dependent` | boolean | P9, P10 | Benefit calculation |
+| `citizens.household_members` | `[*].income_amount` | decimal | P9 eligibility | Household income total |
+| `cases.wizard_data` | `.identification` | object | P3 | Step 1 data |
+| `cases.wizard_data` | `.personal_info` | object | P3 | Step 2 data |
+| `cases.wizard_data` | `.address` | object | P3 | Step 3 data |
+| `cases.wizard_data` | `.household` | object | P3 | Step 4 data |
+| `cases.wizard_data` | `.financial` | object | P3 | Step 5 data |
+| `cases.wizard_data` | `.documents` | array | P3, P5 | Step 6 data |
+| `eligibility_rules.condition` | `.operator` | string | P9 | gt, lt, eq, gte, lte, in, between |
+| `eligibility_rules.condition` | `.field` | string | P9 | Field reference path |
+| `eligibility_rules.condition` | `.value` | any | P9 | Threshold value |
+| `case_events.meta` | `.decision` | string | P6 | approved/rejected |
+| `case_events.meta` | `.reviewer_id` | uuid | P6 | Decision maker |
+| `case_events.meta` | `.notes` | string | P4, P6 | Comments |
+
+---
+
+## 11. Validation Dependencies
+
+This section documents fields that cannot be validated locally and require external confirmation.
+
+### 11.1 BIS Validation Dependencies
+
+| Field | Table | Validation Type | External System | Status | Notes |
+|-------|-------|-----------------|-----------------|--------|-------|
+| `national_id` | citizens | Format validation | BIS | **Requires External Validation** | ID format pattern unknown |
+| `bis_person_id` | citizens | Existence check | BIS | **Requires External Validation** | Field name assumed |
+| `bis_household_id` | households | Existence check | BIS | **Requires External Validation** | Field name assumed |
+| `first_name` | citizens | Cross-validation | BIS | **Requires External Validation** | Match against `voornamen` |
+| `last_name` | citizens | Cross-validation | BIS | **Requires External Validation** | Match against `achternaam` |
+| `date_of_birth` | citizens | Cross-validation | BIS | **Requires External Validation** | Match against `geboortedatum` |
+| `address` | citizens | Cross-validation | BIS | **Requires External Validation** | Match against `adres` |
+
+### 11.2 Subema Validation Dependencies
+
+| Field | Table | Validation Type | External System | Status | Notes |
+|-------|-------|-----------------|-----------------|--------|-------|
+| `subema_reference` | payments | Response mapping | Subema | **Requires External Validation** | Transaction ID field name |
+| `subema_reference` | subema_sync_logs | Response mapping | Subema | **Requires External Validation** | Same as payments |
+| `subema_item_reference` | payment_items | Response mapping | Subema | **Requires External Validation** | Item-level ID |
+| `subema_verified` | incomes | Data availability | Subema | **Requires External Validation** | Unknown if Subema provides income data |
+| `bank_account` | payments | Format validation | Subema | **Requires External Validation** | Account number format |
+
+### 11.3 Business Policy Dependencies
+
+| Field/Rule | Table/Engine | Policy Type | Stakeholder | Status | Notes |
+|------------|--------------|-------------|-------------|--------|-------|
+| `income_threshold` | eligibility_rules | Amount threshold | Ministry of Social Affairs | **Requires Policy Clarification** | Per-service thresholds |
+| `age_limits` | eligibility_rules | Age bounds | Ministry of Social Affairs | **Requires Policy Clarification** | Min/max per service |
+| `benefit_formula` | payments | Calculation | Ministry of Social Affairs | **Requires Policy Clarification** | Amount determination logic |
+| `override_authorization` | eligibility_evaluations | Permission | Ministry of Social Affairs | **Requires Policy Clarification** | Who can override |
+| `data_retention_period` | audit_events | Duration | Legal Department | **Requires Policy Clarification** | Assumed 7 years |
+| `consent_requirements` | citizens | Consent flow | Legal Department | **Requires Policy Clarification** | Portal registration |
+| `deletion_policy` | all tables | Soft vs hard delete | Legal Department | **Requires Policy Clarification** | Affects schema design |
+
+### 11.4 Legal/Compliance Dependencies
+
+| Requirement | Affected Tables | Compliance Type | Stakeholder | Status | Notes |
+|-------------|-----------------|-----------------|-------------|--------|-------|
+| Audit trail retention | audit_events, case_events | Data retention | Legal Department | **Requires Legal Confirmation** | 7 years assumed |
+| PII handling | citizens, households | Privacy | Legal Department | **Requires Legal Confirmation** | Encryption, access controls |
+| Cross-border data | all tables | Data sovereignty | Legal Department | **Requires Legal Confirmation** | Supabase region |
+| Right to erasure | citizens | Privacy | Legal Department | **Requires Legal Confirmation** | GDPR-like requirements |
+
+---
+
 **END OF DATA DICTIONARY v1.0**

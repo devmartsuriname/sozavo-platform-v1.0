@@ -523,4 +523,307 @@ Approved Cases → Payment Creation → Subema Submission → Status Sync → Ca
 
 ---
 
+## 12. Cross-Layer Dependencies
+
+### 12.1 Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           GOVERNANCE LAYER                                   │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │
+│  │ Audit Engine │ │ Compliance   │ │ Policy       │ │ User Access  │       │
+│  │ (P15)        │ │ Reports      │ │ Management   │ │ Control      │       │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │ ▲
+                    ┌───────────────┘ └───────────────┐
+                    ▼                                 │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            ENGINE LAYER                                      │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │
+│  │ Wizard       │ │ Eligibility  │ │ Workflow     │ │ Document     │       │
+│  │ Engine (P3)  │ │ Engine (P9)  │ │ Engine (P4)  │ │ Engine (P5)  │       │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │
+│  ┌──────────────┐ ┌──────────────┐                                          │
+│  │ Fraud        │ │ Payment      │                                          │
+│  │ Engine (P14) │ │ Engine (P12) │                                          │
+│  └──────────────┘ └──────────────┘                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                    │ ▲                               │ ▲
+                    ▼ │                               ▼ │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         INTEGRATION LAYER                                    │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │
+│  │ BIS          │ │ Subema       │ │ Email        │ │ SMS          │       │
+│  │ Integration  │ │ Integration  │ │ Service      │ │ Service      │       │
+│  │ (P11)        │ │ (P12)        │ │ (P13)        │ │ (P13)        │       │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │ ▲
+                                    ▼ │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            DATA LAYER                                        │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐ ┌──────────────┐       │
+│  │ PostgreSQL   │ │ Supabase     │ │ Supabase     │ │ RLS          │       │
+│  │ Tables (P1)  │ │ Auth         │ │ Storage      │ │ Policies(P7) │       │
+│  └──────────────┘ └──────────────┘ └──────────────┘ └──────────────┘       │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 12.2 Cross-Layer Dependency Matrix
+
+| Source Layer | Target Layer | Dependency Type | Components |
+|--------------|--------------|-----------------|------------|
+| Engine → Data | Hard | All engines require database tables |
+| Engine → Integration | Soft | Engines can run without integrations (degraded mode) |
+| Integration → Data | Hard | All integrations read/write to database |
+| Governance → Engine | Hard | Audit requires engine event hooks |
+| Governance → Data | Hard | Compliance requires data access |
+| Engine → Engine | Soft to Hard | See engine dependencies below |
+
+### 12.3 Engine-to-Engine Dependencies
+
+| Source Engine | Target Engine | Dependency | Type |
+|---------------|---------------|------------|------|
+| Wizard Engine | Workflow Engine | Case creation triggers workflow | Hard |
+| Workflow Engine | Eligibility Engine | Status transition triggers evaluation | Hard |
+| Workflow Engine | Document Engine | Status affects document requirements | Hard |
+| Eligibility Engine | Document Engine | Document presence is eligibility criterion | Hard |
+| Eligibility Engine | Fraud Engine | Eligibility results feed fraud detection | Soft |
+| Fraud Engine | Workflow Engine | Fraud signals can block transitions | Soft |
+| Payment Engine | Workflow Engine | Payment status updates case status | Hard |
+| Payment Engine | Fraud Engine | Payment triggers additional fraud checks | Soft |
+
+---
+
+## 13. Failure Impact Analysis
+
+### 13.1 Integration Failures
+
+| Component | Failure Scenario | Impact | Fallback Behavior | Dependency Type |
+|-----------|------------------|--------|-------------------|-----------------|
+| **BIS API** | API unavailable | Cannot verify citizen identity | Manual entry mode; mark `bis_verified = false`; flag for later verification | Soft |
+| **BIS API** | Incorrect response format | Data mapping fails | Log error; reject auto-fill; allow manual entry | Soft |
+| **Subema API** | API unavailable | Cannot process payments | Queue payments; retry on schedule; alert finance team | Soft |
+| **Subema API** | Batch submission fails | Payments stuck in pending | Retry with exponential backoff; manual intervention queue | Soft |
+| **Email Service** | Provider unavailable | Notifications not sent | Queue notifications; retry; fallback to portal notifications | Soft |
+| **SMS Service** | Provider unavailable | SMS not delivered | Fallback to email; portal notification | Soft |
+
+### 13.2 Engine Failures
+
+| Engine | Failure Scenario | Impact | Fallback Behavior | Dependency Type |
+|--------|------------------|--------|-------------------|-----------------|
+| **Workflow Engine** | Invalid transition attempted | Case stuck in current status | Block transition; log error; alert handler | Hard |
+| **Workflow Engine** | Database write failure | Status change lost | Transaction rollback; retry; alert admin | Hard |
+| **Eligibility Engine** | Rule evaluation error | Cannot determine eligibility | Mark evaluation as `PENDING`; flag for manual review | Hard |
+| **Eligibility Engine** | Missing required data | Incomplete evaluation | Partial evaluation with explicit gaps; notify handler | Soft |
+| **Document Engine** | Storage unavailable | Cannot upload/retrieve documents | Queue uploads; retry; alert user | Hard |
+| **Document Engine** | Validation rules missing | Cannot validate documents | Use default validation; log warning | Soft |
+| **Fraud Engine** | Detection algorithm fails | False negative risk | Log failure; continue processing; manual review flag | Soft |
+| **Fraud Engine** | High signal volume | Performance degradation | Batch processing; prioritize critical cases | Soft |
+| **Payment Engine** | Calculation error | Incorrect payment amount | Block payment; log error; require manual override | Hard |
+| **Payment Engine** | Batch processing timeout | Incomplete batch | Resume from checkpoint; alert finance | Soft |
+
+### 13.3 Data Layer Failures
+
+| Component | Failure Scenario | Impact | Fallback Behavior | Recovery |
+|-----------|------------------|--------|-------------------|----------|
+| **PostgreSQL** | Database unavailable | Complete system outage | Display maintenance page | Automatic failover (if configured) |
+| **PostgreSQL** | Query timeout | Slow performance | Retry with simplified query; cache hit | Query optimization |
+| **Supabase Auth** | Auth service unavailable | Cannot login/logout | Display auth error; redirect to status page | Wait for service recovery |
+| **Supabase Storage** | Storage unavailable | Document access fails | Show placeholder; queue operations | Automatic recovery |
+| **RLS Policies** | Policy misconfiguration | Data access denied/exposed | Deny access by default; log policy errors | Manual policy fix |
+
+---
+
+## 14. Versioning and Change Impact
+
+### 14.1 Rule Versioning Requirements
+
+| Phase | Component | Versioning Required | Reason |
+|-------|-----------|---------------------|--------|
+| P9 | Eligibility Rules | **Yes** | Policy changes must not affect historical evaluations |
+| P4 | Workflow Definitions | **Yes** | Transition rules may change; existing cases follow original rules |
+| P5 | Document Requirements | **Yes** | New document types should not invalidate existing submissions |
+| P12 | Payment Formulas | **Yes** | Benefit amounts may change; historical payments must be auditable |
+| P14 | Fraud Detection Rules | **Yes** | Detection algorithms evolve; historical signals need context |
+
+### 14.2 Versioning Implementation Pattern
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    VERSIONED RULE PATTERN                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  eligibility_rules                                               │
+│  ├── id                                                          │
+│  ├── service_type_id                                             │
+│  ├── version_number (INTEGER)                                    │
+│  ├── effective_from (TIMESTAMPTZ)                                │
+│  ├── effective_to (TIMESTAMPTZ NULL)                             │
+│  ├── rule_config (JSONB)                                         │
+│  └── created_by                                                  │
+│                                                                  │
+│  At evaluation time:                                             │
+│  SELECT * FROM eligibility_rules                                 │
+│  WHERE service_type_id = ?                                       │
+│    AND effective_from <= cases.created_at                        │
+│    AND (effective_to IS NULL OR effective_to > cases.created_at) │
+│  ORDER BY version_number DESC                                    │
+│  LIMIT 1;                                                        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 14.3 Schema Change Impact Matrix
+
+| Change Type | Affected Phases | Risk Level | Mitigation |
+|-------------|-----------------|------------|------------|
+| Add new column | Queries, RLS | Low | Nullable with default; no breaking changes |
+| Rename column | All referencing code | High | Migration script; update all references |
+| Remove column | All referencing code | Critical | Deprecation period; soft delete first |
+| Change column type | Queries, validation | High | Data migration; type coercion testing |
+| Add new table | None | Low | Independent addition |
+| Add foreign key | Insert operations | Medium | Ensure referential integrity |
+| Modify enum | All referencing code | High | Add values only; never remove |
+| Change RLS policy | All queries | Critical | Thorough testing before deploy |
+
+### 14.4 Integration Endpoint Stability
+
+| Integration | Endpoint Type | Stability Requirement | Change Protocol |
+|-------------|---------------|----------------------|-----------------|
+| BIS API | External | **Critical** | Version negotiation; backward compatibility required |
+| Subema API | External | **Critical** | Contract agreement; staged rollout |
+| Edge Functions | Internal | **High** | Semantic versioning; deprecation warnings |
+| Portal API | Internal | **High** | Version prefix (e.g., /api/v1/); 6-month deprecation |
+| Admin API | Internal | **Medium** | Coordinated frontend updates |
+
+---
+
+## 15. Extended Dependency Diagram
+
+```mermaid
+graph TB
+    subgraph "Data Layer"
+        DB[(PostgreSQL)]
+        AUTH[Supabase Auth]
+        STORAGE[Supabase Storage]
+        RLS[RLS Policies]
+    end
+
+    subgraph "Integration Layer"
+        BIS[BIS Integration]
+        SUBEMA[Subema Integration]
+        EMAIL[Email Service]
+        SMS[SMS Service]
+    end
+
+    subgraph "Engine Layer"
+        WIZARD[Wizard Engine]
+        WORKFLOW[Workflow Engine]
+        ELIGIBILITY[Eligibility Engine]
+        DOCUMENT[Document Engine]
+        FRAUD[Fraud Engine]
+        PAYMENT[Payment Engine]
+    end
+
+    subgraph "Governance Layer"
+        AUDIT[Audit Engine]
+        COMPLIANCE[Compliance Reports]
+        POLICY[Policy Management]
+    end
+
+    subgraph "External Blockers"
+        BIS_API{{BIS API Specs}}
+        SUBEMA_API{{Subema API Specs}}
+        LEGAL{{Legal Requirements}}
+        MINISTRY{{Ministry Decisions}}
+    end
+
+    %% Data Layer Dependencies
+    DB --> AUTH
+    DB --> STORAGE
+    RLS --> DB
+
+    %% Engine to Data
+    WIZARD --> DB
+    WORKFLOW --> DB
+    ELIGIBILITY --> DB
+    DOCUMENT --> DB
+    DOCUMENT --> STORAGE
+    FRAUD --> DB
+    PAYMENT --> DB
+
+    %% Engine to Engine
+    WIZARD --> WORKFLOW
+    WORKFLOW --> ELIGIBILITY
+    WORKFLOW --> DOCUMENT
+    ELIGIBILITY --> DOCUMENT
+    ELIGIBILITY -.-> FRAUD
+    PAYMENT --> WORKFLOW
+    PAYMENT -.-> FRAUD
+
+    %% Integration Dependencies
+    BIS --> DB
+    SUBEMA --> DB
+    SUBEMA --> PAYMENT
+    EMAIL --> DB
+    SMS --> DB
+
+    %% Governance Dependencies
+    AUDIT --> DB
+    AUDIT --> WORKFLOW
+    AUDIT --> PAYMENT
+    COMPLIANCE --> AUDIT
+    POLICY --> ELIGIBILITY
+    POLICY --> PAYMENT
+
+    %% External Blockers
+    BIS_API -.->|blocks| BIS
+    SUBEMA_API -.->|blocks| SUBEMA
+    LEGAL -.->|blocks| COMPLIANCE
+    LEGAL -.->|blocks| AUDIT
+    MINISTRY -.->|blocks| ELIGIBILITY
+    MINISTRY -.->|blocks| PAYMENT
+
+    %% Styling
+    classDef blocker fill:#f96,stroke:#333
+    classDef engine fill:#69b,stroke:#333
+    classDef data fill:#6b9,stroke:#333
+    classDef integration fill:#b69,stroke:#333
+    classDef governance fill:#96b,stroke:#333
+
+    class BIS_API,SUBEMA_API,LEGAL,MINISTRY blocker
+    class WIZARD,WORKFLOW,ELIGIBILITY,DOCUMENT,FRAUD,PAYMENT engine
+    class DB,AUTH,STORAGE,RLS data
+    class BIS,SUBEMA,EMAIL,SMS integration
+    class AUDIT,COMPLIANCE,POLICY governance
+```
+
+### 15.1 Conditional Pathways
+
+| Pathway | Condition | Active When | Phases Affected |
+|---------|-----------|-------------|-----------------|
+| BIS Auto-fill | BIS integration enabled | National ID matches BIS record | P3, P11 |
+| Manual Entry | BIS unavailable OR no match | Fallback mode | P3 |
+| Subema Batch | Approved cases with bank details | Scheduled batch runs | P10, P12 |
+| Subema Cash | Approved cases without bank | Manual disbursement | P10 |
+| Email Notification | Email address available | Citizen has email | P8, P13 |
+| Portal Notification | Always | All citizens | P8 |
+| Fraud Alert | Risk score > threshold | High-risk cases | P14 |
+| Manual Review | Eligibility unclear | Override requested | P9 |
+
+### 15.2 Optional Integration Flows
+
+| Flow | Required For MVP | Enhancement Value | Blockers |
+|------|------------------|-------------------|----------|
+| BIS Identity Prefill | No | High (data accuracy) | BIS API specs |
+| Subema Auto-sync | No | High (payment automation) | Subema API specs |
+| Email Notifications | No | Medium (citizen experience) | Email service contract |
+| SMS Notifications | No | Low (alternative channel) | SMS service contract, budget |
+| Fraud Scoring | No | Medium (risk reduction) | Algorithm tuning |
+| Real-time Updates | No | Low (UX enhancement) | Infrastructure tier |
+
+---
+
 **END OF CONSOLIDATED ARCHITECTURE v1.0**
