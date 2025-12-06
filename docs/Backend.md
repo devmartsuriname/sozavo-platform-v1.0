@@ -686,4 +686,57 @@ try {
 
 ---
 
-**END OF CONSOLIDATED BACKEND DOCUMENTATION v1.0**
+## 13. PRD Requirement Cross-References
+
+### 13.1 Backend Components → PRD Requirements
+
+| Backend Component | PRD Requirements | Phase |
+|-------------------|------------------|-------|
+| Database Schema | REQ-DAT-001 to REQ-DAT-007 | P1 |
+| Authentication | REQ-ADM-001, REQ-CIT-001, REQ-CIT-002 | P2, P8 |
+| RLS Policies | REQ-NFR-001, REQ-SEC-001 to REQ-SEC-003 | P7 |
+| Workflow Engine | REQ-FUN-020 to REQ-FUN-026 | P4 |
+| Eligibility Engine | REQ-FUN-013 to REQ-FUN-019 | P9 |
+| Document Engine | REQ-FUN-027 to REQ-FUN-032 | P5 |
+| Payment Processing | REQ-FUN-038 to REQ-FUN-043 | P10, P12 |
+| BIS Integration | REQ-FUN-009, REQ-INT-001, REQ-INT-002 | P11 |
+| Subema Integration | REQ-FUN-040, REQ-INT-003, REQ-INT-004 | P12 |
+| Notification Service | REQ-INT-005, REQ-INT-006 | P13 |
+| Fraud Detection | REQ-SEC-006 | P14 |
+| Audit Logging | REQ-NFR-004, REQ-SEC-007 | P15 |
+
+### 13.2 Query Functions → Data Dictionary Tables
+
+| Query File | Tables Used | Data Dictionary Reference |
+|------------|-------------|---------------------------|
+| cases.ts | cases, citizens, service_types, users | Section 4.6, 4.3, 4.1, 4.4 |
+| citizens.ts | citizens, households | Section 4.3, 4.16 |
+| documents.ts | documents, document_requirements | Section 4.8, 4.11 |
+| eligibility.ts | eligibility_rules, eligibility_evaluations | Section 4.9, 4.10 |
+| reports.ts | Derived fields | Section 10.1 |
+| payments.ts | payments, payment_batches, payment_items | Section 4.13, 8.1, 8.2 |
+
+---
+
+## 14. Versioning Anchors
+
+### 14.1 Backend Version
+
+| Component | Version | Compatibility |
+|-----------|---------|---------------|
+| Backend Documentation | 2.0 | Current |
+| Schema Version | 1.0 | Stable |
+| Edge Function API | 1.0 | Stable |
+
+### 14.2 Stability Notes
+
+| Component | Stability | Notes |
+|-----------|-----------|-------|
+| Core Tables | **Stable** | No changes expected |
+| RLS Policies | **Stable** | Pattern established |
+| Edge Functions | **Stable** | API contracts defined |
+| Query Functions | **Medium** | May evolve with UI needs |
+
+---
+
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v2.0**
