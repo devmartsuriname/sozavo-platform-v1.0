@@ -14,7 +14,7 @@ const Icon = ({ icon, className = "" }: IconProps) => {
     }
   }, [icon, className]);
 
-  return <span ref={ref} className="inline-flex items-center justify-center" />;
+  return <span ref={ref} />;
 };
 
 export default Icon;
