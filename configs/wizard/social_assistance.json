@@ -1,0 +1,273 @@
+{
+  "metadata": {
+    "service_type": "FB",
+    "service_name": "Financiële Bijstand (Social Assistance)",
+    "wizard_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "total_steps": 6,
+    "estimated_time_minutes": 12
+  },
+  "steps": [
+    {
+      "step_id": "FB_STEP_01_IDENTIFICATION",
+      "step_number": 1,
+      "step_name": "Identification",
+      "description": "Citizen identification and BIS verification",
+      "fields": [
+        {
+          "field_id": "national_id",
+          "label": "National ID Number",
+          "type": "text",
+          "required": true,
+          "validation": {
+            "pattern": "^[0-9]{9}$",
+            "min_length": 9,
+            "max_length": 9
+          },
+          "data_dictionary_ref": "citizens.national_id",
+          "bis_lookup_trigger": true
+        }
+      ],
+      "required_dependencies": [],
+      "conditional_visibility": null,
+      "expected_outputs": ["national_id", "bis_verification_status"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-001", "REQ-FUN-009"]
+      }
+    },
+    {
+      "step_id": "FB_STEP_02_PERSONAL_INFO",
+      "step_number": 2,
+      "step_name": "Personal Information",
+      "description": "Basic personal details and contact information",
+      "fields": [
+        {
+          "field_id": "first_name",
+          "label": "First Name",
+          "type": "text",
+          "required": true,
+          "validation": { "min_length": 1, "max_length": 100 },
+          "data_dictionary_ref": "citizens.first_name",
+          "prefill_source": "bis_data.voornamen"
+        },
+        {
+          "field_id": "last_name",
+          "label": "Last Name",
+          "type": "text",
+          "required": true,
+          "validation": { "min_length": 1, "max_length": 100 },
+          "data_dictionary_ref": "citizens.last_name",
+          "prefill_source": "bis_data.achternaam"
+        },
+        {
+          "field_id": "date_of_birth",
+          "label": "Date of Birth",
+          "type": "date",
+          "required": true,
+          "data_dictionary_ref": "citizens.date_of_birth",
+          "prefill_source": "bis_data.geboortedatum"
+        },
+        {
+          "field_id": "address",
+          "label": "Street Address",
+          "type": "text",
+          "required": true,
+          "data_dictionary_ref": "citizens.address",
+          "prefill_source": "bis_data.adres"
+        },
+        {
+          "field_id": "district",
+          "label": "District",
+          "type": "select",
+          "required": true,
+          "options": ["Paramaribo", "Wanica", "Nickerie", "Coronie", "Saramacca", "Commewijne", "Marowijne", "Para", "Brokopondo", "Sipaliwini"],
+          "data_dictionary_ref": "citizens.district"
+        },
+        {
+          "field_id": "phone",
+          "label": "Phone Number",
+          "type": "tel",
+          "required": false,
+          "data_dictionary_ref": "citizens.phone"
+        }
+      ],
+      "required_dependencies": ["FB_STEP_01_IDENTIFICATION"],
+      "conditional_visibility": null,
+      "expected_outputs": ["first_name", "last_name", "date_of_birth", "address", "district", "phone"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": ["FB_RESIDENCY_REQUIRED"],
+        "prd_requirements": ["REQ-FUN-002"]
+      }
+    },
+    {
+      "step_id": "FB_STEP_03_HOUSEHOLD",
+      "step_number": 3,
+      "step_name": "Household & Dependents",
+      "description": "Household composition with focus on dependents",
+      "fields": [
+        {
+          "field_id": "household_members",
+          "label": "Household Members",
+          "type": "repeater",
+          "required": true,
+          "min_items": 1,
+          "item_fields": [
+            { "field_id": "member_name", "label": "Full Name", "type": "text", "required": true },
+            { "field_id": "member_relationship", "label": "Relationship", "type": "select", "required": true, "options": ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+            { "field_id": "member_date_of_birth", "label": "Date of Birth", "type": "date", "required": true },
+            { "field_id": "member_is_dependent", "label": "Is Dependent?", "type": "boolean", "required": true, "default": false },
+            { "field_id": "member_national_id", "label": "National ID", "type": "text", "required": false }
+          ],
+          "data_dictionary_ref": "citizens.household_members"
+        },
+        {
+          "field_id": "dependent_count",
+          "label": "Total Dependents",
+          "type": "calculated",
+          "calculation": "COUNT(household_members WHERE member_is_dependent = true)",
+          "data_dictionary_ref": "Section 10.1 derived fields"
+        }
+      ],
+      "required_dependencies": ["FB_STEP_02_PERSONAL_INFO"],
+      "conditional_visibility": null,
+      "expected_outputs": ["household_members", "dependent_count"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens, Section 4.16 households",
+        "eligibility_rules": ["FB_HOUSEHOLD_DEPENDENTS_MIN_1"],
+        "prd_requirements": ["REQ-FUN-003"]
+      }
+    },
+    {
+      "step_id": "FB_STEP_04_INCOME",
+      "step_number": 4,
+      "step_name": "Income Information",
+      "description": "Household income sources and amounts",
+      "fields": [
+        {
+          "field_id": "employment_income",
+          "label": "Monthly Employment Income (SRD)",
+          "type": "number",
+          "required": false,
+          "validation": { "min": 0, "max": 1000000 },
+          "default": 0,
+          "data_dictionary_ref": "incomes.income_amount"
+        },
+        {
+          "field_id": "other_benefits_income",
+          "label": "Other Government Benefits (SRD)",
+          "type": "number",
+          "required": false,
+          "validation": { "min": 0, "max": 1000000 },
+          "default": 0,
+          "data_dictionary_ref": "incomes.income_amount"
+        },
+        {
+          "field_id": "other_income",
+          "label": "Other Income (SRD)",
+          "type": "number",
+          "required": false,
+          "validation": { "min": 0, "max": 1000000 },
+          "default": 0,
+          "data_dictionary_ref": "incomes.income_amount"
+        },
+        {
+          "field_id": "total_monthly_income",
+          "label": "Total Monthly Household Income (SRD)",
+          "type": "calculated",
+          "calculation": "employment_income + other_benefits_income + other_income",
+          "data_dictionary_ref": "Section 10.1 derived fields"
+        }
+      ],
+      "required_dependencies": ["FB_STEP_03_HOUSEHOLD"],
+      "conditional_visibility": null,
+      "expected_outputs": ["employment_income", "other_benefits_income", "other_income", "total_monthly_income"],
+      "cross_links": {
+        "data_dictionary": "Section 4.17 incomes, Section 10.1 derived",
+        "eligibility_rules": ["FB_INCOME_MAX_15000"],
+        "prd_requirements": ["REQ-FUN-004"]
+      }
+    },
+    {
+      "step_id": "FB_STEP_05_MONI_KARTA",
+      "step_number": 5,
+      "step_name": "Moni Karta Registration",
+      "description": "Moni Karta program registration status",
+      "fields": [
+        {
+          "field_id": "moni_karta_registered",
+          "label": "Are you registered for the Moni Karta program?",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "field_id": "moni_karta_number",
+          "label": "Moni Karta Number",
+          "type": "text",
+          "required": false,
+          "conditional_visibility": "moni_karta_registered === true"
+        }
+      ],
+      "required_dependencies": ["FB_STEP_04_INCOME"],
+      "conditional_visibility": null,
+      "expected_outputs": ["moni_karta_registered", "moni_karta_number"],
+      "cross_links": {
+        "data_dictionary": "Requires Clarification - Moni Karta fields not in schema",
+        "eligibility_rules": ["FB_MONI_KARTA_FLAG"],
+        "prd_requirements": ["REQ-FUN-016"]
+      }
+    },
+    {
+      "step_id": "FB_STEP_06_DOCUMENTS_CONFIRM",
+      "step_number": 6,
+      "step_name": "Documents & Confirmation",
+      "description": "Upload documents and confirm submission",
+      "fields": [
+        {
+          "field_id": "id_card_document",
+          "label": "ID Card",
+          "type": "file",
+          "required": true,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = id_card"
+        },
+        {
+          "field_id": "income_proof_document",
+          "label": "Proof of Income",
+          "type": "file",
+          "required": true,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = income_proof"
+        },
+        {
+          "field_id": "consent_declaration",
+          "label": "I declare that all information provided is accurate and complete",
+          "type": "checkbox",
+          "required": true
+        },
+        {
+          "field_id": "consent_data_sharing",
+          "label": "I consent to my data being shared with relevant government agencies",
+          "type": "checkbox",
+          "required": true
+        }
+      ],
+      "required_dependencies": ["FB_STEP_05_MONI_KARTA"],
+      "conditional_visibility": null,
+      "expected_outputs": ["uploaded_document_ids", "consent_declaration", "consent_data_sharing"],
+      "cross_links": {
+        "data_dictionary": "Section 4.8 documents",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-005", "REQ-FUN-006", "REQ-FUN-027"]
+      }
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 4.3", "Section 4.6", "Section 4.8", "Section 4.17"],
+    "prd_requirements": ["REQ-FUN-001 to REQ-FUN-006", "REQ-FUN-016"],
+    "eligibility_config": "configs/eligibility/social_assistance.json"
+  }
+}

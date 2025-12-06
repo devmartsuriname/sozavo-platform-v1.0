@@ -1,0 +1,320 @@
+{
+  "metadata": {
+    "service_type": "KB",
+    "service_name": "Kinderbijslag (Child Allowance)",
+    "wizard_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "total_steps": 6,
+    "estimated_time_minutes": 10
+  },
+  "steps": [
+    {
+      "step_id": "KB_STEP_01_PARENT_IDENTIFICATION",
+      "step_number": 1,
+      "step_name": "Parent/Guardian Identification",
+      "description": "Parent or guardian identification and BIS verification",
+      "fields": [
+        {
+          "field_id": "parent_national_id",
+          "label": "Parent/Guardian National ID Number",
+          "type": "text",
+          "required": true,
+          "validation": {
+            "pattern": "^[0-9]{9}$",
+            "min_length": 9,
+            "max_length": 9
+          },
+          "data_dictionary_ref": "citizens.national_id",
+          "bis_lookup_trigger": true
+        },
+        {
+          "field_id": "parent_first_name",
+          "label": "Parent First Name",
+          "type": "text",
+          "required": true,
+          "prefill_source": "bis_data.voornamen",
+          "data_dictionary_ref": "citizens.first_name"
+        },
+        {
+          "field_id": "parent_last_name",
+          "label": "Parent Last Name",
+          "type": "text",
+          "required": true,
+          "prefill_source": "bis_data.achternaam",
+          "data_dictionary_ref": "citizens.last_name"
+        },
+        {
+          "field_id": "parent_date_of_birth",
+          "label": "Parent Date of Birth",
+          "type": "date",
+          "required": true,
+          "prefill_source": "bis_data.geboortedatum",
+          "data_dictionary_ref": "citizens.date_of_birth"
+        },
+        {
+          "field_id": "parent_address",
+          "label": "Address",
+          "type": "text",
+          "required": true,
+          "prefill_source": "bis_data.adres",
+          "data_dictionary_ref": "citizens.address"
+        },
+        {
+          "field_id": "parent_district",
+          "label": "District",
+          "type": "select",
+          "required": true,
+          "options": ["Paramaribo", "Wanica", "Nickerie", "Coronie", "Saramacca", "Commewijne", "Marowijne", "Para", "Brokopondo", "Sipaliwini"],
+          "data_dictionary_ref": "citizens.district"
+        }
+      ],
+      "required_dependencies": [],
+      "conditional_visibility": null,
+      "expected_outputs": ["parent_national_id", "parent_first_name", "parent_last_name", "parent_date_of_birth", "parent_address", "parent_district"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": ["KB_RESIDENCY_REQUIRED"],
+        "prd_requirements": ["REQ-FUN-001", "REQ-FUN-009"]
+      }
+    },
+    {
+      "step_id": "KB_STEP_02_CHILD_IDENTIFICATION",
+      "step_number": 2,
+      "step_name": "Child Identification",
+      "description": "Child details and BIS verification",
+      "fields": [
+        {
+          "field_id": "child_national_id",
+          "label": "Child National ID Number",
+          "type": "text",
+          "required": false,
+          "validation": {
+            "pattern": "^[0-9]{9}$",
+            "min_length": 9,
+            "max_length": 9
+          },
+          "data_dictionary_ref": "citizens.national_id",
+          "bis_lookup_trigger": true
+        },
+        {
+          "field_id": "child_first_name",
+          "label": "Child First Name",
+          "type": "text",
+          "required": true,
+          "prefill_source": "bis_data.voornamen",
+          "data_dictionary_ref": "citizens.first_name"
+        },
+        {
+          "field_id": "child_last_name",
+          "label": "Child Last Name",
+          "type": "text",
+          "required": true,
+          "prefill_source": "bis_data.achternaam",
+          "data_dictionary_ref": "citizens.last_name"
+        },
+        {
+          "field_id": "child_date_of_birth",
+          "label": "Child Date of Birth",
+          "type": "date",
+          "required": true,
+          "validation": { "max_date": "today", "max_age_years": 18 },
+          "prefill_source": "bis_data.geboortedatum",
+          "data_dictionary_ref": "citizens.date_of_birth"
+        },
+        {
+          "field_id": "child_gender",
+          "label": "Child Gender",
+          "type": "select",
+          "required": false,
+          "options": ["Male", "Female", "Other"],
+          "data_dictionary_ref": "citizens.gender"
+        },
+        {
+          "field_id": "child_age",
+          "label": "Child Age",
+          "type": "calculated",
+          "calculation": "YEARS_BETWEEN(child_date_of_birth, today)",
+          "data_dictionary_ref": "Section 10.1 derived fields"
+        }
+      ],
+      "required_dependencies": ["KB_STEP_01_PARENT_IDENTIFICATION"],
+      "conditional_visibility": null,
+      "expected_outputs": ["child_national_id", "child_first_name", "child_last_name", "child_date_of_birth", "child_gender", "child_age"],
+      "cross_links": {
+        "data_dictionary": "Section 4.3 citizens",
+        "eligibility_rules": ["KB_CHILD_UNDER_18"],
+        "prd_requirements": ["REQ-FUN-002", "REQ-FUN-017"]
+      }
+    },
+    {
+      "step_id": "KB_STEP_03_RELATIONSHIP",
+      "step_number": 3,
+      "step_name": "Relationship Declaration",
+      "description": "Declare relationship between parent/guardian and child",
+      "fields": [
+        {
+          "field_id": "relationship_type",
+          "label": "Your Relationship to the Child",
+          "type": "select",
+          "required": true,
+          "options": [
+            { "value": "parent", "label": "Biological Parent" },
+            { "value": "legal_guardian", "label": "Legal Guardian" },
+            { "value": "foster_parent", "label": "Foster Parent" }
+          ],
+          "data_dictionary_ref": "cases.wizard_data.relationship_section"
+        },
+        {
+          "field_id": "is_sole_caregiver",
+          "label": "Are you the sole caregiver?",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "field_id": "other_parent_info",
+          "label": "Other Parent/Guardian Information",
+          "type": "text",
+          "required": false,
+          "conditional_visibility": "is_sole_caregiver === false"
+        }
+      ],
+      "required_dependencies": ["KB_STEP_02_CHILD_IDENTIFICATION"],
+      "conditional_visibility": null,
+      "expected_outputs": ["relationship_type", "is_sole_caregiver", "other_parent_info"],
+      "cross_links": {
+        "data_dictionary": "Section 4.6 cases.wizard_data",
+        "eligibility_rules": ["KB_PARENT_LINK_REQUIRED"],
+        "prd_requirements": ["REQ-FUN-017"]
+      }
+    },
+    {
+      "step_id": "KB_STEP_04_EDUCATION",
+      "step_number": 4,
+      "step_name": "Education Status",
+      "description": "School enrollment for children aged 6+",
+      "fields": [
+        {
+          "field_id": "is_enrolled_in_school",
+          "label": "Is the child currently enrolled in school?",
+          "type": "boolean",
+          "required": true,
+          "conditional_visibility": "child_age >= 6"
+        },
+        {
+          "field_id": "school_name",
+          "label": "School Name",
+          "type": "text",
+          "required": false,
+          "conditional_visibility": "is_enrolled_in_school === true"
+        },
+        {
+          "field_id": "grade_level",
+          "label": "Grade Level",
+          "type": "select",
+          "required": false,
+          "options": ["Pre-K", "Kindergarten", "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6", "Secondary 1", "Secondary 2", "Secondary 3", "Secondary 4", "Secondary 5"],
+          "conditional_visibility": "is_enrolled_in_school === true"
+        }
+      ],
+      "required_dependencies": ["KB_STEP_03_RELATIONSHIP"],
+      "conditional_visibility": "child_age >= 6",
+      "expected_outputs": ["is_enrolled_in_school", "school_name", "grade_level"],
+      "cross_links": {
+        "data_dictionary": "Section 4.6 cases.wizard_data",
+        "eligibility_rules": ["KB_SCHOOL_ENROLLMENT"],
+        "prd_requirements": ["REQ-FUN-017"]
+      }
+    },
+    {
+      "step_id": "KB_STEP_05_DOCUMENTS",
+      "step_number": 5,
+      "step_name": "Document Upload",
+      "description": "Required documents for child allowance",
+      "fields": [
+        {
+          "field_id": "parent_id_document",
+          "label": "Parent/Guardian ID Card",
+          "type": "file",
+          "required": true,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = id_card"
+        },
+        {
+          "field_id": "child_birth_certificate",
+          "label": "Child Birth Certificate",
+          "type": "file",
+          "required": true,
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = birth_certificate"
+        },
+        {
+          "field_id": "guardianship_document",
+          "label": "Guardianship Certificate",
+          "type": "file",
+          "required": false,
+          "conditional_visibility": "relationship_type !== 'parent'",
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = guardianship_certificate"
+        },
+        {
+          "field_id": "school_enrollment_document",
+          "label": "School Enrollment Proof",
+          "type": "file",
+          "required": false,
+          "conditional_visibility": "child_age >= 6 && is_enrolled_in_school === true",
+          "validation": { "max_size_mb": 10, "allowed_types": ["application/pdf", "image/jpeg", "image/png"] },
+          "data_dictionary_ref": "documents.document_type = school_enrollment"
+        }
+      ],
+      "required_dependencies": ["KB_STEP_04_EDUCATION"],
+      "conditional_visibility": null,
+      "expected_outputs": ["uploaded_document_ids"],
+      "cross_links": {
+        "data_dictionary": "Section 4.8 documents, Section 4.11 document_requirements",
+        "eligibility_rules": ["KB_PARENT_LINK_REQUIRED", "KB_SCHOOL_ENROLLMENT"],
+        "prd_requirements": ["REQ-FUN-027", "REQ-FUN-028"]
+      }
+    },
+    {
+      "step_id": "KB_STEP_06_CONFIRM",
+      "step_number": 6,
+      "step_name": "Review & Confirm",
+      "description": "Review all entered information and submit",
+      "fields": [
+        {
+          "field_id": "consent_declaration",
+          "label": "I declare that all information provided is accurate and the child resides with me",
+          "type": "checkbox",
+          "required": true
+        },
+        {
+          "field_id": "consent_data_sharing",
+          "label": "I consent to my data and the child's data being shared with relevant government agencies",
+          "type": "checkbox",
+          "required": true
+        },
+        {
+          "field_id": "consent_school_verification",
+          "label": "I consent to school enrollment verification",
+          "type": "checkbox",
+          "required": false,
+          "conditional_visibility": "child_age >= 6"
+        }
+      ],
+      "required_dependencies": ["KB_STEP_05_DOCUMENTS"],
+      "conditional_visibility": null,
+      "expected_outputs": ["consent_declaration", "consent_data_sharing", "submission_timestamp"],
+      "cross_links": {
+        "data_dictionary": "Section 4.6 cases.wizard_data",
+        "eligibility_rules": [],
+        "prd_requirements": ["REQ-FUN-005", "REQ-FUN-006"]
+      }
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 4.3", "Section 4.6", "Section 4.8"],
+    "prd_requirements": ["REQ-FUN-001 to REQ-FUN-006", "REQ-FUN-017"],
+    "eligibility_config": "configs/eligibility/child_allowance.json"
+  }
+}

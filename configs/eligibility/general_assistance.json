@@ -1,0 +1,146 @@
+{
+  "metadata": {
+    "service_type": "AB",
+    "service_name": "Algemene Bijstand (General Assistance)",
+    "rule_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "last_updated": "2024-01-01",
+    "status": "active",
+    "change_history": [
+      {
+        "version": "1.0.0",
+        "date": "2024-01-01",
+        "author": "System",
+        "description": "Initial rule set from Phase 9 documentation"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "rule_id": "AB_INCOME_MAX_20000",
+      "rule_name": "Maximum Monthly Income",
+      "description": "Applicant household income must not exceed SRD 20,000 per month",
+      "field": "total_monthly_income",
+      "operator": "less_than_or_equal",
+      "value": 20000,
+      "value_unit": "SRD",
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "incomes",
+        "calculation": "SUM(income_amount) WHERE case_id = current_case",
+        "fallback": "wizard_data.income_section.total_income"
+      },
+      "validation_requirements": {
+        "requires_income_proof": true,
+        "document_types": ["income_proof", "bank_statement"],
+        "bis_verification": false,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Household income exceeds maximum threshold of SRD 20,000",
+        "allows_override": true,
+        "override_requires_role": "case_reviewer",
+        "override_requires_justification": true
+      },
+      "is_mandatory": true,
+      "priority": 1,
+      "status": "Requires Clarification - exact threshold pending Ministry confirmation"
+    },
+    {
+      "rule_id": "AB_RESIDENCY_REQUIRED",
+      "rule_name": "Suriname Residency Requirement",
+      "description": "Applicant must be a legal resident of Suriname",
+      "field": "country_of_residence",
+      "operator": "equals",
+      "value": "Suriname",
+      "data_source": "CCR",
+      "data_source_details": {
+        "primary_table": "citizens",
+        "field": "country_of_residence",
+        "fallback": "wizard_data.address_section.country"
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Applicant must be a resident of Suriname",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 2,
+      "status": "active"
+    },
+    {
+      "rule_id": "AB_MIN_AGE_18",
+      "rule_name": "Minimum Age Requirement",
+      "description": "Applicant must be at least 18 years old",
+      "field": "age",
+      "operator": "greater_than_or_equal",
+      "value": 18,
+      "value_unit": "years",
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "citizens",
+        "calculation": "EXTRACT(YEAR FROM AGE(current_date, date_of_birth))",
+        "source_field": "date_of_birth"
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "document_types": ["id_card"],
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Applicant must be at least 18 years of age",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 3,
+      "status": "active"
+    },
+    {
+      "rule_id": "AB_NO_DUPLICATE_ACTIVE_CASE",
+      "rule_name": "No Duplicate Active Case",
+      "description": "Applicant must not have another active AB case",
+      "field": "active_case_count",
+      "operator": "equals",
+      "value": 0,
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "cases",
+        "calculation": "COUNT(*) WHERE citizen_id = current_citizen AND service_type_id = AB_type_id AND current_status NOT IN ('closed', 'rejected')"
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "bis_verification": false,
+        "subema_verification": false,
+        "internal_check": true
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Applicant already has an active General Assistance case",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 4,
+      "status": "active"
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 4.9 eligibility_rules", "Section 4.10 eligibility_evaluations"],
+    "prd_requirements": ["REQ-FUN-013", "REQ-FUN-014", "REQ-FUN-015"],
+    "workflow_states": ["eligibility_check"],
+    "wizard_steps": ["INCOME", "PERSONAL_INFO"]
+  }
+}

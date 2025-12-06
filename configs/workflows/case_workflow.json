@@ -1,0 +1,348 @@
+{
+  "metadata": {
+    "workflow_name": "Standard Case Workflow",
+    "workflow_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "applies_to": ["AB", "FB", "KB"],
+    "description": "Defines all case states, transitions, guards, actions, and role permissions for SoZaVo social services",
+    "change_history": [
+      {
+        "version": "1.0.0",
+        "date": "2024-01-01",
+        "author": "System",
+        "description": "Initial workflow definition from Phase 4 documentation"
+      }
+    ]
+  },
+  "states": [
+    {
+      "state_id": "intake",
+      "state_name": "Intake",
+      "description": "Case has been submitted and is awaiting initial processing",
+      "is_initial": true,
+      "is_terminal": false,
+      "allowed_roles": ["district_intake_officer", "system_admin"],
+      "ui_label": "Submitted",
+      "ui_color": "blue"
+    },
+    {
+      "state_id": "validation",
+      "state_name": "Validation",
+      "description": "Case documents and data are being validated",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_handler", "district_intake_officer", "system_admin"],
+      "ui_label": "In Validation",
+      "ui_color": "yellow"
+    },
+    {
+      "state_id": "eligibility_check",
+      "state_name": "Eligibility Check",
+      "description": "Eligibility engine is evaluating the case",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_handler", "system_admin"],
+      "ui_label": "Checking Eligibility",
+      "ui_color": "orange"
+    },
+    {
+      "state_id": "under_review",
+      "state_name": "Under Review",
+      "description": "Case is awaiting reviewer decision",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_reviewer", "department_head", "system_admin"],
+      "ui_label": "Under Review",
+      "ui_color": "purple"
+    },
+    {
+      "state_id": "approved",
+      "state_name": "Approved",
+      "description": "Case has been approved for benefits",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_reviewer", "department_head", "system_admin"],
+      "ui_label": "Approved",
+      "ui_color": "green"
+    },
+    {
+      "state_id": "rejected",
+      "state_name": "Rejected",
+      "description": "Case has been rejected",
+      "is_initial": false,
+      "is_terminal": true,
+      "allowed_roles": ["case_reviewer", "department_head", "system_admin"],
+      "ui_label": "Rejected",
+      "ui_color": "red"
+    },
+    {
+      "state_id": "payment_pending",
+      "state_name": "Payment Pending",
+      "description": "Case is approved and awaiting payment processing",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_handler", "system_admin"],
+      "ui_label": "Payment Pending",
+      "ui_color": "cyan"
+    },
+    {
+      "state_id": "payment_processed",
+      "state_name": "Payment Processed",
+      "description": "Payment has been submitted to Subema",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_handler", "system_admin"],
+      "ui_label": "Payment Processed",
+      "ui_color": "teal"
+    },
+    {
+      "state_id": "closed",
+      "state_name": "Closed",
+      "description": "Case is fully processed and closed",
+      "is_initial": false,
+      "is_terminal": true,
+      "allowed_roles": ["case_handler", "case_reviewer", "system_admin"],
+      "ui_label": "Closed",
+      "ui_color": "gray"
+    },
+    {
+      "state_id": "on_hold",
+      "state_name": "On Hold",
+      "description": "Case processing is temporarily paused",
+      "is_initial": false,
+      "is_terminal": false,
+      "allowed_roles": ["case_handler", "case_reviewer", "department_head", "system_admin"],
+      "ui_label": "On Hold",
+      "ui_color": "amber"
+    }
+  ],
+  "transitions": [
+    {
+      "transition_id": "T001_INTAKE_TO_VALIDATION",
+      "from_status": "intake",
+      "to_status": "validation",
+      "action_name": "Begin Validation",
+      "description": "Start document and data validation",
+      "required_role": "district_intake_officer",
+      "guard_conditions": [
+        { "field": "wizard_data", "operator": "is_not_null", "message": "Wizard data must be complete" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "status_change" },
+        { "type": "assign_handler", "source": "intake_officer_id" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true
+      }
+    },
+    {
+      "transition_id": "T002_VALIDATION_TO_ELIGIBILITY",
+      "from_status": "validation",
+      "to_status": "eligibility_check",
+      "action_name": "Complete Validation",
+      "description": "Move to eligibility checking after validation passes",
+      "required_role": "case_handler",
+      "guard_conditions": [
+        { "field": "documents_complete", "operator": "equals", "value": true, "message": "All required documents must be verified" },
+        { "field": "data_validated", "operator": "equals", "value": true, "message": "Case data must be validated" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "status_change" },
+        { "type": "trigger_eligibility_engine" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true
+      }
+    },
+    {
+      "transition_id": "T003_ELIGIBILITY_TO_REVIEW",
+      "from_status": "eligibility_check",
+      "to_status": "under_review",
+      "action_name": "Submit for Review",
+      "description": "Submit eligible case for reviewer approval",
+      "required_role": "case_handler",
+      "guard_conditions": [
+        { "field": "eligibility_result", "operator": "in", "value": ["ELIGIBLE", "PENDING"], "message": "Case must pass or be pending eligibility" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "status_change" },
+        { "type": "notify_reviewer", "notification_type": "case_ready_for_review" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true
+      }
+    },
+    {
+      "transition_id": "T004_REVIEW_TO_APPROVED",
+      "from_status": "under_review",
+      "to_status": "approved",
+      "action_name": "Approve Case",
+      "description": "Reviewer approves the case",
+      "required_role": "case_reviewer",
+      "guard_conditions": [],
+      "actions": [
+        { "type": "log_event", "event_type": "review_performed", "meta": { "decision": "approved" } },
+        { "type": "notify_citizen", "notification_type": "case_approved" },
+        { "type": "create_payment_record" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true,
+        "capture_decision": true
+      }
+    },
+    {
+      "transition_id": "T005_REVIEW_TO_REJECTED",
+      "from_status": "under_review",
+      "to_status": "rejected",
+      "action_name": "Reject Case",
+      "description": "Reviewer rejects the case",
+      "required_role": "case_reviewer",
+      "guard_conditions": [
+        { "field": "rejection_reason", "operator": "is_not_empty", "message": "Rejection reason is required" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "review_performed", "meta": { "decision": "rejected" } },
+        { "type": "notify_citizen", "notification_type": "case_rejected" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true,
+        "capture_decision": true,
+        "capture_reason": true
+      }
+    },
+    {
+      "transition_id": "T006_APPROVED_TO_PAYMENT_PENDING",
+      "from_status": "approved",
+      "to_status": "payment_pending",
+      "action_name": "Initiate Payment",
+      "description": "Move approved case to payment queue",
+      "required_role": "case_handler",
+      "guard_conditions": [
+        { "field": "payment_record_exists", "operator": "equals", "value": true, "message": "Payment record must exist" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "status_change" },
+        { "type": "add_to_payment_batch" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true
+      }
+    },
+    {
+      "transition_id": "T007_PAYMENT_PENDING_TO_PROCESSED",
+      "from_status": "payment_pending",
+      "to_status": "payment_processed",
+      "action_name": "Process Payment",
+      "description": "Payment has been submitted to Subema",
+      "required_role": "system_admin",
+      "guard_conditions": [
+        { "field": "subema_reference", "operator": "is_not_null", "message": "Subema reference required" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "payment_processed" },
+        { "type": "notify_citizen", "notification_type": "payment_sent" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true,
+        "capture_payment_reference": true
+      }
+    },
+    {
+      "transition_id": "T008_PAYMENT_PROCESSED_TO_CLOSED",
+      "from_status": "payment_processed",
+      "to_status": "closed",
+      "action_name": "Close Case",
+      "description": "Close the case after payment confirmation",
+      "required_role": "case_handler",
+      "guard_conditions": [],
+      "actions": [
+        { "type": "log_event", "event_type": "case_closed" },
+        { "type": "set_closed_at_timestamp" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true
+      }
+    },
+    {
+      "transition_id": "T009_ANY_TO_ON_HOLD",
+      "from_status": ["intake", "validation", "eligibility_check", "under_review", "approved", "payment_pending"],
+      "to_status": "on_hold",
+      "action_name": "Put On Hold",
+      "description": "Temporarily pause case processing",
+      "required_role": "case_handler",
+      "guard_conditions": [
+        { "field": "hold_reason", "operator": "is_not_empty", "message": "Hold reason is required" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "case_on_hold" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true,
+        "capture_reason": true
+      }
+    },
+    {
+      "transition_id": "T010_ON_HOLD_TO_PREVIOUS",
+      "from_status": "on_hold",
+      "to_status": "previous_status",
+      "action_name": "Resume Case",
+      "description": "Resume case processing from previous state",
+      "required_role": "case_handler",
+      "guard_conditions": [],
+      "actions": [
+        { "type": "log_event", "event_type": "case_resumed" },
+        { "type": "restore_previous_status" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true
+      }
+    },
+    {
+      "transition_id": "T011_ELIGIBILITY_TO_REJECTED",
+      "from_status": "eligibility_check",
+      "to_status": "rejected",
+      "action_name": "Auto-Reject Ineligible",
+      "description": "Automatically reject cases that fail mandatory eligibility",
+      "required_role": "system",
+      "guard_conditions": [
+        { "field": "eligibility_result", "operator": "equals", "value": "INELIGIBLE", "message": "Case must be ineligible" },
+        { "field": "has_mandatory_failures", "operator": "equals", "value": true, "message": "Must have mandatory rule failures" }
+      ],
+      "actions": [
+        { "type": "log_event", "event_type": "auto_rejection" },
+        { "type": "notify_citizen", "notification_type": "case_rejected" }
+      ],
+      "audit_requirements": {
+        "log_event": true,
+        "capture_actor": true,
+        "capture_timestamp": true,
+        "capture_eligibility_results": true
+      }
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 3.2 case_status", "Section 4.6 cases", "Section 4.7 case_events", "Section 4.12 workflow_definitions"],
+    "prd_requirements": ["REQ-FUN-020 to REQ-FUN-026", "REQ-FUN-033 to REQ-FUN-037"],
+    "architecture": "Section 9 Workflow Engine"
+  }
+}

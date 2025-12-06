@@ -724,7 +724,7 @@ try {
 
 | Component | Version | Compatibility |
 |-----------|---------|---------------|
-| Backend Documentation | 2.0 | Current |
+| Backend Documentation | 3.0 | Current |
 | Schema Version | 1.0 | Stable |
 | Edge Function API | 1.0 | Stable |
 
@@ -739,4 +739,28 @@ try {
 
 ---
 
-**END OF CONSOLIDATED BACKEND DOCUMENTATION v2.0**
+## 15. Phase 5 Cross-References
+
+### 15.1 Engine Specifications
+
+| Engine | Config Location | Status |
+|--------|-----------------|--------|
+| Eligibility Engine | `/configs/eligibility/*.json` | Ready |
+| Wizard Engine | `/configs/wizard/*.json` | Ready |
+| Workflow Engine | `/configs/workflows/case_workflow.json` | Ready |
+| Payment Engine | `/configs/payments/payment_engine.json` | Blocked (Subema) |
+| Fraud Engine | `/configs/fraud/fraud_engine.json` | Ready |
+
+### 15.2 Related Documentation
+
+| Document | Purpose |
+|----------|---------|
+| Schema-Lock-Specification.md | Schema freeze and validation rules |
+| DAL-Specification.md | Data Access Layer patterns |
+| API-Reference.md | Edge function contracts |
+| Object-Model-Registry.md | Entity definitions and relationships |
+| Versioning-Framework.md | Version management policies |
+
+---
+
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v3.0**

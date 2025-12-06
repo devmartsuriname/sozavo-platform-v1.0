@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "service_type": "KB",
+    "service_name": "Kinderbijslag (Child Allowance)",
+    "rule_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "last_updated": "2024-01-01",
+    "status": "active",
+    "change_history": [
+      {
+        "version": "1.0.0",
+        "date": "2024-01-01",
+        "author": "System",
+        "description": "Initial rule set from Phase 9 documentation"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "rule_id": "KB_CHILD_UNDER_18",
+      "rule_name": "Child Age Requirement",
+      "description": "Child must be under 18 years of age",
+      "field": "child_age",
+      "operator": "less_than",
+      "value": 18,
+      "value_unit": "years",
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "citizens",
+        "calculation": "EXTRACT(YEAR FROM AGE(current_date, date_of_birth))",
+        "source_field": "child.date_of_birth"
+      },
+      "validation_requirements": {
+        "requires_document": true,
+        "document_types": ["birth_certificate"],
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Child must be under 18 years of age to qualify",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 1,
+      "status": "active"
+    },
+    {
+      "rule_id": "KB_PARENT_LINK_REQUIRED",
+      "rule_name": "Parent-Child Relationship",
+      "description": "Applicant must be the legal parent or guardian of the child",
+      "field": "relationship_type",
+      "operator": "in",
+      "value": ["parent", "legal_guardian", "foster_parent"],
+      "data_source": "wizard",
+      "data_source_details": {
+        "primary_field": "wizard_data.relationship_section.relationship_type",
+        "fallback": null
+      },
+      "validation_requirements": {
+        "requires_document": true,
+        "document_types": ["birth_certificate", "guardianship_certificate"],
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Applicant must be the legal parent or guardian of the child",
+        "allows_override": true,
+        "override_requires_role": "case_reviewer",
+        "override_requires_justification": true
+      },
+      "is_mandatory": true,
+      "priority": 2,
+      "status": "active"
+    },
+    {
+      "rule_id": "KB_NO_DUPLICATE_CHILD_CASE",
+      "rule_name": "No Duplicate Child Allowance",
+      "description": "The child must not already be receiving child allowance benefits",
+      "field": "child_active_case_count",
+      "operator": "equals",
+      "value": 0,
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "cases",
+        "calculation": "COUNT(*) WHERE service_type_id = KB_type_id AND wizard_data->>'child_national_id' = current_child_national_id AND current_status NOT IN ('closed', 'rejected')"
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "bis_verification": false,
+        "subema_verification": false,
+        "internal_check": true
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "This child is already receiving child allowance benefits",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 3,
+      "status": "active"
+    },
+    {
+      "rule_id": "KB_RESIDENCY_REQUIRED",
+      "rule_name": "Suriname Residency Requirement",
+      "description": "Parent and child must be residents of Suriname",
+      "field": "country_of_residence",
+      "operator": "equals",
+      "value": "Suriname",
+      "data_source": "CCR",
+      "data_source_details": {
+        "primary_table": "citizens",
+        "field": "country_of_residence",
+        "applies_to": ["parent", "child"]
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Parent and child must be residents of Suriname",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 4,
+      "status": "active"
+    },
+    {
+      "rule_id": "KB_SCHOOL_ENROLLMENT",
+      "rule_name": "School Enrollment (Age 6+)",
+      "description": "Children aged 6 and older must be enrolled in school",
+      "field": "is_enrolled_in_school",
+      "operator": "equals",
+      "value": true,
+      "condition": "child_age >= 6",
+      "data_source": "wizard",
+      "data_source_details": {
+        "primary_field": "wizard_data.education_section.is_enrolled",
+        "fallback": null
+      },
+      "validation_requirements": {
+        "requires_document": true,
+        "document_types": ["school_enrollment"],
+        "bis_verification": false,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "PENDING",
+        "message": "School enrollment verification required for children aged 6 and older",
+        "allows_override": true,
+        "override_requires_role": "case_handler",
+        "override_requires_justification": true
+      },
+      "is_mandatory": true,
+      "priority": 5,
+      "status": "Requires Clarification - school year timing"
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 4.9 eligibility_rules", "Section 4.10 eligibility_evaluations"],
+    "prd_requirements": ["REQ-FUN-013", "REQ-FUN-014", "REQ-FUN-017"],
+    "workflow_states": ["eligibility_check"],
+    "wizard_steps": ["PARENT_IDENTIFICATION", "CHILD_IDENTIFICATION", "RELATIONSHIP", "EDUCATION"]
+  }
+}

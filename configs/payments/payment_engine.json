@@ -1,0 +1,265 @@
+{
+  "metadata": {
+    "engine_name": "Payment Engine",
+    "engine_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "currency": "SRD",
+    "description": "Defines payment formulas, caps, cycles, and validation rules for SoZaVo benefit payments",
+    "change_history": [
+      {
+        "version": "1.0.0",
+        "date": "2024-01-01",
+        "author": "System",
+        "description": "Initial payment engine specification from Phase 12 documentation"
+      }
+    ]
+  },
+  "payment_types": [
+    {
+      "payment_type_id": "AB_MONTHLY",
+      "service_type": "AB",
+      "payment_name": "General Assistance Monthly Payment",
+      "payment_formula": {
+        "type": "fixed_with_adjustments",
+        "base_amount": 750,
+        "adjustments": [
+          {
+            "adjustment_id": "household_size_bonus",
+            "description": "Additional amount per household member",
+            "calculation": "household_size * 150",
+            "max_bonus": 600
+          }
+        ],
+        "formula_expression": "MIN(base_amount + household_size_bonus, cap_maximum)",
+        "status": "Requires Clarification - exact formula pending Ministry confirmation"
+      },
+      "caps_and_constraints": {
+        "minimum_amount": 500,
+        "maximum_amount": 1500,
+        "cap_reason": "Ministry-defined maximum benefit cap"
+      },
+      "cycle": {
+        "frequency": "monthly",
+        "payment_day": 15,
+        "payment_day_type": "day_of_month"
+      },
+      "validation_rules": [
+        {
+          "rule_id": "VAL_AB_CASE_APPROVED",
+          "description": "Case must be in approved status",
+          "field": "case.current_status",
+          "operator": "equals",
+          "value": "approved"
+        },
+        {
+          "rule_id": "VAL_AB_CITIZEN_ACTIVE",
+          "description": "Citizen record must be active",
+          "field": "citizen.is_active",
+          "operator": "equals",
+          "value": true
+        },
+        {
+          "rule_id": "VAL_AB_NO_DUPLICATE_PAYMENT",
+          "description": "No duplicate payment for same period",
+          "field": "existing_payment_for_period",
+          "operator": "equals",
+          "value": false
+        }
+      ],
+      "income_dependencies": [
+        {
+          "field": "total_monthly_income",
+          "impact": "May reduce benefit if income increases",
+          "recalculation_trigger": "income_change_reported"
+        }
+      ],
+      "failure_behaviors": {
+        "validation_failure": {
+          "action": "hold_payment",
+          "notification": "notify_case_handler",
+          "log_event": true
+        },
+        "subema_failure": {
+          "action": "retry_next_batch",
+          "max_retries": 3,
+          "escalate_after_retries": true
+        }
+      }
+    },
+    {
+      "payment_type_id": "FB_MONTHLY",
+      "service_type": "FB",
+      "payment_name": "Social Assistance Monthly Payment",
+      "payment_formula": {
+        "type": "income_based",
+        "base_amount": 500,
+        "income_supplement": {
+          "description": "Supplement based on income gap",
+          "calculation": "MAX(0, (income_threshold - total_monthly_income) * 0.5)",
+          "income_threshold": 15000
+        },
+        "dependent_bonus": {
+          "description": "Bonus per dependent",
+          "amount_per_dependent": 200,
+          "max_dependents": 4
+        },
+        "formula_expression": "MIN(base_amount + income_supplement + (dependent_count * dependent_bonus), cap_maximum)",
+        "status": "Requires Clarification - exact formula pending Ministry confirmation"
+      },
+      "caps_and_constraints": {
+        "minimum_amount": 400,
+        "maximum_amount": 2000,
+        "cap_reason": "Ministry-defined maximum benefit cap"
+      },
+      "cycle": {
+        "frequency": "monthly",
+        "payment_day": 20,
+        "payment_day_type": "day_of_month"
+      },
+      "validation_rules": [
+        {
+          "rule_id": "VAL_FB_CASE_APPROVED",
+          "description": "Case must be in approved status",
+          "field": "case.current_status",
+          "operator": "equals",
+          "value": "approved"
+        },
+        {
+          "rule_id": "VAL_FB_HAS_DEPENDENTS",
+          "description": "Household must have dependents",
+          "field": "dependent_count",
+          "operator": "greater_than",
+          "value": 0
+        }
+      ],
+      "income_dependencies": [
+        {
+          "field": "total_monthly_income",
+          "impact": "Directly affects payment calculation",
+          "recalculation_trigger": "income_change_reported"
+        },
+        {
+          "field": "dependent_count",
+          "impact": "Affects dependent bonus",
+          "recalculation_trigger": "household_change_reported"
+        }
+      ],
+      "failure_behaviors": {
+        "validation_failure": {
+          "action": "hold_payment",
+          "notification": "notify_case_handler",
+          "log_event": true
+        },
+        "subema_failure": {
+          "action": "retry_next_batch",
+          "max_retries": 3,
+          "escalate_after_retries": true
+        }
+      }
+    },
+    {
+      "payment_type_id": "KB_MONTHLY",
+      "service_type": "KB",
+      "payment_name": "Child Allowance Monthly Payment",
+      "payment_formula": {
+        "type": "fixed_per_child",
+        "base_amount_per_child": 300,
+        "age_adjustments": [
+          {
+            "age_range": { "min": 0, "max": 5 },
+            "amount": 300,
+            "label": "Infant/Toddler"
+          },
+          {
+            "age_range": { "min": 6, "max": 11 },
+            "amount": 350,
+            "label": "Primary School Age"
+          },
+          {
+            "age_range": { "min": 12, "max": 17 },
+            "amount": 400,
+            "label": "Secondary School Age"
+          }
+        ],
+        "formula_expression": "child_age_adjusted_amount",
+        "status": "Requires Clarification - exact amounts pending Ministry confirmation"
+      },
+      "caps_and_constraints": {
+        "minimum_amount": 300,
+        "maximum_amount": 400,
+        "max_children_per_household": 6,
+        "cap_reason": "Per-child benefit with age-based tiers"
+      },
+      "cycle": {
+        "frequency": "monthly",
+        "payment_day": 25,
+        "payment_day_type": "day_of_month"
+      },
+      "validation_rules": [
+        {
+          "rule_id": "VAL_KB_CASE_APPROVED",
+          "description": "Case must be in approved status",
+          "field": "case.current_status",
+          "operator": "equals",
+          "value": "approved"
+        },
+        {
+          "rule_id": "VAL_KB_CHILD_UNDER_18",
+          "description": "Child must be under 18",
+          "field": "child_age",
+          "operator": "less_than",
+          "value": 18
+        },
+        {
+          "rule_id": "VAL_KB_SCHOOL_ENROLLED",
+          "description": "Children 6+ must be enrolled in school",
+          "field": "is_enrolled_in_school",
+          "operator": "equals",
+          "value": true,
+          "condition": "child_age >= 6"
+        }
+      ],
+      "income_dependencies": [],
+      "failure_behaviors": {
+        "validation_failure": {
+          "action": "hold_payment",
+          "notification": "notify_case_handler",
+          "log_event": true
+        },
+        "subema_failure": {
+          "action": "retry_next_batch",
+          "max_retries": 3,
+          "escalate_after_retries": true
+        },
+        "child_turns_18": {
+          "action": "terminate_payments",
+          "notification": "notify_citizen",
+          "advance_notice_days": 30
+        }
+      }
+    }
+  ],
+  "batch_processing": {
+    "batch_schedule": {
+      "frequency": "daily",
+      "run_time": "02:00",
+      "timezone": "America/Paramaribo"
+    },
+    "batch_size_limit": 500,
+    "retry_policy": {
+      "max_retries": 3,
+      "retry_interval_hours": 24
+    },
+    "subema_integration": {
+      "endpoint": "Blocked - awaiting Subema API specification",
+      "authentication": "Blocked - awaiting Subema credentials",
+      "timeout_seconds": 30
+    }
+  },
+  "cross_references": {
+    "data_dictionary": ["Section 4.13 payments", "Section 8.1 payment_batches", "Section 8.2 payment_items"],
+    "prd_requirements": ["REQ-FUN-038 to REQ-FUN-043"],
+    "architecture": "Section 10 Payment Engine",
+    "integrations": "Subema Integration (Section 5.2)"
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "metadata": {
+    "service_type": "FB",
+    "service_name": "Financiële Bijstand (Social Assistance)",
+    "rule_version": "1.0.0",
+    "effective_date": "2024-01-01",
+    "last_updated": "2024-01-01",
+    "status": "active",
+    "change_history": [
+      {
+        "version": "1.0.0",
+        "date": "2024-01-01",
+        "author": "System",
+        "description": "Initial rule set from Phase 9 documentation"
+      }
+    ]
+  },
+  "rules": [
+    {
+      "rule_id": "FB_INCOME_MAX_15000",
+      "rule_name": "Maximum Monthly Income",
+      "description": "Applicant household income must not exceed SRD 15,000 per month",
+      "field": "total_monthly_income",
+      "operator": "less_than_or_equal",
+      "value": 15000,
+      "value_unit": "SRD",
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "incomes",
+        "calculation": "SUM(income_amount) WHERE case_id = current_case",
+        "fallback": "wizard_data.income_section.total_income"
+      },
+      "validation_requirements": {
+        "requires_income_proof": true,
+        "document_types": ["income_proof", "bank_statement"],
+        "bis_verification": false,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Household income exceeds maximum threshold of SRD 15,000",
+        "allows_override": true,
+        "override_requires_role": "case_reviewer",
+        "override_requires_justification": true
+      },
+      "is_mandatory": true,
+      "priority": 1,
+      "status": "Requires Clarification - exact threshold pending Ministry confirmation"
+    },
+    {
+      "rule_id": "FB_HOUSEHOLD_DEPENDENTS_MIN_1",
+      "rule_name": "Minimum Dependents",
+      "description": "Applicant household must have at least one dependent",
+      "field": "dependent_count",
+      "operator": "greater_than_or_equal",
+      "value": 1,
+      "data_source": "derived",
+      "data_source_details": {
+        "primary_table": "citizens",
+        "calculation": "jsonb_array_length(household_members) WHERE is_dependent = true",
+        "fallback": "wizard_data.household_section.dependents_count"
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Applicant must have at least one dependent in their household",
+        "allows_override": true,
+        "override_requires_role": "case_reviewer",
+        "override_requires_justification": true
+      },
+      "is_mandatory": true,
+      "priority": 2,
+      "status": "active"
+    },
+    {
+      "rule_id": "FB_MONI_KARTA_FLAG",
+      "rule_name": "Moni Karta Registration",
+      "description": "Applicant must be registered for Moni Karta program",
+      "field": "moni_karta_registered",
+      "operator": "equals",
+      "value": true,
+      "data_source": "wizard",
+      "data_source_details": {
+        "primary_field": "wizard_data.moni_karta_section.is_registered",
+        "fallback": null
+      },
+      "validation_requirements": {
+        "requires_document": true,
+        "document_types": ["moni_karta_card"],
+        "bis_verification": false,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "PENDING",
+        "message": "Moni Karta registration status needs verification",
+        "allows_override": true,
+        "override_requires_role": "case_handler",
+        "override_requires_justification": true
+      },
+      "is_mandatory": false,
+      "priority": 3,
+      "status": "Requires Clarification - Moni Karta integration status unknown"
+    },
+    {
+      "rule_id": "FB_RESIDENCY_REQUIRED",
+      "rule_name": "Suriname Residency Requirement",
+      "description": "Applicant must be a legal resident of Suriname",
+      "field": "country_of_residence",
+      "operator": "equals",
+      "value": "Suriname",
+      "data_source": "CCR",
+      "data_source_details": {
+        "primary_table": "citizens",
+        "field": "country_of_residence",
+        "fallback": "wizard_data.address_section.country"
+      },
+      "validation_requirements": {
+        "requires_document": false,
+        "bis_verification": true,
+        "subema_verification": false
+      },
+      "failure_behavior": {
+        "result": "INELIGIBLE",
+        "message": "Applicant must be a resident of Suriname",
+        "allows_override": false,
+        "override_requires_role": null,
+        "override_requires_justification": false
+      },
+      "is_mandatory": true,
+      "priority": 4,
+      "status": "active"
+    }
+  ],
+  "cross_references": {
+    "data_dictionary": ["Section 4.9 eligibility_rules", "Section 4.10 eligibility_evaluations"],
+    "prd_requirements": ["REQ-FUN-013", "REQ-FUN-014", "REQ-FUN-016"],
+    "workflow_states": ["eligibility_check"],
+    "wizard_steps": ["INCOME", "HOUSEHOLD", "MONI_KARTA"]
+  }
+}
