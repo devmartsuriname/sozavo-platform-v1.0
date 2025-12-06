@@ -133,14 +133,23 @@
 
 .darkone-admin .logo-box {
   height: var(--bs-topbar-height);
+  min-height: 70px;
   display: flex;
   align-items: center;
   padding: 0 1rem;
   border-bottom: 1px solid var(--bs-sidebar-border-color);
+  background-color: var(--bs-sidebar-bg);
+}
+
+.darkone-admin .logo-box a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .darkone-admin .logo-box .logo-lg {
   height: var(--bs-logo-lg-height);
+  display: block !important;
 }
 
 .darkone-admin .logo-box .logo-sm {
@@ -150,21 +159,43 @@
 
 /* Sidebar Logo - Light/Dark Mode Toggle */
 .darkone-admin .logo-dark {
-  display: flex;
+  display: flex !important;
   align-items: center;
 }
 
 .darkone-admin .logo-light {
-  display: none;
+  display: none !important;
 }
 
 [data-bs-theme="dark"] .darkone-admin .logo-dark {
-  display: none;
+  display: none !important;
 }
 
 [data-bs-theme="dark"] .darkone-admin .logo-light {
-  display: flex;
+  display: flex !important;
   align-items: center;
+}
+
+/* Condensed sidebar logo override - hide lg, show sm */
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-dark .logo-lg,
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-light .logo-lg {
+  display: none !important;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-dark .logo-sm,
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-light .logo-sm {
+  display: block !important;
+}
+
+/* Condensed sidebar hover - show lg, hide sm */
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .logo-dark .logo-lg,
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .logo-light .logo-lg {
+  display: block !important;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .logo-dark .logo-sm,
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .logo-light .logo-sm {
+  display: none !important;
 }
 
 /* Navigation */

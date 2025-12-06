@@ -215,12 +215,12 @@ const Sidebar = () => {
       <div className="logo-box">
         <Link to="/admin" className="logo-dark">
           <img src="/darkone/images/logo-sm.png" className="logo-sm" alt="logo sm" />
-          <img src="/darkone/images/logo-dark.png" className="logo-lg" alt="logo dark" />
+          <img src="/darkone/images/logo-dark.png" className="logo-lg" alt="Darkone logo" />
         </Link>
 
         <Link to="/admin" className="logo-light">
           <img src="/darkone/images/logo-sm.png" className="logo-sm" alt="logo sm" />
-          <img src="/darkone/images/logo-light.png" className="logo-lg" alt="logo light" />
+          <img src="/darkone/images/logo-light.png" className="logo-lg" alt="Darkone logo" />
         </Link>
       </div>
 
