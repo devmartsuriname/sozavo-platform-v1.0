@@ -258,6 +258,102 @@
 }
 
 /* =====================================================
+   Condensed Sidebar (data-sidebar-size="condensed")
+   ===================================================== */
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar {
+  width: var(--bs-sidebar-width-sm);
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-box {
+  justify-content: center;
+  padding: 0;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-lg {
+  display: none;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .logo-sm {
+  display: block;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .nav-text {
+  display: none;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .menu-title {
+  display: none;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .menu-arrow::after {
+  display: none;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .nav-link {
+  justify-content: center;
+  padding: var(--bs-sidebar-item-padding-y) 0;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .nav-icon {
+  margin-right: 0;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar .sub-navbar-nav {
+  display: none;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .page-content {
+  margin-left: var(--bs-sidebar-width-sm);
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-topbar {
+  padding-left: var(--bs-sidebar-width-sm);
+}
+
+/* Condensed sidebar hover expansion */
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover {
+  width: var(--bs-sidebar-width);
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .logo-lg {
+  display: block;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .logo-sm {
+  display: none;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .nav-text {
+  display: block;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .menu-title {
+  display: block;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .menu-arrow::after {
+  display: inline-block;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .nav-link {
+  justify-content: flex-start;
+  padding: var(--bs-sidebar-item-padding-y) var(--bs-sidebar-item-padding-x);
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .nav-icon {
+  margin-right: 0.625rem;
+}
+
+[data-sidebar-size="condensed"] .darkone-admin .app-sidebar:hover .sub-navbar-nav {
+  display: block;
+}
+
+/* Default sidebar state - show large logo, hide small */
+.darkone-admin .app-sidebar .logo-sm {
+  display: none;
+}
+
+/* =====================================================
    Topbar
    ===================================================== */
 .darkone-admin .app-topbar {

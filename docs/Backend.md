@@ -936,4 +936,28 @@ has_case_access(case_id) - Check case access
 
 ---
 
+## 14. Admin UI Theme System (Phase X)
+
+### 14.1 Data Attributes
+The Darkone admin template uses HTML data attributes for theme control:
+
+| Attribute | Values | Purpose |
+|-----------|--------|---------|
+| `data-bs-theme` | `light`, `dark` | Controls light/dark color scheme |
+| `data-sidebar-size` | `default`, `condensed` | Controls sidebar width |
+
+### 14.2 LocalStorage Keys
+| Key | Values | Purpose |
+|-----|--------|---------|
+| `darkone-theme` | `light`, `dark` | Persists theme preference |
+| `darkone-sidebar-size` | `default`, `condensed` | Persists sidebar state |
+
+### 14.3 Implementation Notes
+- Theme toggle implemented in `Topbar.tsx` - sets `data-bs-theme` on `document.documentElement`
+- Sidebar toggle implemented in `Topbar.tsx` - sets `data-sidebar-size` on `document.documentElement`
+- `AdminLayout.tsx` initializes sidebar size from localStorage on mount
+- All CSS driven by `public/darkone/css/darkone.css` - no inline styles or Tailwind
+
+---
+
 **END OF CONSOLIDATED BACKEND DOCUMENTATION v6.0 (Phase 8 Updated)**

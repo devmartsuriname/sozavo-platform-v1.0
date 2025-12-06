@@ -1240,4 +1240,27 @@ Field Lock Matrix:
 
 ---
 
+## 23. Darkone Admin Theme Implementation (Phase X)
+
+### 23.1 Theme Toggle
+The admin interface supports light and dark themes via the `data-bs-theme` attribute on `document.documentElement`:
+- `data-bs-theme="light"` - Light mode with white sidebar/topbar
+- `data-bs-theme="dark"` - Dark mode with dark sidebar/topbar
+- Theme preference persisted to `localStorage` as `darkone-theme`
+
+### 23.2 Sidebar Toggle
+The sidebar supports condensed (icons-only) and expanded states via `data-sidebar-size`:
+- `data-sidebar-size="default"` - Full 250px sidebar with text labels
+- `data-sidebar-size="condensed"` - Compact 75px sidebar with icons only
+- Sidebar state persisted to `localStorage` as `darkone-sidebar-size`
+- Hover expansion: condensed sidebar expands on hover
+
+### 23.3 CSS Variables
+All theme colors are controlled via CSS variables in `public/darkone/css/darkone.css`:
+- Light mode variables defined at `:root` level
+- Dark mode overrides in `[data-bs-theme="dark"]` block
+- Sidebar dimensions: `--bs-sidebar-width` (250px), `--bs-sidebar-width-sm` (75px)
+
+---
+
 **END OF CONSOLIDATED ARCHITECTURE v6.0 (Phase 8 Updated)**

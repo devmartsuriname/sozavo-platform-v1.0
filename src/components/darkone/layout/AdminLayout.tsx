@@ -12,6 +12,10 @@ const AdminLayout = () => {
     iconifyScript.async = true;
     document.head.appendChild(iconifyScript);
 
+    // Initialize sidebar size from localStorage
+    const savedSidebarSize = localStorage.getItem("darkone-sidebar-size") || "default";
+    document.documentElement.setAttribute("data-sidebar-size", savedSidebarSize);
+
     return () => {
       document.head.removeChild(iconifyScript);
     };
