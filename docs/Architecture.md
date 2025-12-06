@@ -1,9 +1,64 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.1 (Phase 9D-0 Update)  
+> **Version:** 3.2 (Phase 9D-1A Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-1 Query Layer Architecture
+
+### Cases Query Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           QUERY LAYER (Phase 9D-1)                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   CASES MODULE (src/integrations/supabase/queries/cases.ts)                 │
+│                                                                              │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                         getCases(params)                              │  │
+│   │   • Paginated list with .range(start, end)                           │  │
+│   │   • Joins: citizens(first_name, last_name), service_types(name)      │  │
+│   │   • Filters: status, serviceTypeId, officeId, search                 │  │
+│   │   • Returns: { data: CaseWithRelations[], count, error }             │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                     │                                        │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                         getCaseById(caseId)                           │  │
+│   │   • Full case with all fields                                         │  │
+│   │   • Joins: citizens(*), service_types(name,desc,code), offices(name) │  │
+│   │   • Uses .maybeSingle() for safe null handling                       │  │
+│   │   • Returns: { data: CaseDetailWithRelations | null, error }         │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                     │                                        │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                       getCaseTimeline(caseId)                         │  │
+│   │   • All events for case from case_events                             │  │
+│   │   • Ordered by created_at DESC                                       │  │
+│   │   • Returns: { data: TimelineEvent[], error }                        │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                     │                                        │
+│                                     ▼                                        │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                    Supabase Client (authenticated)                    │  │
+│   │   • Uses auth.uid() from session JWT                                 │  │
+│   │   • RLS policies automatically applied                               │  │
+│   │   • No service role key in frontend                                  │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                     │                                        │
+│                                     ▼                                        │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │                       RLS POLICY ENFORCEMENT                          │  │
+│   │   • has_case_access(case_id) for case-based tables                   │  │
+│   │   • Role functions (is_admin, is_case_handler, etc.)                 │  │
+│   │   • User-scoped for notifications                                    │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
