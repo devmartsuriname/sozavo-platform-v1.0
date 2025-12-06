@@ -1,6 +1,6 @@
 import PageTitle from "@/components/darkone/layout/PageTitle";
-import Icon from "@/components/darkone/ui/Icon";
 import { SparklineChart, RevenueChart, SalesCategoryChart } from "@/components/darkone/charts";
+import { DarkoneCard, DarkoneTable, DarkoneBadge, Icon } from "@/components/darkone/ui";
 import {
   kpiCards,
   salesCategories,
@@ -10,7 +10,79 @@ import {
   transactionBadgeClass,
 } from "@/components/darkone/demo";
 
+// Type definitions for table data
+interface AccountRow {
+  id: string;
+  date: string;
+  avatar: string;
+  name: string;
+  status: 'Verified' | 'Pending' | 'Deleted' | 'Blocked';
+  username: string;
+}
+
+interface TransactionRow {
+  id: string;
+  date: string;
+  amount: string;
+  type: 'Cr' | 'Dr';
+  description: string;
+}
+
 const Dashboard = () => {
+  // Column definitions for New Accounts table
+  const accountColumns = [
+    { key: 'id' as const, header: 'ID', className: 'py-1' },
+    { key: 'date' as const, header: 'Date', className: 'py-1' },
+    {
+      key: 'name' as const,
+      header: 'User',
+      className: 'py-1',
+      render: (row: AccountRow) => (
+        <>
+          <img src={row.avatar} alt={row.name} className="img-fluid avatar-xs rounded-circle" />
+          <span className="align-middle ms-1">{row.name}</span>
+        </>
+      )
+    },
+    {
+      key: 'status' as const,
+      header: 'Account',
+      className: 'py-1',
+      render: (row: AccountRow) => (
+        <DarkoneBadge
+          variant={statusBadgeClass[row.status].includes('success') ? 'success' :
+                   statusBadgeClass[row.status].includes('warning') ? 'warning' :
+                   statusBadgeClass[row.status].includes('danger') ? 'danger' : 'secondary'}
+          soft={statusBadgeClass[row.status].includes('soft')}
+        >
+          {row.status}
+        </DarkoneBadge>
+      )
+    },
+    { key: 'username' as const, header: 'Username', className: 'py-1' }
+  ];
+
+  // Column definitions for Transactions table
+  const transactionColumns = [
+    { key: 'id' as const, header: 'ID', className: 'py-1' },
+    { key: 'date' as const, header: 'Date', className: 'py-1' },
+    { key: 'amount' as const, header: 'Amount', className: 'py-1' },
+    {
+      key: 'type' as const,
+      header: 'Status',
+      className: 'py-1',
+      render: (row: TransactionRow) => (
+        <DarkoneBadge
+          variant={transactionBadgeClass[row.type].includes('success') ? 'success' : 'danger'}
+          soft={transactionBadgeClass[row.type].includes('soft')}
+        >
+          {row.type}
+        </DarkoneBadge>
+      )
+    },
+    { key: 'description' as const, header: 'Description', className: 'py-1' }
+  ];
+
   return (
     <>
       <PageTitle title="Darkone" subTitle="Dashboard" />
@@ -93,9 +165,13 @@ const Dashboard = () => {
                         <td>{row.orders}</td>
                         <td>
                           {row.percentage}
-                          <span className={`badge ${row.trend === 'up' ? 'badge-soft-success' : 'badge-soft-danger'} float-end`}>
+                          <DarkoneBadge
+                            variant={row.trend === 'up' ? 'success' : 'danger'}
+                            soft
+                            className="float-end"
+                          >
                             {row.trendValue}
-                          </span>
+                          </DarkoneBadge>
                         </td>
                       </tr>
                     ))}
@@ -134,81 +210,31 @@ const Dashboard = () => {
       <div className="row">
         {/* New Accounts Table */}
         <div className="col-xl-6">
-          <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h4 className="card-title mb-0">New Accounts</h4>
-              <a href="#" className="btn btn-sm btn-light">View All</a>
-            </div>
-            <div className="card-body pb-1">
-              <div className="table-responsive">
-                <table className="table table-hover mb-0 table-centered">
-                  <thead>
-                    <tr>
-                      <th className="py-1">ID</th>
-                      <th className="py-1">Date</th>
-                      <th className="py-1">User</th>
-                      <th className="py-1">Account</th>
-                      <th className="py-1">Username</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {newAccounts.map((account) => (
-                      <tr key={account.id}>
-                        <td>{account.id}</td>
-                        <td>{account.date}</td>
-                        <td>
-                          <img src={account.avatar} alt={account.name} className="img-fluid avatar-xs rounded-circle" />
-                          <span className="align-middle ms-1">{account.name}</span>
-                        </td>
-                        <td>
-                          <span className={`badge ${statusBadgeClass[account.status]}`}>{account.status}</span>
-                        </td>
-                        <td>{account.username}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <DarkoneCard
+            title="New Accounts"
+            headerAction={<a href="#" className="btn btn-sm btn-light">View All</a>}
+            bodyClassName="pb-1"
+          >
+            <DarkoneTable<AccountRow>
+              columns={accountColumns}
+              data={newAccounts as AccountRow[]}
+              variant="hover"
+            />
+          </DarkoneCard>
         </div>
 
         {/* Recent Transactions Table */}
         <div className="col-xl-6">
-          <div className="card">
-            <div className="card-header d-flex justify-content-between align-items-center">
-              <h4 className="card-title mb-0">Recent Transactions</h4>
-              <a href="#" className="btn btn-sm btn-light">View All</a>
-            </div>
-            <div className="card-body">
-              <div className="table-responsive">
-                <table className="table table-hover mb-0 table-centered">
-                  <thead>
-                    <tr>
-                      <th className="py-1">ID</th>
-                      <th className="py-1">Date</th>
-                      <th className="py-1">Amount</th>
-                      <th className="py-1">Status</th>
-                      <th className="py-1">Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentTransactions.map((transaction) => (
-                      <tr key={transaction.id}>
-                        <td>{transaction.id}</td>
-                        <td>{transaction.date}</td>
-                        <td>{transaction.amount}</td>
-                        <td>
-                          <span className={`badge ${transactionBadgeClass[transaction.type]}`}>{transaction.type}</span>
-                        </td>
-                        <td>{transaction.description}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+          <DarkoneCard
+            title="Recent Transactions"
+            headerAction={<a href="#" className="btn btn-sm btn-light">View All</a>}
+          >
+            <DarkoneTable<TransactionRow>
+              columns={transactionColumns}
+              data={recentTransactions as TransactionRow[]}
+              variant="hover"
+            />
+          </DarkoneCard>
         </div>
       </div>
     </>
