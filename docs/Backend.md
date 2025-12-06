@@ -836,4 +836,104 @@ has_case_access(case_id) - Check case access
 
 ---
 
-**END OF CONSOLIDATED BACKEND DOCUMENTATION v5.0 (Phase 7 Updated)**
+## 18. Phase 8 – RLS Implementation & Policy Activation Plan
+
+### 18.1 Phase 8 Documentation Artifacts
+
+| Document | Purpose | Status |
+|----------|---------|--------|
+| RLS-Policy-Definitions.md | SQL-like policy definitions for 21 tables | Complete |
+| Security-Definer-Functions.md | 21 helper functions specification | Complete |
+| Policy-Activation-Sequence.md | 12-step activation order | Complete |
+| Column-Masking-Specification.md | Field-level masking rules | Complete |
+| Workflow-Security-Bindings.md | Status-field-role constraints | Complete |
+| Policy-Test-Suite.md | 20 validation test scenarios | Complete |
+
+### 18.2 Security Definer Function Categories
+
+| Category | Functions | Purpose |
+|----------|-----------|---------|
+| Role Check | has_role, is_admin, is_case_handler, is_reviewer, is_fraud_officer, is_finance_officer, is_audit_viewer | Role verification bypassing RLS |
+| Scope | current_user_id, auth_office_id, auth_district_id, auth_portal_user_id, auth_user_roles, user_department_scope | Context retrieval |
+| Ownership | is_case_owner, is_document_owner, is_portal_owner, has_case_access | Ownership validation |
+| Workflow | can_transition, field_locked, can_upload_document, can_update_eligibility | Status-based constraints |
+| Guards | check_guard_all_docs_present, check_guard_eligibility_complete, check_guard_payment_approved | Transition preconditions |
+
+### 18.3 Column Masking Summary
+
+| Field | Default Mask | Unmasked Access |
+|-------|--------------|-----------------|
+| national_id | `XXX-XXX-***` | Own data, fraud_officer (flagged), admin |
+| phone_number | `***-****` | Own data, case_handler (assigned), admin |
+| email | `***@domain.com` | Own data, case_handler, admin |
+| bank_account | `****-****-XXXX` | Own data, finance_officer, admin |
+| address_line_1 | Partial | Own data, case_handler, admin |
+| income_amount | Hidden | Own data, eligibility roles, admin |
+
+### 18.4 Policy Activation Sequence
+
+**Pre-Activation Checklist:**
+- [ ] All tables have PRIMARY KEYS
+- [ ] All FKs validated
+- [ ] All 21 helper functions created
+- [ ] Policy-Validation-Matrix passed
+- [ ] Admin account registered
+- [ ] Database backup taken
+
+**12-Step Activation Order:**
+1. Create `app_role` ENUM type
+2. Create `user_roles` table with RLS
+3. Create SECURITY DEFINER helper functions
+4. Enable RLS on LOW-sensitivity tables
+5. Apply SELECT-only policies (read lockdown)
+6. Test SELECT policies per role
+7. Add INSERT policies
+8. Add UPDATE policies
+9. Add DELETE policies
+10. Activate HIGH-sensitivity table RLS
+11. Apply column-masking policies
+12. Validate workflow-bound locks
+
+### 18.5 Policy Test Requirements
+
+**20 Test Scenarios Defined:**
+- 10 Role Access Tests (cross-role denial verification)
+- 5 Workflow-Based Tests (status-lock enforcement)
+- 5 Document Access Tests (ownership and flag verification)
+
+**Critical Test Assertions:**
+- Citizen accessing another citizen's data → DENIED
+- Intake officer updating payment fields → DENIED
+- Fraud officer reading low-risk case → DENIED
+- Finance officer updating eligibility → DENIED
+- Reviewer editing wizard_data → DENIED
+
+### 18.6 Workflow-Security Bindings
+
+**Field Lock Rules by Status:**
+| Field Group | Editable Status | Locked After |
+|-------------|-----------------|--------------|
+| wizard_data | intake | validation |
+| eligibility fields | eligibility_check | under_review |
+| reviewer_notes | under_review | approved/rejected |
+| payment fields | payment_pending | payment_processed |
+| fraud_score | fraud_investigation | fraud_cleared |
+
+**Transition Authorization:**
+| Transition | Required Role |
+|------------|---------------|
+| intake → validation | district_intake_officer, case_handler |
+| validation → eligibility_check | case_handler |
+| eligibility_check → under_review | case_handler |
+| under_review → approved | case_reviewer, department_head |
+| under_review → rejected | case_reviewer, department_head |
+| approved → payment_pending | case_handler, finance_officer |
+| payment_pending → payment_processed | finance_officer |
+| Any → fraud_investigation | fraud_officer, system_admin |
+| fraud_investigation → fraud_cleared | fraud_officer, system_admin |
+| Any → on_hold | case_handler, case_reviewer, department_head |
+| on_hold → Previous | department_head |
+
+---
+
+**END OF CONSOLIDATED BACKEND DOCUMENTATION v6.0 (Phase 8 Updated)**
