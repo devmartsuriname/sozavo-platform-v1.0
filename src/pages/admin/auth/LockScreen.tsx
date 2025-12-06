@@ -16,73 +16,64 @@ const LockScreen = () => {
           <div className="col-md-6 col-lg-5">
             <div className="card border-0 shadow-lg">
               <div className="card-body p-5">
-                <div className="text-center mb-4">
-                  <Link to="/admin" className="logo-dark">
-                    <img 
-                      src="/darkone/images/logo-dark.png" 
-                      alt="logo" 
-                      height="28"
-                    />
-                  </Link>
-                  <Link to="/admin" className="logo-light">
-                    <img 
-                      src="/darkone/images/logo-light.png" 
-                      alt="logo" 
-                      height="28"
-                    />
-                  </Link>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 text-center auth-logo">
+                    <Link to="/admin" className="logo-dark">
+                      <img 
+                        src="/darkone/images/logo-dark.png" 
+                        alt="logo dark" 
+                        height="32"
+                      />
+                    </Link>
+                    <Link to="/admin" className="logo-light">
+                      <img 
+                        src="/darkone/images/logo-light.png" 
+                        alt="logo light" 
+                        height="28"
+                      />
+                    </Link>
+                  </div>
+                  <h4 className="fw-bold text-dark mb-2">Hi ! Gaston</h4>
+                  <p className="text-muted">Enter your password to access the admin.</p>
                 </div>
 
-                <div className="text-center mb-4">
-                  <img 
-                    src="/darkone/images/users/avatar-1.jpg" 
-                    alt="user" 
-                    className="rounded-circle avatar-lg img-thumbnail"
-                  />
-                  <h4 className="mt-3 fw-semibold fs-18">Hi! John Doe</h4>
-                  <p className="text-muted mb-0">Enter your password to access the admin.</p>
-                </div>
-
-                <form className="pt-2">
-                  <div className="form-group mb-3">
-                    <label className="form-label" htmlFor="password">Password</label>
+                <form className="mt-4">
+                  <div className="mb-3">
+                    <label className="form-label" htmlFor="example-password">Password</label>
                     <input 
-                      className="form-control" 
                       type="password" 
-                      id="password" 
+                      id="example-password" 
+                      className="form-control"
                       placeholder="Enter your password"
                     />
                   </div>
-
-                  <div className="form-group mb-3">
+                  <div className="mb-3">
                     <div className="form-check">
                       <input 
                         type="checkbox" 
                         className="form-check-input" 
-                        id="termsCheck"
+                        id="checkbox-signin"
                       />
-                      <label className="form-check-label" htmlFor="termsCheck">
-                        I agree to the <a href="#" className="text-dark">Terms and Conditions</a>
+                      <label className="form-check-label" htmlFor="checkbox-signin">
+                        I accept Terms and Condition
                       </label>
                     </div>
                   </div>
 
-                  <div className="form-group mb-0">
-                    <div className="d-grid">
-                      <button className="btn btn-dark btn-lg fw-medium" type="submit">
-                        Sign In
-                      </button>
-                    </div>
+                  <div className="mb-1 text-center d-grid">
+                    <button className="btn btn-dark btn-lg fw-medium" type="submit">
+                      Sign In
+                    </button>
                   </div>
                 </form>
-
-                <div className="text-center mt-4">
-                  <p className="text-muted mb-0">
-                    Not you? <Link to="/admin/auth/signup" className="text-dark fw-medium">Sign Up</Link>
-                  </p>
-                </div>
               </div>
             </div>
+            <p className="text-center mt-4 text-white text-opacity-50">
+              Not you? return{" "}
+              <Link to="/admin/auth/signup" className="text-decoration-none text-white fw-bold">
+                Sign Up
+              </Link>
+            </p>
           </div>
         </div>
       </div>
