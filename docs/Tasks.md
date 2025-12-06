@@ -359,4 +359,152 @@ Phase 11 (BIS)    Phase 12 (Subema)
 
 ---
 
+## Tasks Requiring External Validation
+
+This section identifies all tasks that cannot progress without external stakeholder input. Each task is classified with blocking factors, risk levels, and required clarifications.
+
+### Classification Tags Legend
+
+| Tag | Meaning |
+|-----|---------|
+| `critical-path` | Blocks downstream phases |
+| `external-risk` | Depends on external party response time |
+| `gov-decision` | Requires government/ministry decision |
+| `blocked-by-legal` | Requires legal/compliance approval |
+| `infra-dependency` | Requires infrastructure decisions |
+
+---
+
+### BIS Validation Blockers
+
+| Task Name | Phase | Layer | Blocking Reason | Blocking Stakeholder | Priority | Risk Level | Notes | Tags |
+|-----------|-------|-------|-----------------|----------------------|----------|------------|-------|------|
+| Create bis-lookup edge function | P11 | INT | BIS API endpoint URL unknown | Ministry of Home Affairs | MUST | Critical | Cannot implement without API specs | `critical-path`, `external-risk` |
+| Implement BIS field mapping | P11 | INT | Field names assumed, not confirmed | Ministry of Home Affairs | MUST | Critical | Current mapping uses `persoonsnummer`, `voornamen`, `achternaam`, `geboortedatum`, `adres` - all require validation | `critical-path`, `external-risk` |
+| Store BIS_API_KEY secret | P11 | SEC | Credentials not provided | Ministry of Home Affairs | MUST | Critical | Cannot test integration without credentials | `external-risk` |
+| Implement CCR lookup function | P3 | DATA | BIS field `persoonsnummer` format unknown | Ministry of Home Affairs | MUST | High | Lookup logic depends on ID format | `external-risk` |
+| Create households table with BIS fields | P1 | DB | `bis_household_id` field name assumed | Ministry of Home Affairs | SHOULD | Medium | May require schema change if field differs | `external-risk` |
+| Implement residency rule | P9 | PROC | `country_of_residence` field availability uncertain | Ministry of Home Affairs | MUST | Medium | Eligibility rule depends on this field | `gov-decision` |
+
+**Required Clarifications for BIS:**
+1. Confirm exact API endpoint URL and authentication method (API key, OAuth, certificate)
+2. Confirm all field names in API response payload
+3. Confirm data availability (household composition, income data)
+4. Confirm rate limits and SLA guarantees
+5. Provide sandbox/test environment credentials
+
+---
+
+### Subema Validation Blockers
+
+| Task Name | Phase | Layer | Blocking Reason | Blocking Stakeholder | Priority | Risk Level | Notes | Tags |
+|-----------|-------|-------|-----------------|----------------------|----------|------------|-------|------|
+| Create subema-sync edge function | P12 | INT | Subema API specifications unknown | Subema vendor | MUST | Critical | Cannot implement without API docs | `critical-path`, `external-risk` |
+| Implement payment batch submission | P12 | INT | Batch submission payload format unknown | Subema vendor | MUST | Critical | Assumed fields may be incorrect | `critical-path`, `external-risk` |
+| Implement payment status sync | P12 | INT | Status codes and callback mechanism unknown | Subema vendor | MUST | Critical | Don't know if push or poll model | `external-risk` |
+| Store SUBEMA_API_KEY secret | P12 | SEC | Credentials not provided | Subema vendor | MUST | Critical | Cannot test integration | `external-risk` |
+| Create `subema_reference` field | P10 | DB | Response field name assumed | Subema vendor | MUST | Medium | Field may need renaming | `external-risk` |
+| Create payment sync scheduler | P12 | BE | Sync frequency requirements unknown | Subema vendor | SHOULD | Medium | Depends on API rate limits | `external-risk` |
+
+**Required Clarifications for Subema:**
+1. Confirm API documentation location and version
+2. Confirm authentication method and credential format
+3. Confirm payment submission payload structure
+4. Confirm status callback mechanism (webhook vs polling)
+5. Confirm batch size limits and processing times
+6. Provide test environment access
+
+---
+
+### Legal/Compliance Blockers
+
+| Task Name | Phase | Layer | Blocking Reason | Blocking Stakeholder | Priority | Risk Level | Notes | Tags |
+|-----------|-------|-------|-----------------|----------------------|----------|------------|-------|------|
+| Implement compliance report | P15 | DATA | Data retention requirements unknown | Legal department | MUST | High | Cannot design archive logic without retention rules | `blocked-by-legal`, `gov-decision` |
+| Create audit log archive function | P15 | DATA | Archive requirements unclear | Legal department | SHOULD | Medium | How long to keep, where to store | `blocked-by-legal` |
+| Implement citizen consent tracking | P8 | PROC | Consent policy not defined | Legal department | MUST | High | Portal registration requires consent flow | `blocked-by-legal`, `critical-path` |
+| Define data deletion policy | P1 | DB | Soft delete vs hard delete not decided | Legal department | SHOULD | High | Affects schema design (deleted_at columns) | `blocked-by-legal` |
+
+**Required Clarifications for Legal:**
+1. Minimum data retention period (assumed 7 years, needs confirmation)
+2. Audit trail requirements for compliance reporting
+3. Citizen consent requirements for data processing
+4. Right to deletion/erasure policy
+5. Cross-border data transfer restrictions (if any)
+
+---
+
+### Ministerial Decision Blockers
+
+| Task Name | Phase | Layer | Blocking Reason | Blocking Stakeholder | Priority | Risk Level | Notes | Tags |
+|-----------|-------|-------|-----------------|----------------------|----------|------------|-------|------|
+| Implement income threshold rule | P9 | PROC | Threshold amounts not confirmed | Ministry of Social Affairs | MUST | High | Current values are placeholders | `gov-decision`, `critical-path` |
+| Implement age range rule | P9 | PROC | Age limits per service type not confirmed | Ministry of Social Affairs | MUST | High | Kinderbijslag age limits assumed | `gov-decision` |
+| Implement household composition rule | P9 | PROC | Household size limits not confirmed | Ministry of Social Affairs | MUST | Medium | Maximum household members for benefits | `gov-decision` |
+| Define payment amounts | P10 | DATA | Benefit formulas not specified | Ministry of Social Affairs | MUST | Critical | Cannot calculate payments without formulas | `gov-decision`, `critical-path` |
+| Create manual override function | P9 | PROC | Override authorization policy unclear | Ministry of Social Affairs | MUST | Medium | Who can override, under what conditions | `gov-decision` |
+| Implement SMS notification | P13 | INT | SMS as official channel not confirmed | Ministry of Social Affairs | COULD | Low | Budget and policy decision | `gov-decision`, `infra-dependency` |
+
+**Required Clarifications for Ministry:**
+1. Confirm eligibility thresholds for all three services (AB, FB, KB)
+2. Confirm benefit calculation formulas
+3. Confirm manual override authorization policy
+4. Confirm official communication channels (email, SMS, postal)
+5. Confirm multi-district user assignment rules
+
+---
+
+### Technical/Infrastructure Blockers
+
+| Task Name | Phase | Layer | Blocking Reason | Blocking Stakeholder | Priority | Risk Level | Notes | Tags |
+|-----------|-------|-------|-----------------|----------------------|----------|------------|-------|------|
+| Implement background job processing | P16 | BE | Supabase tier/plan not decided | Project management | COULD | Medium | Edge function limits affect design | `infra-dependency` |
+| Create materialized views for reports | P16 | DB | Database tier affects capabilities | Project management | SHOULD | Medium | Some features require higher tier | `infra-dependency` |
+| Implement real-time subscriptions | P8 | BE | Realtime connection limits unknown | Project management | SHOULD | Medium | Concurrent citizen connections | `infra-dependency` |
+| Configure disaster recovery | P22 | BE | Backup infrastructure budget unknown | Project management | MUST | Critical | Strategic phase blocked | `infra-dependency`, `critical-path` |
+| Store RESEND_API_KEY secret | P13 | SEC | Email service provider not contracted | Project management | MUST | Medium | Assumed Resend, may change | `infra-dependency` |
+
+**Required Clarifications for Infrastructure:**
+1. Confirm Supabase pricing tier (Free, Pro, Enterprise)
+2. Confirm email service provider (Resend, SendGrid, other)
+3. Confirm SMS service provider (if SMS required)
+4. Confirm backup and DR budget allocation
+5. Confirm expected concurrent user load
+
+---
+
+### Blocked Tasks Summary
+
+| Category | Total Tasks | Critical | High | Medium | Low |
+|----------|-------------|----------|------|--------|-----|
+| BIS Validation | 6 | 3 | 1 | 2 | 0 |
+| Subema Validation | 6 | 4 | 0 | 2 | 0 |
+| Legal/Compliance | 4 | 0 | 3 | 1 | 0 |
+| Ministerial Decisions | 6 | 2 | 2 | 2 | 0 |
+| Infrastructure | 5 | 1 | 0 | 4 | 0 |
+| **TOTAL** | **27** | **10** | **6** | **11** | **0** |
+
+### Critical Path Blockers (Must Resolve Before MVP)
+
+1. **BIS API Specifications** → Blocks Phases 3, 11, and CCR functionality
+2. **Subema API Specifications** → Blocks Phases 10, 12, and payment processing
+3. **Eligibility Thresholds** → Blocks Phase 9 rule implementation
+4. **Benefit Formulas** → Blocks Phase 10 payment calculation
+5. **Legal Data Retention** → Blocks Phase 15 compliance reporting
+
+---
+
+### Recommended Validation Timeline
+
+| Week | Action | Stakeholder |
+|------|--------|-------------|
+| 1 | Submit BIS API documentation request | Ministry of Home Affairs |
+| 1 | Submit Subema API documentation request | Subema vendor |
+| 2 | Schedule eligibility rules workshop | Ministry of Social Affairs |
+| 2 | Submit data retention policy inquiry | Legal department |
+| 3 | Confirm infrastructure budget | Project management |
+| 4 | Review responses, escalate blockers | All |
+
+---
+
 **END OF CONSOLIDATED TASK BREAKDOWN v1.0**
