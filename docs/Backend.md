@@ -1,8 +1,49 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.0 (Consolidated)  
-> **Status:** Reference Document  
+> **Version:** 1.1 (Phase 9B Update)  
+> **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9B Implementation Status
+
+### Supabase Connection
+- **Project ID:** `egsaecmmdmbpalmqwjqt`
+- **Client File:** `src/integrations/supabase/client.ts`
+- **Config File:** `supabase/config.toml`
+- **Environment Variables:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+### Implemented Schema (Phase 9B)
+
+#### app_role Enum (9 roles)
+```sql
+CREATE TYPE public.app_role AS ENUM (
+  'citizen', 'district_intake_officer', 'case_handler', 'case_reviewer',
+  'department_head', 'finance_officer', 'fraud_officer', 'system_admin', 'audit_viewer'
+);
+```
+
+#### user_roles Table
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | UUID | Primary key |
+| `user_id` | UUID | References `auth.users(id)` ON DELETE CASCADE |
+| `role` | app_role | The assigned role |
+| `created_at` | TIMESTAMPTZ | Creation timestamp |
+
+#### Security Definer Functions
+- `has_role(_user_id UUID, _role app_role) → BOOLEAN` – Checks if user has specific role
+- `is_admin() → BOOLEAN` – Checks if current user is system_admin
+
+#### RLS Policies on user_roles
+- `user_roles_select_own` – Users can view only their own roles
+- `user_roles_admin_manage` – Admins can manage all roles
+
+### Frontend Auth Components
+- `src/integrations/supabase/AuthContext.tsx` – Session, user, roles, signIn/signOut
+- `src/components/auth/RequireAuth.tsx` – Route protection wrapper
+- `src/integrations/supabase/queries/userRoles.ts` – Role query functions
 
 ---
 
