@@ -1,10 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Icon from "../ui/Icon";
 
 const Topbar = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem("darkone-theme");
+    return saved === "dark" || (!saved && document.documentElement.getAttribute("data-bs-theme") === "dark");
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-bs-theme", isDarkMode ? "dark" : "light");
+    localStorage.setItem("darkone-theme", isDarkMode ? "dark" : "light");
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   return (
     <header className="app-topbar">
@@ -37,8 +50,8 @@ const Topbar = () => {
           <div className="d-flex align-items-center gap-2">
             {/* Theme Color (Light/Dark) */}
             <div className="topbar-item">
-              <button type="button" className="topbar-button" id="light-dark-mode">
-                <Icon icon="solar:moon-outline" className="fs-22 align-middle" />
+              <button type="button" className="topbar-button" id="light-dark-mode" onClick={toggleTheme}>
+                <Icon icon={isDarkMode ? "solar:sun-outline" : "solar:moon-outline"} className="fs-22 align-middle" />
               </button>
             </div>
 

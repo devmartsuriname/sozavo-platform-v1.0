@@ -13,6 +13,8 @@ import SignIn from "./pages/admin/auth/SignIn";
 import SignUp from "./pages/admin/auth/SignUp";
 import TablesBasic from "./pages/admin/tables/TablesBasic";
 import TablesGridJS from "./pages/admin/tables/TablesGridJS";
+import UITabs from "./pages/admin/ui/UITabs";
+import UIAccordion from "./pages/admin/ui/UIAccordion";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +36,8 @@ const App = () => (
             <Route index element={<Dashboard />} />
             <Route path="tables/basic" element={<TablesBasic />} />
             <Route path="tables/gridjs" element={<TablesGridJS />} />
+            <Route path="ui/tabs" element={<UITabs />} />
+            <Route path="ui/accordion" element={<UIAccordion />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
