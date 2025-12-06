@@ -1,8 +1,43 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.1 (Phase 9B Update)  
+> **Version:** 1.2 (Phase 9C Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9C Implementation Status
+
+### Role-Based Access Control (RBAC) Layer
+
+#### Module Permission System
+The platform implements a centralized role-to-module mapping for sidebar visibility and route protection:
+
+**File:** `src/integrations/supabase/permissions/rolePermissions.ts`
+
+| Role | Allowed Modules |
+|------|-----------------|
+| `system_admin` | dashboard, cases, eligibility, documents, payments, fraud, config, users, ui_kit |
+| `case_handler` | dashboard, cases, eligibility, documents |
+| `case_reviewer` | dashboard, cases, eligibility, documents |
+| `department_head` | dashboard, cases, eligibility, documents, payments, fraud, config |
+| `finance_officer` | dashboard, payments |
+| `fraud_officer` | dashboard, fraud, cases, documents |
+| `audit_viewer` | dashboard, config |
+| `district_intake_officer` | dashboard, cases, documents |
+| `citizen` | *(no admin access)* |
+
+#### Access Control Components
+| Component | File | Purpose |
+|-----------|------|---------|
+| `RequireAuth` | `src/components/auth/RequireAuth.tsx` | Route protection (auth required) |
+| `RequireRole` | `src/components/auth/RequireRole.tsx` | Module-level authorization |
+| `rolePermissions` | `src/integrations/supabase/permissions/rolePermissions.ts` | Central permission mapping |
+| `AccessDenied` | `src/pages/admin/AccessDenied.tsx` | Unauthorized access page |
+
+#### Helper Functions
+- `getAllowedModules(roles: string[]) → Set<ModuleKey>` – Computes allowed modules from roles
+- `hasModuleAccess(roles: string[], requiredModules: ModuleKey[]) → boolean` – Checks access
 
 ---
 
