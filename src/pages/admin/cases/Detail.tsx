@@ -16,6 +16,10 @@ import {
   getCaseDocuments,
   type CaseDocument,
 } from "@/integrations/supabase/queries/documents";
+import {
+  getCasePayments,
+  type CasePayment,
+} from "@/integrations/supabase/queries/payments";
 import PageTitle from "@/components/darkone/layout/PageTitle";
 import CaseDetailHeader from "@/components/admin/cases/CaseDetailHeader";
 import CaseInfoPanel from "@/components/admin/cases/CaseInfoPanel";
@@ -24,7 +28,7 @@ import ServiceInfoPanel from "@/components/admin/cases/ServiceInfoPanel";
 import CaseTimeline from "@/components/admin/cases/CaseTimeline";
 import CaseEligibilityPanel from "@/components/admin/cases/CaseEligibilityPanel";
 import CaseDocumentsPanel from "@/components/admin/cases/CaseDocumentsPanel";
-import CasePaymentsPlaceholder from "@/components/admin/cases/placeholders/CasePaymentsPlaceholder";
+import CasePaymentsPanel from "@/components/admin/cases/CasePaymentsPanel";
 import CaseFraudPlaceholder from "@/components/admin/cases/placeholders/CaseFraudPlaceholder";
 
 const CaseDetailPage = () => {
@@ -51,6 +55,11 @@ const CaseDetailPage = () => {
   const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [errorDocuments, setErrorDocuments] = useState<string | null>(null);
   const [documents, setDocuments] = useState<CaseDocument[] | null>(null);
+
+  // Payments state
+  const [isLoadingPayments, setIsLoadingPayments] = useState(true);
+  const [errorPayments, setErrorPayments] = useState<string | null>(null);
+  const [payments, setPayments] = useState<CasePayment[] | null>(null);
 
   // Fetch case details
   useEffect(() => {
@@ -149,6 +158,29 @@ const CaseDetailPage = () => {
     };
 
     fetchDocuments();
+  }, [id]);
+
+  // Fetch payments
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchPayments = async () => {
+      setIsLoadingPayments(true);
+      setErrorPayments(null);
+
+      const result = await getCasePayments(id);
+
+      if (result.error) {
+        setErrorPayments(result.error.message);
+        setPayments(null);
+      } else {
+        setPayments(result.data);
+      }
+
+      setIsLoadingPayments(false);
+    };
+
+    fetchPayments();
   }, [id]);
 
   const handleBack = () => {
@@ -264,7 +296,11 @@ const CaseDetailPage = () => {
             isLoading={isLoadingDocuments}
             error={errorDocuments}
           />
-          <CasePaymentsPlaceholder />
+          <CasePaymentsPanel
+            payments={payments}
+            isLoading={isLoadingPayments}
+            error={errorPayments}
+          />
           <CaseFraudPlaceholder />
         </div>
       </div>
