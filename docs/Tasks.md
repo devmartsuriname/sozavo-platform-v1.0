@@ -320,13 +320,24 @@
 
 ### Phase 9D-2C Completion Notes
 
-**Documents UI Module (Read-Only) - Complete**
+**Documents UI Module (Read-Only) - Implemented & QA'd**
 - Query: `getCaseDocuments(caseId)` in `src/integrations/supabase/queries/documents.ts`
 - Component: `CaseDocumentsPanel` in `src/components/admin/cases/CaseDocumentsPanel.tsx`
 - Wired into Case Detail page, replacing placeholder
 - Status badges: pending (warning), verified (success), rejected (danger), expired (secondary)
-- Seed data: 6 documents across 2 cases with all 4 status types
+- Helper functions: `formatDocumentType`, `formatFileSize`, `formatDate`
+- Rejection reason display for rejected documents
 - **Deferred:** File download/preview functionality (future phase)
+
+**QA Verification (Phase 9D-2C.QA) - Complete**
+- Test Case A: `CASE-2024-0001` (Jan Jansen) - 3 documents: verified, rejected w/ reason, expired
+- Test Case B: `CASE-2024-0002` (Maria Bouterse) - 1 document: pending
+- Test Case B2: `CASE-2024-0003` (Ravi Ramdin) - 2 documents: pending, verified
+- Test Case C: `CASE-2024-0004` (Marlene Wong) - 0 documents: empty state verified
+- Security verified: No INSERT/UPDATE/DELETE calls, RLS enforced, file_path not exposed as URL
+- Regression check: All other panels (Header, Timeline, Eligibility) unaffected
+- Theme compatibility: Light/dark mode verified for table, badges, cards
+- **Follow-up items:** Secure download handler to be implemented in later phase
 
 ---
 
