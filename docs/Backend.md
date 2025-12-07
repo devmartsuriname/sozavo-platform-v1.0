@@ -1,8 +1,126 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.9 (Phase 9D-2E Update)  
+> **Version:** 2.0 (Phase 9D-2F Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-2F – Configuration Query Layer
+
+### Overview
+
+Phase 9D-2F implements the read-only Configuration module, providing access to system configuration tables for all authenticated staff roles.
+
+### Query Layer Created
+
+**File:** `src/integrations/supabase/queries/config.ts`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getServiceTypes` | `(limit?: number) → Promise<{data, error}>` | Returns service types ordered by code ASC (limit 20) |
+| `getServiceTypesCount` | `() → Promise<{count, error}>` | Returns count of active service types |
+| `getOffices` | `(limit?: number) → Promise<{data, error}>` | Returns offices ordered by district_id, name ASC (limit 20) |
+| `getOfficesCount` | `() → Promise<{count, error}>` | Returns count of active offices |
+| `getWorkflowDefinitions` | `(limit?: number) → Promise<{data, error}>` | Returns workflow definitions with service joins (limit 20) |
+| `getWorkflowDefinitionsCount` | `() → Promise<{count, error}>` | Returns total workflow definition count |
+| `getEligibilityRules` | `(limit?: number) → Promise<{data, error}>` | Returns eligibility rules with service joins (limit 20) |
+| `getEligibilityRulesCount` | `() → Promise<{count, error}>` | Returns total eligibility rule count |
+
+### Types Exported
+
+```typescript
+interface ServiceTypeRow {
+  id: string;
+  code: string;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface OfficeRow {
+  id: string;
+  name: string;
+  district_id: string;
+  address: string | null;
+  phone: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface WorkflowDefinitionRow {
+  id: string;
+  service_type_id: string;
+  from_status: string;
+  to_status: string;
+  required_role: string;
+  is_active: boolean;
+  created_at: string;
+  service_types?: { code: string; name: string } | null;
+}
+
+interface EligibilityRuleRow {
+  id: string;
+  service_type_id: string;
+  rule_name: string;
+  rule_type: string;
+  condition: any;
+  error_message: string;
+  priority: number;
+  is_mandatory: boolean;
+  is_active: boolean;
+  created_at: string;
+  service_types?: { code: string; name: string } | null;
+}
+```
+
+### Components Created
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| ConfigurationIndex | `src/pages/admin/configuration/Index.tsx` | Read-only configuration overview with summary cards and tables |
+
+### Data Flow
+
+```
+ConfigurationIndex (useEffect)
+    │
+    ├── Parallel fetch (Promise.all):
+    │   ├── getServiceTypes() → service_types table
+    │   ├── getServiceTypesCount() → active count
+    │   ├── getOffices() → offices table
+    │   ├── getOfficesCount() → active count
+    │   ├── getWorkflowDefinitions() → workflow_definitions + service_types join
+    │   ├── getWorkflowDefinitionsCount() → total count
+    │   ├── getEligibilityRules() → eligibility_rules + service_types join
+    │   └── getEligibilityRulesCount() → total count
+    │
+    └── ConfigurationIndex
+        ├── Summary Cards Row (4 cards: service types, offices, workflows, rules)
+        ├── Service Types Table (code, name, description, status)
+        ├── Offices Table (name, district, address, phone, status)
+        ├── Workflow Transitions Table (service, from, to, role, status)
+        └── Eligibility Rules Table (service, name, type, priority, mandatory, status)
+```
+
+### Read-Only Constraints
+
+- No create, update, or delete operations
+- No inline editing capabilities
+- Maximum 20 rows per table (pagination deferred to Phase 10)
+- No filtering controls (deferred to Phase 10)
+
+### Role Access
+
+All authenticated staff roles can view configuration data:
+- `system_admin`, `department_head`, `audit_viewer` (existing)
+- `case_handler`, `case_reviewer`, `district_intake_officer`, `finance_officer`, `fraud_officer` (added in Phase 9D-2F)
+
+### RLS Access
+
+All four configuration tables use `*_select_authenticated` RLS policies with `USING (true)`, allowing read access to any authenticated user.
 
 ---
 

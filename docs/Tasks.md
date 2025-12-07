@@ -303,10 +303,10 @@
 | P9-BE-09 | Implement getPaymentItems query (Slice 5) | DATA | MUST | P9-BE-08 | Deferred |
 | P9-BE-10 | Implement getFraudSignals query (Slice 6) | DATA | MUST | P9-BE-01 | ✅ Complete |
 | P9-BE-11 | Implement getFraudRiskScores query (Slice 6) | DATA | MUST | P9-BE-10 | ✅ Complete |
-| P9-BE-12 | Implement getServiceTypes query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
-| P9-BE-13 | Implement getOffices query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-12 | Implement getServiceTypes query (Slice 7) | DATA | MUST | P9-BE-01 | ✅ Complete |
+| P9-BE-13 | Implement getOffices query (Slice 7) | DATA | MUST | P9-BE-01 | ✅ Complete |
 | P9-BE-14 | Implement getEligibilityRules query (Slice 7) | DATA | MUST | P9-BE-01 | ✅ Complete |
-| P9-BE-15 | Implement getWorkflowDefinitions query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
+| P9-BE-15 | Implement getWorkflowDefinitions query (Slice 7) | DATA | MUST | P9-BE-01 | ✅ Complete |
 | P9-ADM-01 | Set up Darkone Admin shell with auth | FE | MUST | P9-BE-01 | ✅ Complete |
 | P9-ADM-02 | Build Case Search page | FE | MUST | P9-BE-02 | ✅ Complete |
 | P9-ADM-03 | Build Case Detail page | FE | MUST | P9-BE-03 | ✅ Complete |
@@ -314,9 +314,37 @@
 | P9-ADM-05 | Build Documents viewer | FE | MUST | P9-BE-07 | ✅ Complete |
 | P9-ADM-06 | Build Payments overview | FE | MUST | P9-BE-08 | ✅ Complete |
 | P9-ADM-07 | Build Fraud overview | FE | MUST | P9-BE-10 | ✅ Complete |
-| P9-ADM-08 | Build Config panel | FE | MUST | P9-BE-12 | Planned |
+| P9-ADM-08 | Build Config panel | FE | MUST | P9-BE-12 | ✅ Complete |
 | P9-TEST-01 | RLS policy test suite execution | SEC | MUST | P9-BE-01 | Planned |
 | P9-TEST-02 | Role-based access validation | SEC | MUST | P9-ADM-01 | Planned |
+
+### Phase 9D-2F Completion Notes
+
+**Configuration Read-Only Panel - Implemented**
+- Query layer in `src/integrations/supabase/queries/config.ts`:
+  - `getServiceTypes(limit)` - returns service types ordered by code (limit 20)
+  - `getServiceTypesCount()` - returns count of active service types
+  - `getOffices(limit)` - returns offices ordered by district, name (limit 20)
+  - `getOfficesCount()` - returns count of active offices
+  - `getWorkflowDefinitions(limit)` - returns workflow definitions with service joins (limit 20)
+  - `getWorkflowDefinitionsCount()` - returns total workflow count
+  - `getEligibilityRules(limit)` - returns eligibility rules with service joins (limit 20)
+  - `getEligibilityRulesCount()` - returns total rules count
+- Component: `ConfigurationIndex` in `src/pages/admin/configuration/Index.tsx`
+- Summary Cards: Service Types (active), Offices (active), Workflow Transitions (total), Eligibility Rules (total)
+- Tables: Service Types, Offices, Workflow Transitions, Eligibility Rules (all read-only, max 20 rows)
+- Role access updated: All authenticated staff roles can view configuration (case_handler, case_reviewer, etc.)
+- Workflow definitions seed data: 7 sample transitions for AB, FB, KB services
+- Badge mappings: Active/Inactive (success/secondary), Mandatory (primary/secondary)
+- **NO mutations, NO CRUD, NO filtering (Phase 10)**
+
+**Phase 10 Future Tasks (Configuration):**
+- Add pagination for configuration tables
+- Add filtering controls for each table
+- Evaluate role-based visibility/redaction for sensitive config
+- Implement Configuration CRUD (service types, offices, workflow definitions, eligibility rules)
+
+---
 
 ### Phase 9D-2E Completion Notes
 
