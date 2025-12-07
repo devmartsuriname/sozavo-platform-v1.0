@@ -1,9 +1,99 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.6 (Phase 9D-2E Update)  
+> **Version:** 3.7 (Phase 9D-2F Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-2F – Configuration UI Architecture
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CONFIGURATION UI MODULE (Phase 9D-2F)                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   QUERY LAYER (src/integrations/supabase/queries/config.ts)                 │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ getServiceTypes(limit)                                                │  │
+│   │   → service_types.select().order('code').limit(20)                   │  │
+│   │                                                                       │  │
+│   │ getOffices(limit)                                                     │  │
+│   │   → offices.select().order('district_id', 'name').limit(20)          │  │
+│   │                                                                       │  │
+│   │ getWorkflowDefinitions(limit)                                         │  │
+│   │   → workflow_definitions.select('*, service_types(code,name)')       │  │
+│   │     .order('service_type_id', 'from_status').limit(20)               │  │
+│   │                                                                       │  │
+│   │ getEligibilityRules(limit)                                            │  │
+│   │   → eligibility_rules.select('*, service_types(code,name)')          │  │
+│   │     .order('service_type_id', 'priority').limit(20)                  │  │
+│   │                                                                       │  │
+│   │ + Count functions for each table (for summary cards)                  │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   COMPONENTS                                                                 │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ ConfigurationIndex (src/pages/admin/configuration/Index.tsx)         │  │
+│   │   ├── Loading skeleton (placeholder-glow)                            │  │
+│   │   ├── Error alert (alert-danger)                                     │  │
+│   │   ├── Summary Cards Row:                                             │  │
+│   │   │   ├── Service Types (active count)                               │  │
+│   │   │   ├── Offices (active count)                                     │  │
+│   │   │   ├── Workflow Transitions (total count)                         │  │
+│   │   │   └── Eligibility Rules (total count)                            │  │
+│   │   ├── Service Types Table (code, name, description, status badge)    │  │
+│   │   ├── Offices Table (name, district, address, phone, status badge)   │  │
+│   │   ├── Workflow Transitions Table (service, from→to, role, status)    │  │
+│   │   └── Eligibility Rules Table (service, name, type, priority, etc.)  │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   READ-ONLY: No mutations, no CRUD, max 20 rows per table                   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      CONFIGURATION UI DATA FLOW                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌───────────────────┐                                                      │
+│   │ ConfigurationIndex│                                                      │
+│   │   (useEffect)     │ ─── Promise.all (8 parallel queries):                │
+│   └─────────┬─────────┘                                                      │
+│             │                                                                │
+│             ▼ RLS: authenticated = true (all staff roles can read)          │
+│                                                                              │
+│   ┌──────────────────────┐  ┌──────────────────────┐                        │
+│   │   service_types      │  │      offices         │                        │
+│   │   (code, name, ...)  │  │   (name, district)   │                        │
+│   └──────────┬───────────┘  └──────────┬───────────┘                        │
+│              │                          │                                    │
+│   ┌──────────┴──────────────────────────┴───────────┐                       │
+│   │                                                  │                       │
+│   │   workflow_definitions ←─┐   eligibility_rules ←─┤                      │
+│   │   (from_status, to_...)  │   (rule_name, ...)    │                      │
+│   │                          │                        │                      │
+│   │       JOIN: service_types (code, name)           │                      │
+│   └──────────────────────────┴───────────────────────┘                      │
+│              │                                                               │
+│              ▼                                                               │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    ConfigurationIndex                        │           │
+│   │   State: serviceTypes, offices, workflows, rules, counts    │           │
+│   │       │                                                      │           │
+│   │       ▼                                                      │           │
+│   │   Summary Cards + 4 Read-Only Tables with Badges            │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
