@@ -380,7 +380,7 @@ const ConfigurationIndex = () => {
                             )}
                           </td>
                           <td>
-                            <span className="badge bg-secondary-subtle text-secondary">
+                            <span className="badge bg-light text-dark border">
                               {formatStatus(wf.from_status)}
                             </span>
                           </td>
