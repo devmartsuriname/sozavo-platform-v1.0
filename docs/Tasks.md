@@ -301,8 +301,8 @@
 | P9-BE-07 | Implement getDocumentsByCase query (Slice 4) | DATA | MUST | P9-BE-02 | ✅ Complete |
 | P9-BE-08 | Implement getCasePayments query (Slice 5) | DATA | MUST | P9-BE-01 | ✅ Complete |
 | P9-BE-09 | Implement getPaymentItems query (Slice 5) | DATA | MUST | P9-BE-08 | Deferred |
-| P9-BE-10 | Implement getFraudSignals query (Slice 6) | DATA | MUST | P9-BE-01 | Planned |
-| P9-BE-11 | Implement getFraudRiskScores query (Slice 6) | DATA | MUST | P9-BE-10 | Planned |
+| P9-BE-10 | Implement getFraudSignals query (Slice 6) | DATA | MUST | P9-BE-01 | ✅ Complete |
+| P9-BE-11 | Implement getFraudRiskScores query (Slice 6) | DATA | MUST | P9-BE-10 | ✅ Complete |
 | P9-BE-12 | Implement getServiceTypes query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
 | P9-BE-13 | Implement getOffices query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
 | P9-BE-14 | Implement getEligibilityRules query (Slice 7) | DATA | MUST | P9-BE-01 | ✅ Complete |
@@ -313,10 +313,43 @@
 | P9-ADM-04 | Build Intake Review panel (Eligibility) | FE | MUST | P9-BE-06 | ✅ Complete |
 | P9-ADM-05 | Build Documents viewer | FE | MUST | P9-BE-07 | ✅ Complete |
 | P9-ADM-06 | Build Payments overview | FE | MUST | P9-BE-08 | ✅ Complete |
-| P9-ADM-07 | Build Fraud overview | FE | MUST | P9-BE-10 | Planned |
+| P9-ADM-07 | Build Fraud overview | FE | MUST | P9-BE-10 | ✅ Complete |
 | P9-ADM-08 | Build Config panel | FE | MUST | P9-BE-12 | Planned |
 | P9-TEST-01 | RLS policy test suite execution | SEC | MUST | P9-BE-01 | Planned |
 | P9-TEST-02 | Role-based access validation | SEC | MUST | P9-ADM-01 | Planned |
+
+### Phase 9D-2E Completion Notes
+
+**Fraud & Risk UI Module (Read-Only) - Implemented**
+- Queries in `src/integrations/supabase/queries/fraud.ts`:
+  - `getFraudSignalsByCase(caseId)` - returns all fraud signals for a case
+  - `getFraudRiskScoreByCase(caseId)` - returns risk score for a case
+- Component: `CaseFraudPanel` in `src/components/admin/cases/CaseFraudPanel.tsx`
+- Wired into Case Detail page, replacing placeholder
+- Risk Summary Block: score, level badge, signal count, last evaluated datetime
+- Signals Table: type, severity badge, status badge, description (truncated), detected at
+- Badge mappings:
+  - Severity: low (secondary), medium (warning), high (danger), critical (danger)
+  - Status: pending (warning), investigating (primary), confirmed (danger), dismissed (secondary)
+  - Risk Level: minimal/low (success), medium (warning), high/critical (danger)
+
+**⚠️ TESTING NOTE:** Full evidence and description are exposed for Phase 9 testing only.
+This MUST be role-scoped and redacted before production (Phase 10+).
+
+**Test Data Coverage (Phase 9D-2E)**
+- CASE-2024-0001: HIGH risk (82.5), 2 signals (income_discrepancy=high/investigating, duplicate_application=medium/pending)
+- CASE-2024-0002: MEDIUM risk (45.0), 2 signals (existing + benefit_overlap=medium/confirmed)
+- CASE-2024-0003: LOW risk (15.0), 1 signal (address_mismatch=low/dismissed)
+- CASE-2024-0004: No fraud data (empty state test)
+
+**Deferred to Future Phases:**
+- No fraud investigation workflows or actions
+- No signal dismissal or escalation
+- No fraud rule editing
+- No case locking based on fraud status
+- Role-based data redaction (Phase 10+)
+
+---
 
 ### Phase 9D-2D Completion Notes
 
