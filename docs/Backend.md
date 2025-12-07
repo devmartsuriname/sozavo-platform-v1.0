@@ -1,8 +1,95 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.6 (Phase 9D-2B Update)  
+> **Version:** 1.7 (Phase 9D-2C Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-2C – Documents UI Module
+
+### Overview
+
+Phase 9D-2C implements the read-only Documents UI module, displaying case documents on the Case Detail page.
+
+### Query Layer Created
+
+**File:** `src/integrations/supabase/queries/documents.ts`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getCaseDocuments` | `(caseId: string) → Promise<{data, error}>` | Returns all documents for a case, ordered by created_at descending |
+
+### Types Exported
+
+```typescript
+interface CaseDocument {
+  id: string;
+  case_id: string | null;
+  citizen_id: string;
+  document_type: string;
+  file_name: string;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+  status: string;
+  verified_by: string | null;
+  verified_at: string | null;
+  rejection_reason: string | null;
+  expires_at: string | null;
+  created_at: string;
+}
+```
+
+### Components Created
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| CaseDocumentsPanel | `src/components/admin/cases/CaseDocumentsPanel.tsx` | Displays documents table with status badges and metadata |
+
+### Status Badge Mapping
+
+| Status Value | Badge Variant | Label |
+|--------------|---------------|-------|
+| `pending` | warning (soft) | Pending |
+| `verified` | success (soft) | Verified |
+| `rejected` | danger (soft) | Rejected |
+| `expired` | secondary (soft) | Expired |
+
+### Helper Functions
+
+| Function | Purpose |
+|----------|---------|
+| `formatDocumentType(type)` | Converts `id_card` → "ID Card" |
+| `formatFileSize(bytes)` | Converts 102400 → "100.00 KB" |
+| `formatDate(dateString)` | Formats ISO date to readable format |
+
+### Data Flow
+
+```
+CaseDetailPage
+    │
+    ├── getCaseById(id) → caseData
+    │
+    ├── After caseData loads:
+    │   └── getCaseDocuments(id) → documents table
+    │           │
+    │           └── Returns: [ { file_name, document_type, status, created_at, ... }, ... ]
+    │
+    └── CaseDocumentsPanel
+        ├── Document type column (formatted)
+        ├── File name column
+        ├── File size column (formatted)
+        ├── Status badge (variant by status)
+        └── Upload date column (formatted)
+```
+
+### Read-Only Constraints
+
+- No upload, verify, reject, or delete operations
+- No file download functionality (deferred to future phase)
+- Display only: document metadata listing
+- `file_path` stored but not exposed as download link
 
 ---
 
