@@ -1,8 +1,94 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.7 (Phase 9D-2C Update)  
+> **Version:** 1.8 (Phase 9D-2D Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-2D – Payments UI Module
+
+### Overview
+
+Phase 9D-2D implements the read-only Payments UI module, displaying case payments on the Case Detail page.
+
+### Query Layer Created
+
+**File:** `src/integrations/supabase/queries/payments.ts`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getCasePayments` | `(caseId: string) → Promise<{data, error}>` | Returns all payments for a case, ordered by payment_date descending |
+
+### Types Exported
+
+```typescript
+interface CasePayment {
+  id: string;
+  case_id: string;
+  citizen_id: string;
+  amount: number;
+  payment_date: string;
+  status: string;           // pending | processed | failed | cancelled
+  payment_method: string | null;
+  bank_account: string | null;
+  subema_reference: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### Components Created
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| CasePaymentsPanel | `src/components/admin/cases/CasePaymentsPanel.tsx` | Displays payments table with status badges and currency formatting |
+
+### Status Badge Mapping
+
+| Status Value | Badge Variant | Label |
+|--------------|---------------|-------|
+| `pending` | warning (soft) | Pending |
+| `processed` | success (soft) | Processed |
+| `failed` | danger (soft) | Failed |
+| `cancelled` | secondary (soft) | Cancelled |
+
+### Helper Functions
+
+| Function | Purpose |
+|----------|---------|
+| `formatCurrency(amount)` | Converts 2500 → "SRD 2,500.00" |
+| `formatPaymentMethod(method)` | Converts `bank` → "Bank Transfer" |
+| `formatDate(dateString)` | Formats ISO date to readable format |
+| `getStatusBadgeVariant(status)` | Maps status to badge variant |
+
+### Data Flow
+
+```
+CaseDetailPage
+    │
+    ├── getCaseById(id) → caseData
+    │
+    ├── After caseData loads:
+    │   └── getCasePayments(id) → payments table
+    │           │
+    │           └── Returns: [ { amount, payment_date, status, payment_method, ... }, ... ]
+    │
+    └── CasePaymentsPanel
+        ├── Payment date column (formatted)
+        ├── Amount column (SRD currency)
+        ├── Method column (human-readable)
+        ├── Status badge (variant by status)
+        └── Reference column (Subema ref or "—")
+```
+
+### Read-Only Constraints
+
+- No payment execution, approval, or cancellation actions
+- No batch management or creation
+- No Subema sync triggers
+- Display only: payment history listing
 
 ---
 

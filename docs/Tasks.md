@@ -299,8 +299,8 @@
 | P9-BE-05 | Implement getCaseEvents query (Slice 2) | DATA | MUST | P9-BE-02 | ✅ Complete |
 | P9-BE-06 | Implement getEligibilityEvaluation query (Slice 3) | DATA | MUST | P9-BE-02 | ✅ Complete |
 | P9-BE-07 | Implement getDocumentsByCase query (Slice 4) | DATA | MUST | P9-BE-02 | ✅ Complete |
-| P9-BE-08 | Implement getPaymentBatches query (Slice 5) | DATA | MUST | P9-BE-01 | Planned |
-| P9-BE-09 | Implement getPaymentItems query (Slice 5) | DATA | MUST | P9-BE-08 | Planned |
+| P9-BE-08 | Implement getCasePayments query (Slice 5) | DATA | MUST | P9-BE-01 | ✅ Complete |
+| P9-BE-09 | Implement getPaymentItems query (Slice 5) | DATA | MUST | P9-BE-08 | Deferred |
 | P9-BE-10 | Implement getFraudSignals query (Slice 6) | DATA | MUST | P9-BE-01 | Planned |
 | P9-BE-11 | Implement getFraudRiskScores query (Slice 6) | DATA | MUST | P9-BE-10 | Planned |
 | P9-BE-12 | Implement getServiceTypes query (Slice 7) | DATA | MUST | P9-BE-01 | Planned |
@@ -312,11 +312,30 @@
 | P9-ADM-03 | Build Case Detail page | FE | MUST | P9-BE-03 | ✅ Complete |
 | P9-ADM-04 | Build Intake Review panel (Eligibility) | FE | MUST | P9-BE-06 | ✅ Complete |
 | P9-ADM-05 | Build Documents viewer | FE | MUST | P9-BE-07 | ✅ Complete |
-| P9-ADM-06 | Build Payments overview | FE | MUST | P9-BE-08 | Planned |
+| P9-ADM-06 | Build Payments overview | FE | MUST | P9-BE-08 | ✅ Complete |
 | P9-ADM-07 | Build Fraud overview | FE | MUST | P9-BE-10 | Planned |
 | P9-ADM-08 | Build Config panel | FE | MUST | P9-BE-12 | Planned |
 | P9-TEST-01 | RLS policy test suite execution | SEC | MUST | P9-BE-01 | Planned |
 | P9-TEST-02 | Role-based access validation | SEC | MUST | P9-ADM-01 | Planned |
+
+### Phase 9D-2D Completion Notes
+
+**Payments UI Module (Read-Only) - Implemented & QA'd**
+- Query: `getCasePayments(caseId)` in `src/integrations/supabase/queries/payments.ts`
+- Component: `CasePaymentsPanel` in `src/components/admin/cases/CasePaymentsPanel.tsx`
+- Wired into Case Detail page, replacing placeholder
+- Status badges: pending (warning), processed (success), failed (danger), cancelled (secondary)
+- Helper functions: `formatCurrency`, `formatPaymentMethod`, `formatDate`, `getStatusBadgeVariant`
+- Currency format: SRD X,XXX.XX
+- **Deferred:** Payment execution, batch management, Subema sync triggers (future phase)
+
+**Test Data Coverage (Phase 9D-2D)**
+- CASE-2024-0001 (Jan Jansen): 2 payments (processed, failed)
+- CASE-2024-0002 (Maria Bouterse): 1 payment (cancelled)
+- CASE-2024-0003 (Ravi Ramdin): 1 payment (pending) - existing
+- CASE-2024-0004: 0 payments (empty state test)
+
+---
 
 ### Phase 9D-2C Completion Notes
 
