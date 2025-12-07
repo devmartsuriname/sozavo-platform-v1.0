@@ -1,9 +1,81 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.4 (Phase 9D-2B Update)  
+> **Version:** 3.5 (Phase 9D-2D Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-2D – Payments UI Architecture
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PAYMENTS UI MODULE (Phase 9D-2D)                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   QUERY LAYER (src/integrations/supabase/queries/payments.ts)               │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ getCasePayments(caseId)                                               │  │
+│   │   → payments.select().eq('case_id').order('payment_date', desc)      │  │
+│   │   → Returns: CasePayment[]                                           │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   COMPONENTS                                                                 │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CasePaymentsPanel (replaces CasePaymentsPlaceholder)                 │  │
+│   │   ├── Loading skeleton (placeholder-glow)                            │  │
+│   │   ├── Error alert (alert-danger)                                     │  │
+│   │   ├── Empty state ("No payments recorded")                           │  │
+│   │   └── Payments table:                                                │  │
+│   │       ├── Payment Date (formatted)                                   │  │
+│   │       ├── Amount (SRD currency format)                               │  │
+│   │       ├── Method (human-readable label)                              │  │
+│   │       ├── Status badge (pending/processed/failed/cancelled)          │  │
+│   │       └── Reference (Subema ref or "—")                              │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PAYMENTS UI DATA FLOW                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌───────────────────┐                                                      │
+│   │  CaseDetailPage   │                                                      │
+│   │  (useEffect #1)   │ ─── getCaseById(id) ───▶ caseData                    │
+│   └─────────┬─────────┘                                                      │
+│             │                                                                │
+│             │ caseData loaded (triggers useEffect #4)                        │
+│             ▼                                                                │
+│   ┌───────────────────┐                                                      │
+│   │  CaseDetailPage   │                                                      │
+│   │  (useEffect #4)   │ ─── getCasePayments(id)                              │
+│   └─────────┬─────────┘                                                      │
+│             │                                                                │
+│             ▼ RLS: has_case_access(case_id)                                  │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    payments table                            │           │
+│   │   → amount, payment_date, status, payment_method, ...       │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│             │                                                                │
+│             ▼                                                                │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    CasePaymentsPanel                         │           │
+│   │   payments={...}  isLoading  error                           │           │
+│   │       │                                                      │           │
+│   │       ▼                                                      │           │
+│   │   Formatted Table with Status Badges                         │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
