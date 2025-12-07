@@ -20,6 +20,12 @@ import {
   getCasePayments,
   type CasePayment,
 } from "@/integrations/supabase/queries/payments";
+import {
+  getFraudSignalsByCase,
+  getFraudRiskScoreByCase,
+  type CaseFraudSignal,
+  type CaseFraudRiskScore,
+} from "@/integrations/supabase/queries/fraud";
 import PageTitle from "@/components/darkone/layout/PageTitle";
 import CaseDetailHeader from "@/components/admin/cases/CaseDetailHeader";
 import CaseInfoPanel from "@/components/admin/cases/CaseInfoPanel";
@@ -29,7 +35,7 @@ import CaseTimeline from "@/components/admin/cases/CaseTimeline";
 import CaseEligibilityPanel from "@/components/admin/cases/CaseEligibilityPanel";
 import CaseDocumentsPanel from "@/components/admin/cases/CaseDocumentsPanel";
 import CasePaymentsPanel from "@/components/admin/cases/CasePaymentsPanel";
-import CaseFraudPlaceholder from "@/components/admin/cases/placeholders/CaseFraudPlaceholder";
+import CaseFraudPanel from "@/components/admin/cases/CaseFraudPanel";
 
 const CaseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,6 +66,12 @@ const CaseDetailPage = () => {
   const [isLoadingPayments, setIsLoadingPayments] = useState(true);
   const [errorPayments, setErrorPayments] = useState<string | null>(null);
   const [payments, setPayments] = useState<CasePayment[] | null>(null);
+
+  // Fraud state
+  const [isLoadingFraud, setIsLoadingFraud] = useState(true);
+  const [errorFraud, setErrorFraud] = useState<string | null>(null);
+  const [fraudSignals, setFraudSignals] = useState<CaseFraudSignal[] | null>(null);
+  const [fraudRiskScore, setFraudRiskScore] = useState<CaseFraudRiskScore | null>(null);
 
   // Fetch case details
   useEffect(() => {
@@ -183,6 +195,39 @@ const CaseDetailPage = () => {
     fetchPayments();
   }, [id]);
 
+  // Fetch fraud data
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchFraudData = async () => {
+      setIsLoadingFraud(true);
+      setErrorFraud(null);
+
+      // Fetch signals and risk score in parallel
+      const [signalsResult, riskScoreResult] = await Promise.all([
+        getFraudSignalsByCase(id),
+        getFraudRiskScoreByCase(id),
+      ]);
+
+      if (signalsResult.error) {
+        setErrorFraud(signalsResult.error.message);
+        setFraudSignals(null);
+      } else {
+        setFraudSignals(signalsResult.data);
+      }
+
+      if (riskScoreResult.error && !signalsResult.error) {
+        // Only set error if signals also failed, otherwise just show signals
+        setErrorFraud(riskScoreResult.error.message);
+      }
+      setFraudRiskScore(riskScoreResult.data);
+
+      setIsLoadingFraud(false);
+    };
+
+    fetchFraudData();
+  }, [id]);
+
   const handleBack = () => {
     navigate('/admin/cases');
   };
@@ -301,7 +346,12 @@ const CaseDetailPage = () => {
             isLoading={isLoadingPayments}
             error={errorPayments}
           />
-          <CaseFraudPlaceholder />
+          <CaseFraudPanel
+            signals={fraudSignals}
+            riskScore={fraudRiskScore}
+            isLoading={isLoadingFraud}
+            error={errorFraud}
+          />
         </div>
       </div>
     </>

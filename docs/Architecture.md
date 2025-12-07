@@ -1,9 +1,91 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.5 (Phase 9D-2D Update)  
+> **Version:** 3.6 (Phase 9D-2E Update)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
 > **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+
+---
+
+## Phase 9D-2E – Fraud & Risk UI Architecture
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      FRAUD & RISK UI MODULE (Phase 9D-2E)                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   QUERY LAYER (src/integrations/supabase/queries/fraud.ts)                  │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ getFraudSignalsByCase(caseId)                                         │  │
+│   │   → fraud_signals.select().eq('case_id').order('created_at', desc)   │  │
+│   │   → Returns: CaseFraudSignal[]                                        │  │
+│   │                                                                       │  │
+│   │ getFraudRiskScoreByCase(caseId)                                       │  │
+│   │   → fraud_risk_scores.select().eq('case_id').maybeSingle()           │  │
+│   │   → Returns: CaseFraudRiskScore | null                                │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   COMPONENTS                                                                 │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CaseFraudPanel (replaces CaseFraudPlaceholder)                       │  │
+│   │   ├── Loading skeleton (placeholder-glow)                            │  │
+│   │   ├── Error alert (alert-danger)                                     │  │
+│   │   ├── Empty state ("No fraud signals recorded")                      │  │
+│   │   ├── Risk Summary Block:                                            │  │
+│   │   │   ├── Risk Score (0-100, 1 decimal)                              │  │
+│   │   │   ├── Risk Level badge (minimal/low/medium/high/critical)        │  │
+│   │   │   ├── Signal Count                                               │  │
+│   │   │   └── Last Evaluated datetime                                    │  │
+│   │   └── Signals Table:                                                 │  │
+│   │       ├── Signal Type (formatted snake_case → Title Case)            │  │
+│   │       ├── Severity badge (low/medium/high/critical)                  │  │
+│   │       ├── Status badge (pending/investigating/confirmed/dismissed)   │  │
+│   │       ├── Description (truncated with tooltip)                       │  │
+│   │       └── Detected At datetime                                       │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   ⚠️ TESTING NOTE: Full evidence and description exposed for Phase 9.       │
+│      Must be role-scoped and redacted before production (Phase 10+).        │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        FRAUD & RISK UI DATA FLOW                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌───────────────────┐                                                      │
+│   │  CaseDetailPage   │                                                      │
+│   │  (useEffect #5)   │ ─── Parallel fetch:                                 │
+│   └─────────┬─────────┘     getFraudSignalsByCase(id)                        │
+│             │               getFraudRiskScoreByCase(id)                      │
+│             │                                                                │
+│             ▼ RLS: is_admin() OR is_fraud_officer() OR is_department_head() │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    fraud_signals table                       │           │
+│   │   → signal_type, severity, status, description, evidence    │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    fraud_risk_scores table                   │           │
+│   │   → risk_score, risk_level, signal_count, last_evaluated_at │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│             │                                                                │
+│             ▼                                                                │
+│   ┌─────────────────────────────────────────────────────────────┐           │
+│   │                    CaseFraudPanel                            │           │
+│   │   signals={...}  riskScore={...}  isLoading  error           │           │
+│   │       │                                                      │           │
+│   │       ▼                                                      │           │
+│   │   Risk Summary + Signals Table with Badges                   │           │
+│   └─────────────────────────────────────────────────────────────┘           │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 

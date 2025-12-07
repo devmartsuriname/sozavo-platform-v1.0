@@ -1,8 +1,135 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 1.8 (Phase 9D-2D Update)  
+> **Version:** 1.9 (Phase 9D-2E Update)  
 > **Status:** Implementation in Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase 9D-2E – Fraud & Risk UI Module
+
+### Overview
+
+Phase 9D-2E implements the read-only Fraud & Risk UI module, displaying fraud signals and risk scores on the Case Detail page.
+
+**TESTING NOTE:** Full evidence and description are exposed for Phase 9 testing. This MUST be role-scoped and redacted before production (Phase 10+).
+
+### Query Layer Created
+
+**File:** `src/integrations/supabase/queries/fraud.ts`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `getFraudSignalsByCase` | `(caseId: string) → Promise<{data, error}>` | Returns all fraud signals for a case, ordered by created_at descending |
+| `getFraudRiskScoreByCase` | `(caseId: string) → Promise<{data, error}>` | Returns the risk score for a case (single row) |
+
+### Types Exported
+
+```typescript
+interface CaseFraudSignal {
+  id: string;
+  case_id: string;
+  signal_type: string;
+  severity: string;        // low | medium | high | critical
+  description: string;
+  evidence: any | null;    // JSONB - exposed for testing only
+  status: string;          // pending | investigating | confirmed | dismissed
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+interface CaseFraudRiskScore {
+  id: string;
+  case_id: string;
+  risk_score: number;      // 0.00 - 100.00
+  risk_level: string;      // minimal | low | medium | high | critical
+  signal_count: number;
+  last_evaluated_at: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+### Components Created
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| CaseFraudPanel | `src/components/admin/cases/CaseFraudPanel.tsx` | Displays risk summary and signals table with badges |
+
+### Badge Mappings
+
+**Severity Badge:**
+| Value | Badge Variant |
+|-------|---------------|
+| `low` | secondary |
+| `medium` | warning |
+| `high` | danger |
+| `critical` | danger |
+
+**Signal Status Badge:**
+| Value | Badge Variant |
+|-------|---------------|
+| `pending` | warning |
+| `investigating` | primary |
+| `confirmed` | danger |
+| `dismissed` | secondary |
+
+**Risk Level Badge:**
+| Value | Badge Variant |
+|-------|---------------|
+| `minimal` | success |
+| `low` | success |
+| `medium` | warning |
+| `high` | danger |
+| `critical` | danger |
+
+### Helper Functions
+
+| Function | Purpose |
+|----------|---------|
+| `formatSignalType(type)` | Converts `income_discrepancy` → "Income Discrepancy" |
+| `formatDateTime(ts)` | Formats ISO timestamp to readable datetime |
+| `formatRiskScore(score)` | Formats to 1 decimal place (e.g., "82.5") |
+| `getSeverityBadgeVariant(severity)` | Maps severity to badge variant |
+| `getStatusBadgeVariant(status)` | Maps status to badge variant |
+| `getRiskLevelBadgeVariant(level)` | Maps risk level to badge variant |
+| `truncateDescription(desc)` | Truncates to 50 chars with ellipsis |
+
+### Data Flow
+
+```
+CaseDetailPage
+    │
+    ├── getCaseById(id) → caseData
+    │
+    ├── After caseData loads (parallel):
+    │   ├── getFraudSignalsByCase(id) → fraud_signals table
+    │   │       │
+    │   │       └── Returns: [ { signal_type, severity, status, description, ... }, ... ]
+    │   │
+    │   └── getFraudRiskScoreByCase(id) → fraud_risk_scores table
+    │           │
+    │           └── Returns: { risk_score, risk_level, signal_count, last_evaluated_at }
+    │
+    └── CaseFraudPanel
+        ├── Risk Summary Block (score, level, count, last evaluated)
+        └── Signals Table (type, severity, status, description, detected at)
+```
+
+### Read-Only Constraints
+
+- No investigation workflows or actions
+- No signal dismissal or escalation
+- No fraud rule editing
+- No case locking based on fraud status
+- Display only: risk summary + signals listing
+
+### RLS Access
+
+- `fraud_signals` and `fraud_risk_scores` tables are role-restricted
+- Access limited to: `system_admin`, `fraud_officer`, `department_head`
+- Full role-based scoping and data redaction deferred to Phase 10+
 
 ---
 
