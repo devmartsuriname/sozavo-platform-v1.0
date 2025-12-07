@@ -12,6 +12,10 @@ import {
   type EligibilityEvaluation,
   type EligibilityRule,
 } from "@/integrations/supabase/queries/eligibility";
+import {
+  getCaseDocuments,
+  type CaseDocument,
+} from "@/integrations/supabase/queries/documents";
 import PageTitle from "@/components/darkone/layout/PageTitle";
 import CaseDetailHeader from "@/components/admin/cases/CaseDetailHeader";
 import CaseInfoPanel from "@/components/admin/cases/CaseInfoPanel";
@@ -19,7 +23,7 @@ import CitizenInfoPanel from "@/components/admin/cases/CitizenInfoPanel";
 import ServiceInfoPanel from "@/components/admin/cases/ServiceInfoPanel";
 import CaseTimeline from "@/components/admin/cases/CaseTimeline";
 import CaseEligibilityPanel from "@/components/admin/cases/CaseEligibilityPanel";
-import CaseDocumentsPlaceholder from "@/components/admin/cases/placeholders/CaseDocumentsPlaceholder";
+import CaseDocumentsPanel from "@/components/admin/cases/CaseDocumentsPanel";
 import CasePaymentsPlaceholder from "@/components/admin/cases/placeholders/CasePaymentsPlaceholder";
 import CaseFraudPlaceholder from "@/components/admin/cases/placeholders/CaseFraudPlaceholder";
 
@@ -42,6 +46,11 @@ const CaseDetailPage = () => {
   const [errorEligibility, setErrorEligibility] = useState<string | null>(null);
   const [eligibilityEval, setEligibilityEval] = useState<EligibilityEvaluation | null>(null);
   const [eligibilityRules, setEligibilityRules] = useState<EligibilityRule[] | null>(null);
+
+  // Documents state
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [errorDocuments, setErrorDocuments] = useState<string | null>(null);
+  const [documents, setDocuments] = useState<CaseDocument[] | null>(null);
 
   // Fetch case details
   useEffect(() => {
@@ -118,6 +127,29 @@ const CaseDetailPage = () => {
 
     fetchEligibility();
   }, [id, caseData]);
+
+  // Fetch documents
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchDocuments = async () => {
+      setIsLoadingDocuments(true);
+      setErrorDocuments(null);
+
+      const result = await getCaseDocuments(id);
+
+      if (result.error) {
+        setErrorDocuments(result.error.message);
+        setDocuments(null);
+      } else {
+        setDocuments(result.data);
+      }
+
+      setIsLoadingDocuments(false);
+    };
+
+    fetchDocuments();
+  }, [id]);
 
   const handleBack = () => {
     navigate('/admin/cases');
@@ -227,7 +259,11 @@ const CaseDetailPage = () => {
             isLoading={isLoadingEligibility}
             error={errorEligibility}
           />
-          <CaseDocumentsPlaceholder />
+          <CaseDocumentsPanel
+            documents={documents}
+            isLoading={isLoadingDocuments}
+            error={errorDocuments}
+          />
           <CasePaymentsPlaceholder />
           <CaseFraudPlaceholder />
         </div>
