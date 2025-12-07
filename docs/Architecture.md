@@ -1,9 +1,61 @@
 # SoZaVo Platform v1.0 – System Architecture
 
-> **Version:** 3.7 (Phase 9D-2F Update)  
+> **Version:** 3.8 (Phase 9 Complete)  
 > **Status:** Authoritative Reference Document  
 > **Source:** Synthesized from sozavo_technical_architecture_v_2_en.md, workflow_blueprint_v2, and Phase Documents  
-> **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md
+> **Cross-References:** PRD.md, Data-Dictionary.md, Tasks.md, Backend.md, Admin-MVP-Scope.md
+
+---
+
+## Phase Progression Map
+
+```mermaid
+graph LR
+    P9[Phase 9: Admin MVP ✅] --> P10[Phase 10: Processing]
+    P10 --> P11[Phase 11: Payments]
+    P11 --> P12[Phase 12: Fraud]
+    P10 --> P13[Phase 13: Documents]
+    P10 --> P14[Phase 14: Eligibility]
+    P13 --> P15[Phase 15: Reporting]
+    P14 --> P15
+    P12 --> P15
+    P15 --> P16[Phase 16: Users]
+    P16 --> P17[Phase 17+: Governance]
+```
+
+### Phase 9 Admin MVP – COMPLETE ✅
+
+Phase 9 implements **8 case-centric modules** as the foundation for all subsequent phases:
+
+| ID | Module | Architecture | Status |
+|----|--------|--------------|--------|
+| 2.1 | Authentication & Role Shell | Supabase Auth + RLS + Role Context | ✅ Complete |
+| 2.2 | Case Search & Overview | Read-only query layer + filters | ✅ Complete |
+| 2.3 | Case Detail & Timeline View | Case header + info panels + events | ✅ Complete |
+| 2.4 | Eligibility Panel (case-level) | Panel A within Case Detail | ✅ Complete |
+| 2.5 | Documents Panel (case-level) | Panel B within Case Detail | ✅ Complete |
+| 2.6 | Payments Panel (case-level) | Panel C within Case Detail | ✅ Complete |
+| 2.7 | Fraud & Risk Panel (case-level) | Panel D within Case Detail | ✅ Complete |
+| 2.8 | Configuration (read-only) | Standalone config overview | ✅ Complete |
+
+### Case-Centric Architecture Principle
+
+**MVP Boundary**: All eligibility, documents, payments, and fraud views are **panels within Case Detail**, not standalone pages. This reflects the case-centric processing model where cases are the primary unit of work.
+
+**Post-MVP Expansion**: Standalone pages (Eligibility Dashboard, Documents Manager, Payments & Batches, Fraud Investigations) are Phase 10+ features that build upon the case-centric foundation.
+
+### Phase 10+ Roadmap
+
+| Phase | Focus | Architectural Additions |
+|-------|-------|------------------------|
+| Phase 10 | Processing Modules | Standalone intake/review pages, workflow mutations |
+| Phase 11 | Payments & Batches | Payment execution engine, Subema sync, batch management |
+| Phase 12 | Fraud & Investigations | Fraud investigation workflows, signal escalation |
+| Phase 13 | Documents & Verification | Document verification actions, storage integration |
+| Phase 14 | Eligibility Review Dashboard | Override capabilities, rule management |
+| Phase 15 | Reporting & Analytics | Dashboard analytics, KPIs, exports |
+| Phase 16 | User Management | User CRUD, role assignment, office management |
+| Phase 17+ | Governance, Audit, Scaling | Audit trails, compliance, performance |
 
 ---
 

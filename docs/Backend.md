@@ -1,8 +1,53 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 2.0 (Phase 9D-2F Update)  
-> **Status:** Implementation in Progress  
+> **Version:** 2.1 (Phase 9 Complete)  
+> **Status:** Phase 9 Admin MVP Complete  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
+
+---
+
+## Phase Roadmap Reference
+
+### Phase 9 Admin MVP – COMPLETE ✅
+
+Phase 9 defines the Admin MVP with **8 case-centric modules**. All modules are implemented and verified:
+
+| Module | Description | Status |
+|--------|-------------|--------|
+| 2.1 Authentication & Role Shell | Login, logout, role-based access control | ✅ Complete |
+| 2.2 Case Search & Overview | Case list with filters, pagination, search | ✅ Complete |
+| 2.3 Case Detail & Timeline View | Case header, info panels, timeline events | ✅ Complete |
+| 2.4 Eligibility Panel (case-level) | Eligibility evaluation display within Case Detail | ✅ Complete |
+| 2.5 Documents Panel (case-level) | Documents listing within Case Detail | ✅ Complete |
+| 2.6 Payments Panel (case-level) | Payments listing within Case Detail | ✅ Complete |
+| 2.7 Fraud & Risk Panel (case-level) | Fraud signals and risk score within Case Detail | ✅ Complete |
+| 2.8 Configuration (read-only) | System configuration overview page | ✅ Complete |
+
+### MVP Scope Clarifications
+
+**Case-Centric Processing**: All required views exist as panels inside Case Detail (`/admin/cases/:id`). No standalone dashboards are required for MVP.
+
+**Deferred to Post-MVP**:
+- Dashboard Analytics (demo mode acceptable for Phase 9)
+- Standalone Eligibility Dashboard (`/admin/eligibility`)
+- Standalone Documents Manager (`/admin/documents`)
+- Standalone Payments & Batches (`/admin/payments`)
+- Standalone Fraud & Investigations (`/admin/fraud`)
+- User Management (`/admin/users`)
+- Reporting & Analytics (`/admin/reports`)
+
+### Phase 10+ Roadmap
+
+| Phase | Focus | Scope |
+|-------|-------|-------|
+| Phase 10 | Processing Modules | Standalone pages for intake processing, eligibility review workflows |
+| Phase 11 | Payments & Batches | Payment execution, batch management, Subema integration |
+| Phase 12 | Fraud & Investigations | Fraud investigation workflows, signal management |
+| Phase 13 | Documents & Verification | Document verification actions, upload workflows |
+| Phase 14 | Eligibility Review Dashboard | Standalone eligibility management with override capabilities |
+| Phase 15 | Reporting & Analytics | Dashboard analytics, KPIs, report generation, CSV/PDF exports |
+| Phase 16 | User Management | User CRUD, role assignment, office management |
+| Phase 17+ | Governance, Audit, Scaling | Audit trails, compliance, performance optimization |
 
 ---
 
