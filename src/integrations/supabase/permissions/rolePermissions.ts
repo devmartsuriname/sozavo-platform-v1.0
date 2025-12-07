@@ -31,13 +31,13 @@ export type AppRole =
  */
 export const rolePermissions: Record<AppRole, ModuleKey[]> = {
   system_admin: ["dashboard", "cases", "eligibility", "documents", "payments", "fraud", "config", "users", "ui_kit"],
-  case_handler: ["dashboard", "cases", "eligibility", "documents"],
-  case_reviewer: ["dashboard", "cases", "eligibility", "documents"],
+  case_handler: ["dashboard", "cases", "eligibility", "documents", "config"],
+  case_reviewer: ["dashboard", "cases", "eligibility", "documents", "config"],
   department_head: ["dashboard", "cases", "eligibility", "documents", "payments", "fraud", "config"],
-  finance_officer: ["dashboard", "payments"],
-  fraud_officer: ["dashboard", "fraud", "cases", "documents"],
+  finance_officer: ["dashboard", "payments", "config"],
+  fraud_officer: ["dashboard", "fraud", "cases", "documents", "config"],
   audit_viewer: ["dashboard", "config"],
-  district_intake_officer: ["dashboard", "cases", "documents"],
+  district_intake_officer: ["dashboard", "cases", "documents", "config"],
   citizen: [],
 };
 

@@ -61,6 +61,9 @@ import Page404Alt from "./pages/admin/pages/Page404Alt";
 import CasesIndexPage from "./pages/admin/cases/Index";
 import CaseDetailPage from "./pages/admin/cases/Detail";
 
+// Configuration module
+import ConfigurationIndex from "./pages/admin/configuration/Index";
+
 // Placeholder components for MVP modules (to be implemented in future phases)
 import AdminComingSoonPage from "./components/darkone/placeholders/AdminComingSoonPage";
 
@@ -132,9 +135,9 @@ const App = () => (
                   <AdminComingSoonPage title="Fraud & Risk" subTitle="Fraud Detection" message="Fraud detection module coming soon." />
                 </RequireRole>
               } />
-              <Route path="config/*" element={
+              <Route path="config" element={
                 <RequireRole allowed={["config"]}>
-                  <AdminComingSoonPage title="Configuration" subTitle="System Settings" message="System configuration module coming soon." />
+                  <ConfigurationIndex />
                 </RequireRole>
               } />
               <Route path="users/*" element={
