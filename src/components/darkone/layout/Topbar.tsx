@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Icon from "../ui/Icon";
 import { useAuth } from "@/integrations/supabase/AuthContext";
 
@@ -39,6 +40,9 @@ const Topbar = () => {
   const handleLogout = async () => {
     setUserMenuOpen(false);
     await signOut();
+    toast.success("Signed out", {
+      description: "You have been logged out successfully.",
+    });
     navigate("/admin/auth/signin");
   };
 
