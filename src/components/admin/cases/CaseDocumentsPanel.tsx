@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DarkoneCard from "@/components/darkone/ui/DarkoneCard";
 import DarkoneBadge from "@/components/darkone/ui/DarkoneBadge";
 import { toast } from "sonner";
@@ -99,6 +99,25 @@ const CaseDocumentsPanel = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // React-controlled dropdown state
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const dropdownRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const isInsideAnyDropdown = Array.from(dropdownRefs.current.values()).some(
+        (ref) => ref?.contains(target)
+      );
+      if (!isInsideAnyDropdown) {
+        setOpenDropdownId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Handle action button click
   const handleActionClick = (
     doc: CaseDocument,
@@ -106,6 +125,7 @@ const CaseDocumentsPanel = ({
     label: string,
     requiresReason: boolean
   ) => {
+    setOpenDropdownId(null); // Close dropdown before showing modal
     setSelectedDocument(doc);
     setTargetStatus(target);
     setActionLabel(label);
@@ -241,17 +261,32 @@ const CaseDocumentsPanel = ({
                     </td>
                     <td className="text-center">
                       {actions.length > 0 ? (
-                        <div className="dropdown d-inline-block">
+                        <div 
+                          className="dropdown d-inline-block"
+                          ref={(el) => {
+                            if (el) dropdownRefs.current.set(doc.id, el);
+                          }}
+                        >
                           <button
                             className="btn btn-sm btn-soft-primary dropdown-toggle"
                             type="button"
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
+                            aria-expanded={openDropdownId === doc.id}
+                            onClick={() => setOpenDropdownId(openDropdownId === doc.id ? null : doc.id)}
                             style={{ minWidth: '36px' }}
                           >
                             <i className="bx bx-dots-horizontal-rounded"></i>
                           </button>
-                          <ul className="dropdown-menu dropdown-menu-end" style={{ zIndex: 1050 }}>
+                          <ul 
+                            className={`dropdown-menu dropdown-menu-end ${openDropdownId === doc.id ? 'show' : ''}`}
+                            style={{ 
+                              zIndex: 1050,
+                              backgroundColor: 'var(--bs-dropdown-bg, #fff)',
+                              position: 'absolute',
+                              top: '100%',
+                              right: 0,
+                              marginTop: '2px'
+                            }}
+                          >
                             {actions.map((action) => (
                               <li key={action.targetStatus}>
                                 <button
