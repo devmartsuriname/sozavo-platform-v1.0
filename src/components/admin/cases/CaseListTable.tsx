@@ -87,7 +87,7 @@ const CaseListTable = ({ cases, isLoading, onViewCase }: CaseListTableProps) => 
       header: 'Actions',
       render: (row: CaseWithRelations) => (
         <button
-          className="btn btn-sm btn-outline-primary"
+          className="btn btn-sm btn-soft-primary"
           onClick={() => onViewCase(row.id)}
         >
           <i className="bx bx-show me-1"></i>
