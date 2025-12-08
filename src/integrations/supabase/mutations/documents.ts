@@ -91,7 +91,10 @@ export function getDocumentActions(currentStatus: DocumentStatus): {
   requiresReason: boolean;
   requiresHigherPrivilege: boolean;
 }[] {
-  switch (currentStatus) {
+  // Normalize status to handle case mismatches from database
+  const normalizedStatus = (currentStatus?.toLowerCase?.().trim() || currentStatus) as DocumentStatus;
+  
+  switch (normalizedStatus) {
     case "pending":
       return [
         {

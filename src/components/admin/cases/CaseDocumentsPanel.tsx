@@ -221,7 +221,10 @@ const CaseDocumentsPanel = ({
             </thead>
             <tbody>
               {documents.map((doc) => {
+                // Debug logging - remove after fix verified
+                console.log('[DEBUG] Document:', doc.file_name, '| Status:', doc.status, '| Type:', typeof doc.status);
                 const actions = getDocumentActions(doc.status as DocumentStatus);
+                console.log('[DEBUG] Actions for', doc.file_name, ':', actions.length, 'actions', actions.map(a => a.label));
                 return (
                   <tr key={doc.id}>
                     <td>{formatDocumentType(doc.document_type)}</td>
