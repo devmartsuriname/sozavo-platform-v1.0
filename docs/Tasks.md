@@ -375,6 +375,25 @@ Phase 9 Admin MVP is fully implemented with all 8 required modules verified and 
 - `is_hold_transition: true` — Set for T008, T009, T010, T011
 - `is_payment_transition: true` — Set for T006, T007
 
+### P10-ADM-04 — Document Verification Mutation ✅ COMPLETE
+
+| Task ID | Description | Layer | Priority | Status |
+|---------|-------------|-------|----------|--------|
+| P10-ADM-04a | Create `validate_document_verification` function | SEC | MUST | ✅ Complete |
+| P10-ADM-04b | Create `verify_case_document` RPC function | SEC | MUST | ✅ Complete |
+| P10-ADM-04c | Create TypeScript mutation wrapper (`documents.ts`) | BE | MUST | ✅ Complete |
+| P10-ADM-04d | Add document actions UI to CaseDocumentsPanel | UI | MUST | ✅ Complete |
+| P10-ADM-04e | Wire document refresh to Detail.tsx refreshKey | UI | MUST | ✅ Complete |
+| P10-ADM-04f | Update documentation (Workflow-Security-Bindings, Security-Definer-Functions, Backend-Implementation-Slice-Plan, Backend, Architecture, Tasks) | DOC | MUST | ✅ Complete |
+
+**Implemented Transitions:**
+- D001: `pending → verified` (case_reviewer, department_head, system_admin)
+- D002: `pending → rejected` (case_reviewer, department_head, system_admin) + reason required
+- D003: `rejected → verified` (department_head, system_admin only)
+- D004: `verified → pending` (department_head, system_admin only)
+
+**Audit**: All transitions logged to `case_events` with `event_type = 'document_verification'`.
+
 ---
 
 ## Phase 10+ Roadmap (Post-MVP)
