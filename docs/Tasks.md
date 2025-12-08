@@ -323,11 +323,41 @@ Phase 9 Admin MVP is fully implemented with all 8 required modules verified and 
 
 ---
 
+## Phase 10: Mutation Authorization Layer — IN PROGRESS 🚧
+
+### P10-ADM-01 — Case Status Transition (Backend) ✅ COMPLETE
+
+| Task ID | Description | Layer | Priority | Status |
+|---------|-------------|-------|----------|--------|
+| P10-ADM-01a | Create `get_user_roles_array` helper function | SEC | MUST | ✅ Complete |
+| P10-ADM-01b | Create `validate_case_transition` function (status + role + business rules) | SEC | MUST | ✅ Complete |
+| P10-ADM-01c | Create `perform_case_transition` RPC (mutation + audit) | SEC | MUST | ✅ Complete |
+| P10-ADM-01d | Add TypeScript mutation wrapper | BE | MUST | ✅ Complete |
+| P10-ADM-01e | Add RLS policies for UPDATE cases and INSERT case_events | SEC | MUST | ✅ Complete |
+| P10-ADM-01f | Update documentation (Workflow-Security-Bindings, Security-Definer-Functions, RLS-Policy-Specification, Backend-Implementation-Slice-Plan, Tasks) | DOC | MUST | ✅ Complete |
+
+**Implemented Transitions**:
+- `intake → under_review` (case_handler, case_reviewer, department_head, system_admin)
+- `under_review → approved` (case_reviewer, department_head, system_admin) + docs/eligibility checks
+- `under_review → rejected` (case_reviewer, department_head, system_admin) + reason required
+- `approved → under_review` (department_head, system_admin) + reason required (reopen)
+- `rejected → under_review` (department_head, system_admin) + reason required (reopen)
+
+**Test Coverage**:
+- Allowed: intake→under_review by case_handler ✅
+- Allowed: under_review→approved with valid docs/eligibility ✅
+- Allowed: under_review→rejected with reason ✅
+- Forbidden: under_review→approved by case_handler (role error) ✅
+- Forbidden: under_review→approved without eligible evaluation ✅
+- Forbidden: intake→approved (transition not allowed) ✅
+
+---
+
 ## Phase 10+ Roadmap (Post-MVP)
 
 | Phase | Focus | Status | Dependencies |
 |-------|-------|--------|--------------|
-| Phase 10 | Processing Modules | 📋 Planned | Phase 9 |
+| Phase 10 | Processing Modules | 🚧 In Progress | Phase 9 |
 | Phase 11 | Payments & Batches | 📋 Planned | Phase 10 |
 | Phase 12 | Fraud & Investigations | 📋 Planned | Phase 10 |
 | Phase 13 | Documents & Verification | 📋 Planned | Phase 10 |

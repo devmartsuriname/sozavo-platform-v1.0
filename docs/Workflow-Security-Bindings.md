@@ -1,9 +1,32 @@
 # Workflow Security Bindings
-## SoZaVo Platform v1.0 — Phase 8
+## SoZaVo Platform v1.0 — Phase 10
 
-> **Status**: Documentation Only — NO SQL executed  
-> **Version**: 1.0  
-> **Source**: case_workflow.json, RLS-Policy-Specification.md, Case-Authorization-Model.md
+> **Status**: Partially Implemented  
+> **Version**: 1.1  
+> **Source**: case_workflow.json, RLS-Policy-Specification.md, Case-Authorization-Model.md  
+> **Last Updated**: 2025-01-XX
+
+---
+
+## 0. Implementation Status
+
+### Phase 10A — Case Status Transition (IMPLEMENTED ✅)
+
+The following transitions are now enforced via `perform_case_transition` RPC:
+
+| ID | From → To | Roles | Business Rules | Status |
+|----|-----------|-------|----------------|--------|
+| T001 | intake → under_review | case_handler, case_reviewer, department_head, system_admin | None | ✅ IMPLEMENTED |
+| T002 | under_review → approved | case_reviewer, department_head, system_admin | Mandatory docs verified + eligible evaluation | ✅ IMPLEMENTED |
+| T003 | under_review → rejected | case_reviewer, department_head, system_admin | Reason required | ✅ IMPLEMENTED |
+| T004 | approved → under_review | department_head, system_admin | Reason required (reopen) | ✅ IMPLEMENTED |
+| T005 | rejected → under_review | department_head, system_admin | Reason required (reopen) | ✅ IMPLEMENTED |
+
+**RPC Function**: `perform_case_transition(p_case_id, p_target_status, p_reason, p_metadata)`
+
+**Validation Function**: `validate_case_transition(p_case_id, p_target_status, p_actor_id, p_reason)`
+
+All transitions are audited to `case_events` with `event_type = 'status_changed'`.
 
 ---
 
