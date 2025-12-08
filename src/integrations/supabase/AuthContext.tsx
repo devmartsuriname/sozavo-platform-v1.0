@@ -63,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setRoles([]);
+          setIsLoading(false);
         }
       }
     );
@@ -91,7 +92,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Use local scope to ensure local tokens are always cleared
+    // even if server session is already expired
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
+    if (error) {
+      console.warn('Sign out error (non-blocking):', error.message);
+    }
+    
+    // Belt-and-suspenders: Explicitly clear any residual Supabase auth data
+    const authKey = `sb-egsaecmmdmbpalmqwjqt-auth-token`;
+    localStorage.removeItem(authKey);
+    
     setUser(null);
     setSession(null);
     setRoles([]);
