@@ -1,6 +1,7 @@
 import React from "react";
 import type { Enums } from "@/integrations/supabase/types";
 import CaseStatusBadge from "./CaseStatusBadge";
+import CaseStatusActions from "./CaseStatusActions";
 
 type CaseStatus = Enums<"case_status">;
 
@@ -9,7 +10,9 @@ interface CaseDetailHeaderProps {
   status: CaseStatus;
   citizenName: string | null;
   serviceName: string | null;
+  caseId: string;
   onBack: () => void;
+  onStatusChanged?: (newStatus: CaseStatus) => void;
 }
 
 const CaseDetailHeader = ({
@@ -17,7 +20,9 @@ const CaseDetailHeader = ({
   status,
   citizenName,
   serviceName,
+  caseId,
   onBack,
+  onStatusChanged,
 }: CaseDetailHeaderProps) => {
   return (
     <div className="row mb-4">
@@ -38,8 +43,13 @@ const CaseDetailHeader = ({
               {serviceName && <span>Service: {serviceName}</span>}
             </p>
           </div>
-          <div>
+          <div className="d-flex align-items-center gap-2">
             <CaseStatusBadge status={status} />
+            <CaseStatusActions
+              caseId={caseId}
+              currentStatus={status}
+              onStatusChanged={onStatusChanged}
+            />
           </div>
         </div>
       </div>
