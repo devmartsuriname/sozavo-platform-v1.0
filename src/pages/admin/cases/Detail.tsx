@@ -37,6 +37,10 @@ import CaseDocumentsPanel from "@/components/admin/cases/CaseDocumentsPanel";
 import CasePaymentsPanel from "@/components/admin/cases/CasePaymentsPanel";
 import CaseFraudPanel from "@/components/admin/cases/CaseFraudPanel";
 
+import type { Enums } from "@/integrations/supabase/types";
+
+type CaseStatus = Enums<"case_status">;
+
 const CaseDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -73,6 +77,19 @@ const CaseDetailPage = () => {
   const [fraudSignals, setFraudSignals] = useState<CaseFraudSignal[] | null>(null);
   const [fraudRiskScore, setFraudRiskScore] = useState<CaseFraudRiskScore | null>(null);
 
+  // Refresh counter to trigger re-fetches
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Handle status change - refresh case and timeline data
+  const handleStatusChanged = (newStatus: CaseStatus) => {
+    // Optimistically update the status in local state
+    if (caseData) {
+      setCaseData({ ...caseData, current_status: newStatus });
+    }
+    // Trigger a refresh of all data
+    setRefreshKey((prev) => prev + 1);
+  };
+
   // Fetch case details
   useEffect(() => {
     if (!id) return;
@@ -94,7 +111,7 @@ const CaseDetailPage = () => {
     };
 
     fetchCase();
-  }, [id]);
+  }, [id, refreshKey]);
 
   // Fetch timeline
   useEffect(() => {
@@ -117,7 +134,7 @@ const CaseDetailPage = () => {
     };
 
     fetchTimeline();
-  }, [id]);
+  }, [id, refreshKey]);
 
   // Fetch eligibility data after case is loaded
   useEffect(() => {
@@ -312,7 +329,9 @@ const CaseDetailPage = () => {
         status={caseData.current_status}
         citizenName={citizenName}
         serviceName={serviceName}
+        caseId={caseData.id}
         onBack={handleBack}
+        onStatusChanged={handleStatusChanged}
       />
 
       <div className="row">
