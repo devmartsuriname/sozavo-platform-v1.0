@@ -243,7 +243,7 @@ const CaseDocumentsPanel = ({
                       {actions.length > 0 ? (
                         <div className="dropdown d-inline-block">
                           <button
-                            className="btn btn-sm btn-soft-primary dropdown-toggle"
+                            className="btn btn-sm btn-outline-primary dropdown-toggle"
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
