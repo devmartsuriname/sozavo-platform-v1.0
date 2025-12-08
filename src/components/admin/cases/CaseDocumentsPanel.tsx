@@ -241,14 +241,15 @@ const CaseDocumentsPanel = ({
                     </td>
                     <td className="text-center">
                       {actions.length > 0 ? (
-                        <div className="dropdown">
+                        <div className="dropdown d-inline-block">
                           <button
-                            className="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            className="btn btn-sm btn-soft-primary dropdown-toggle"
                             type="button"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
+                            style={{ minWidth: '36px' }}
                           >
-                            <i className="bx bx-dots-vertical-rounded"></i>
+                            <i className="bx bx-dots-horizontal-rounded"></i>
                           </button>
                           <ul className="dropdown-menu dropdown-menu-end" style={{ zIndex: 1050 }}>
                             {actions.map((action) => (
