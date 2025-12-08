@@ -518,6 +518,119 @@ Phase 10 Step 4 added document verification capabilities:
 
 ---
 
+## Phase 10 – Support Patch 01: Actor Identity & Audit Fix
+
+### Overview
+
+During live testing of Phase 10 mutations (case status transitions and document verification), a critical foreign key constraint error was discovered:
+
+```
+insert or update on table "case_events" violates foreign key constraint "case_events_actor_id_fkey"
+```
+
+### Root Cause
+
+The `case_events.actor_id` column has a foreign key to `public.users.id`, but mutation functions were using `auth.uid()` directly. Since `auth.uid()` returns the ID from `auth.users` (not `public.users`), and no mapping existed between the two tables, the FK constraint failed.
+
+### Solution: Actor Identity Resolution Pattern
+
+All mutation functions that write to audit tables MUST use the internal user ID from `public.users`, not `auth.uid()` directly.
+
+#### Helper Function
+
+```sql
+-- Returns the internal user ID from public.users for the current auth session
+CREATE OR REPLACE FUNCTION public.get_user_internal_id()
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT id FROM public.users WHERE auth_user_id = auth.uid() LIMIT 1
+$$;
+```
+
+#### Usage Pattern in SECURITY DEFINER Functions
+
+```sql
+CREATE OR REPLACE FUNCTION public.my_mutation_function(...)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_actor_id UUID;
+BEGIN
+  -- 1. Get internal user ID (NOT auth.uid())
+  v_actor_id := public.get_user_internal_id();
+  
+  -- 2. Validate user exists in public.users
+  IF v_actor_id IS NULL THEN
+    RAISE EXCEPTION 'User profile not found. Please ensure your user account is properly configured.';
+  END IF;
+
+  -- 3. Proceed with mutation using v_actor_id for audit
+  INSERT INTO public.case_events (actor_id, ...)
+  VALUES (v_actor_id, ...);
+  
+  -- ...
+END;
+$$;
+```
+
+### Functions Updated
+
+| Function | Change |
+|----------|--------|
+| `perform_case_transition` | Changed `v_actor_id := auth.uid()` to `v_actor_id := public.get_user_internal_id()` |
+| `verify_case_document` | Changed `v_actor := auth.uid()` to `v_actor := public.get_user_internal_id()` |
+
+### User Seeding Requirement
+
+For the actor identity pattern to work, every auth user that performs mutations MUST have a corresponding row in `public.users`:
+
+```sql
+-- Seed admin user (example)
+INSERT INTO public.users (id, auth_user_id, email, full_name, is_active)
+SELECT
+  '3042f38c-c8fd-4eb5-88fd-2df493db188f'::uuid,
+  '3042f38c-c8fd-4eb5-88fd-2df493db188f'::uuid,
+  'info@devmart.sr',
+  'System Administrator',
+  true
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.users WHERE auth_user_id = '3042f38c-c8fd-4eb5-88fd-2df493db188f'::uuid
+);
+
+-- Assign role
+INSERT INTO public.user_roles (user_id, role)
+SELECT
+  '3042f38c-c8fd-4eb5-88fd-2df493db188f'::uuid,
+  'system_admin'::app_role
+WHERE NOT EXISTS (
+  SELECT 1 FROM public.user_roles 
+  WHERE user_id = '3042f38c-c8fd-4eb5-88fd-2df493db188f'::uuid 
+    AND role = 'system_admin'
+);
+```
+
+### Key Takeaways
+
+1. **Never use `auth.uid()` directly** for foreign keys referencing `public.users`
+2. **Always use `get_user_internal_id()`** in SECURITY DEFINER mutation functions
+3. **Validate null check** before proceeding with mutation
+4. **Seed users on first login** or via admin provisioning workflow (Phase 16)
+
+### Migration Reference
+
+- **Migration:** `supabase/migrations/20251208025928_d463a6eb-08d1-4fbd-9029-46b634af1565.sql`
+- **Date:** 2025-12-08
+- **Scope:** User seeding + function updates
+
+---
+
 ## Phase 9D-2B – Eligibility UI Module
 
 ### Overview
