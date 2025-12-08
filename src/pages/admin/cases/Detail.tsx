@@ -166,7 +166,7 @@ const CaseDetailPage = () => {
     fetchEligibility();
   }, [id, caseData]);
 
-  // Fetch documents
+  // Fetch documents (refresh when refreshKey changes)
   useEffect(() => {
     if (!id) return;
 
@@ -187,7 +187,7 @@ const CaseDetailPage = () => {
     };
 
     fetchDocuments();
-  }, [id]);
+  }, [id, refreshKey]);
 
   // Fetch payments
   useEffect(() => {
@@ -359,6 +359,7 @@ const CaseDetailPage = () => {
             documents={documents}
             isLoading={isLoadingDocuments}
             error={errorDocuments}
+            onDocumentsChanged={() => setRefreshKey((prev) => prev + 1)}
           />
           <CasePaymentsPanel
             payments={payments}

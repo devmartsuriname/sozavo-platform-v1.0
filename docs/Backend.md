@@ -1,6 +1,6 @@
 # SoZaVo Platform v1.0 – Backend Documentation
 
-> **Version:** 2.3 (Phase 10 Step 3 Complete)  
+> **Version:** 2.4 (Phase 10 Step 4 Complete)  
 > **Status:** Phase 10 In Progress  
 > **Source:** Synthesized from Phase Documents 1–17 and Technical Architecture
 ---
@@ -459,12 +459,62 @@ CaseDetailPage
         └── Upload date column (formatted)
 ```
 
-### Read-Only Constraints
+### Phase 10 Step 4 — Document Verification Mutations (IMPLEMENTED ✅)
 
-- No upload, verify, reject, or delete operations
-- No file download functionality (deferred to future phase)
-- Display only: document metadata listing
-- `file_path` stored but not exposed as download link
+Phase 10 Step 4 added document verification capabilities:
+
+#### Mutation Layer Created
+
+**File:** `src/integrations/supabase/mutations/documents.ts`
+
+| Function | Signature | Description |
+|----------|-----------|-------------|
+| `verifyCaseDocument` | `(documentId, newStatus, reason?, metadata?) → Promise<{data, error}>` | RPC wrapper for document status transitions |
+| `isDocumentTransitionAllowed` | `(currentStatus, targetStatus) → boolean` | Client-side hint for allowed transitions |
+| `isDocumentReasonRequired` | `(currentStatus, targetStatus) → boolean` | Check if reason is required |
+| `getDocumentActions` | `(currentStatus) → Action[]` | Returns available actions for UI dropdown |
+
+#### Database Functions Created
+
+| Function | Purpose |
+|----------|---------|
+| `validate_document_verification(UUID, document_status, TEXT, UUID)` | Validates roles, transitions, reason requirements |
+| `verify_case_document(UUID, document_status, TEXT, JSONB)` | RPC to execute status change with audit |
+
+#### Transition Rules
+
+| ID | From | To | Roles | Reason Required |
+|----|------|-----|-------|-----------------|
+| D001 | pending | verified | case_reviewer, department_head, system_admin | No |
+| D002 | pending | rejected | case_reviewer, department_head, system_admin | Yes |
+| D003 | rejected | verified | department_head, system_admin | No |
+| D004 | verified | pending | department_head, system_admin | No |
+
+#### Audit Event Structure
+
+```json
+{
+  "event_type": "document_verification",
+  "meta": {
+    "document_id": "uuid",
+    "document_type": "id_card",
+    "file_name": "citizen_id.pdf",
+    "old_status": "pending",
+    "new_status": "verified",
+    "reason": null,
+    "actor_roles": ["case_reviewer"]
+  }
+}
+```
+
+#### UI Integration
+
+- Actions column added to documents table
+- Dropdown menu with context-sensitive actions
+- Reason modal for rejection (required field)
+- Confirm modal for verify/reverify/undo
+- Toast notifications on success
+- Automatic refresh of documents and timeline
 
 ---
 

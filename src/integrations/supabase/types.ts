@@ -1216,6 +1216,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      validate_document_verification: {
+        Args: {
+          p_actor: string
+          p_document_id: string
+          p_new_status: Database["public"]["Enums"]["document_status"]
+          p_reason: string
+        }
+        Returns: undefined
+      }
+      verify_case_document: {
+        Args: {
+          p_document_id: string
+          p_metadata?: Json
+          p_new_status: Database["public"]["Enums"]["document_status"]
+          p_reason?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:

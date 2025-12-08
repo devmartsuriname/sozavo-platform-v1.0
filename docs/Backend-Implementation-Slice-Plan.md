@@ -23,9 +23,9 @@ Implementation order is designed for **maximum parallelization** while respectin
 | 10A | Case Status Transition (Backend Mutation) | ✅ COMPLETE |
 | 10A.2 | Case Status Transition (UI Integration) | ✅ COMPLETE |
 | 10A.3 | Payment & Hold Transitions | ✅ COMPLETE |
+| 10A.4 | Document Verification Mutation | ✅ COMPLETE |
 | 10B | Case Assignment Mutation | 📋 Planned |
-| 10C | Document Verification Mutation | 📋 Planned |
-| 10D | Eligibility Override Mutation | 📋 Planned |
+| 10C | Eligibility Override Mutation | 📋 Planned |
 
 ### Slice 10A — Case Status Transition (COMPLETE ✅)
 

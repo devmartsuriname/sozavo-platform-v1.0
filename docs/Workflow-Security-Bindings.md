@@ -45,6 +45,32 @@ Phase 10 Step 3 added the following transitions:
 
 All transitions are audited to `case_events` with `event_type = 'status_changed'`.
 
+### Phase 10C — Document Verification Workflow (IMPLEMENTED ✅)
+
+Phase 10 Step 4 added document verification mutations:
+
+| ID | From → To | Roles | Business Rules | Status |
+|----|-----------|-------|----------------|--------|
+| D001 | pending → verified | case_reviewer, department_head, system_admin | None | ✅ IMPLEMENTED |
+| D002 | pending → rejected | case_reviewer, department_head, system_admin | Reason required | ✅ IMPLEMENTED |
+| D003 | rejected → verified | department_head, system_admin | Re-verification (higher privilege) | ✅ IMPLEMENTED |
+| D004 | verified → pending | department_head, system_admin | Undo verification (higher privilege) | ✅ IMPLEMENTED |
+
+**RPC Function**: `verify_case_document(p_document_id, p_new_status, p_reason, p_metadata)`
+
+**Validation Function**: `validate_document_verification(p_document_id, p_new_status, p_reason, p_actor)`
+
+**Audit Event**: All document verifications are logged to `case_events` with `event_type = 'document_verification'`.
+
+**Metadata Captured**:
+- `document_id` — UUID of the document
+- `document_type` — Type enum value
+- `file_name` — Original file name
+- `old_status` — Previous status
+- `new_status` — New status after transition
+- `reason` — Rejection reason (if applicable)
+- `actor_roles` — Roles of the actor performing the action
+
 ---
 
 ## 1. Overview

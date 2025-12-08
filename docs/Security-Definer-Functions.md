@@ -18,6 +18,21 @@
 | `validate_case_transition(UUID, case_status, UUID, TEXT)` | Validates transition rules, roles, business logic | ✅ IMPLEMENTED |
 | `perform_case_transition(UUID, case_status, TEXT, JSONB)` | RPC to execute status transition with audit | ✅ IMPLEMENTED |
 
+### Phase 10C — Document Verification Functions (IMPLEMENTED ✅)
+
+| Function | Purpose | Status |
+|----------|---------|--------|
+| `validate_document_verification(UUID, document_status, TEXT, UUID)` | Validates document transition rules, roles, reason requirements | ✅ IMPLEMENTED |
+| `verify_case_document(UUID, document_status, TEXT, JSONB)` | RPC to execute document status change with audit | ✅ IMPLEMENTED |
+
+**Transition Rules:**
+| From | To | Roles | Reason Required |
+|------|-----|-------|-----------------|
+| pending | verified | case_reviewer, department_head, system_admin | No |
+| pending | rejected | case_reviewer, department_head, system_admin | Yes |
+| rejected | verified | department_head, system_admin | No |
+| verified | pending | department_head, system_admin | No |
+
 ---
 
 ## 1. Overview
