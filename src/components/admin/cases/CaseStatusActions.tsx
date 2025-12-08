@@ -26,13 +26,13 @@ interface TransitionConfig {
 }
 
 // Define the 5 allowed transitions per Phase 10 Step 1
-const TRANSITIONS: TransitionConfig[] = [
+// Note: reasonRequired is derived from the isReasonRequired() helper at runtime
+const TRANSITIONS: Omit<TransitionConfig, 'reasonRequired'>[] = [
   {
     fromStatus: "intake",
     toStatus: "under_review",
     label: "Move to Under Review",
     icon: "bx-right-arrow-alt",
-    reasonRequired: false,
     description: "Submit case for review",
   },
   {
@@ -40,7 +40,6 @@ const TRANSITIONS: TransitionConfig[] = [
     toStatus: "approved",
     label: "Approve Case",
     icon: "bx-check-circle",
-    reasonRequired: false,
     description: "Approve this case (requires verified documents and eligible evaluation)",
   },
   {
@@ -48,7 +47,6 @@ const TRANSITIONS: TransitionConfig[] = [
     toStatus: "rejected",
     label: "Reject Case",
     icon: "bx-x-circle",
-    reasonRequired: true,
     description: "Reject this case (reason required)",
   },
   {
@@ -56,7 +54,6 @@ const TRANSITIONS: TransitionConfig[] = [
     toStatus: "under_review",
     label: "Reopen Case",
     icon: "bx-revision",
-    reasonRequired: true,
     description: "Reopen approved case for review (reason required, department_head only)",
   },
   {
@@ -64,10 +61,15 @@ const TRANSITIONS: TransitionConfig[] = [
     toStatus: "under_review",
     label: "Reopen Case",
     icon: "bx-revision",
-    reasonRequired: true,
     description: "Reopen rejected case for review (reason required, department_head only)",
   },
 ];
+
+// Get full transition config with reasonRequired derived from helper
+const getTransitionConfig = (t: Omit<TransitionConfig, 'reasonRequired'>): TransitionConfig => ({
+  ...t,
+  reasonRequired: isReasonRequired(t.fromStatus, t.toStatus),
+});
 
 const CaseStatusActions = ({
   caseId,
@@ -83,10 +85,10 @@ const CaseStatusActions = ({
   const [reasonInput, setReasonInput] = useState("");
   const [reasonError, setReasonError] = useState<string | null>(null);
 
-  // Get available transitions for current status
-  const availableTransitions = TRANSITIONS.filter(
-    (t) => t.fromStatus === currentStatus && isTransitionAllowed(currentStatus, t.toStatus)
-  );
+  // Get available transitions for current status (with reasonRequired derived from helper)
+  const availableTransitions = TRANSITIONS
+    .filter((t) => t.fromStatus === currentStatus && isTransitionAllowed(currentStatus, t.toStatus))
+    .map(getTransitionConfig);
 
   // No actions available for this status
   if (availableTransitions.length === 0) {

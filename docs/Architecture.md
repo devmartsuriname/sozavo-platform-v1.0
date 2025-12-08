@@ -1970,6 +1970,140 @@ Field Lock Matrix:
 
 ---
 
+## Phase 10 Step 2 – Case Status Actions Architecture
+
+### Component Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CASE STATUS ACTIONS UI (Phase 10 Step 2)                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   MUTATION LAYER (src/integrations/supabase/mutations/cases.ts)             │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ transitionCaseStatus(caseId, targetStatus, options?)                  │  │
+│   │   → supabase.rpc('perform_case_transition', {...})                   │  │
+│   │   → Returns: { data: TransitionResult | null, error: TransitionError }│  │
+│   │                                                                       │  │
+│   │ isTransitionAllowed(currentStatus, targetStatus)                      │  │
+│   │   → Client-side helper to filter valid transitions                   │  │
+│   │                                                                       │  │
+│   │ isReasonRequired(currentStatus, targetStatus)                         │  │
+│   │   → Determines if reason modal should be shown                       │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   COMPONENTS                                                                 │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CaseStatusActions (src/components/admin/cases/CaseStatusActions.tsx) │  │
+│   │   ├── Dropdown Button ("Change Status")                              │  │
+│   │   │   └── Dropdown Menu (available transitions only)                 │  │
+│   │   ├── Confirm Modal (for non-reason transitions)                     │  │
+│   │   │   └── Title + Description + Confirm/Cancel                       │  │
+│   │   ├── Reason Modal (for reason-required transitions)                 │  │
+│   │   │   └── Title + Description + Textarea + Validation + Confirm      │  │
+│   │   └── Error Alert (displays backend validation errors)               │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+│   INTEGRATION                                                                │
+│   ┌──────────────────────────────────────────────────────────────────────┐  │
+│   │ CaseDetailHeader                                                      │  │
+│   │   ├── CaseStatusBadge (current status display)                       │  │
+│   │   └── CaseStatusActions (transition controls) ← NEW                  │  │
+│   │                                                                       │  │
+│   │ Detail.tsx (Case Detail Page)                                        │  │
+│   │   ├── handleStatusChanged() callback                                 │  │
+│   │   │   └── Updates local state + triggers data refresh                │  │
+│   │   └── Passes caseId + callback to CaseDetailHeader                   │  │
+│   └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Case Detail Header Layout
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CASE DETAIL HEADER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │  CASE-2024-0001                                                      │   │
+│   │  ┌─────────────────────────────────────────────────────────────────┐│   │
+│   │  │                                                                 ││   │
+│   │  │  [Status Badge: Under Review]    [Change Status ▼]             ││   │
+│   │  │                                                                 ││   │
+│   │  │  Citizen: John Doe                                              ││   │
+│   │  │  Service: General Assistance (AB)                               ││   │
+│   │  │                                                                 ││   │
+│   │  └─────────────────────────────────────────────────────────────────┘│   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│   Layout:                                                                    │
+│   - Status badge and actions button on same row (flex, space-between)       │
+│   - Actions dropdown aligned to end                                         │
+│   - Error alert appears below dropdown when backend rejects transition      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### State Management Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      STATUS TRANSITION STATE FLOW                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   Detail.tsx                                                                 │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ State:                                                               │   │
+│   │   caseData: CaseWithDetails | null                                  │   │
+│   │   timelineEvents: CaseEvent[]                                       │   │
+│   │   refreshKey: number (triggers re-fetch)                            │   │
+│   │                                                                      │   │
+│   │ handleStatusChanged(newStatus):                                      │   │
+│   │   1. Update caseData.current_status optimistically                  │   │
+│   │   2. Increment refreshKey → triggers useEffect                      │   │
+│   │   3. Re-fetch case data and timeline events                         │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                            │                                                 │
+│                            ▼                                                 │
+│   CaseDetailHeader                                                           │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ Props: caseId, caseData, onStatusChanged                            │   │
+│   │                                                                      │   │
+│   │ Renders:                                                             │   │
+│   │   CaseStatusBadge(currentStatus)                                    │   │
+│   │   CaseStatusActions(caseId, currentStatus, onStatusChanged)         │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                            │                                                 │
+│                            ▼                                                 │
+│   CaseStatusActions                                                          │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │ Local State:                                                         │   │
+│   │   isSubmitting: boolean                                             │   │
+│   │   errorMessage: string | null                                       │   │
+│   │   showConfirmModal / showReasonModal: boolean                       │   │
+│   │   pendingTransition: TransitionConfig | null                        │   │
+│   │   reasonInput: string                                               │   │
+│   │   reasonError: string | null                                        │   │
+│   │                                                                      │   │
+│   │ On successful transition:                                            │   │
+│   │   → toast.success("Status updated")                                 │   │
+│   │   → onStatusChanged(newStatus) → bubbles up to Detail.tsx           │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Security Model
+
+- **Backend Authoritative**: All transition validation happens in `perform_case_transition` RPC
+- **UI Hints Only**: `isTransitionAllowed()` and `isReasonRequired()` are UX helpers, not security gates
+- **Error Surface**: Backend validation errors displayed verbatim to guide user
+- **No Direct Updates**: All status changes go through RPC, never direct UPDATE
+
+---
+
 ## 23. Darkone Admin Theme Implementation (Phase X)
 
 ### 23.1 Theme Toggle

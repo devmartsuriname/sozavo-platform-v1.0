@@ -1788,6 +1788,129 @@ has_case_access(case_id) - Check case access
 
 ---
 
+## Phase 10 Step 2 – Case Status Actions UI
+
+### Overview
+
+Phase 10 Step 2 implements the **UI-only** case status transition component on the Case Detail page. This component wires to the existing `perform_case_transition` RPC implemented in Phase 10 Step 1, without any database or RLS changes.
+
+### Component Created
+
+**File:** `src/components/admin/cases/CaseStatusActions.tsx`
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `caseId` | `string` | UUID of the case to transition |
+| `currentStatus` | `CaseStatus` | Current status of the case (from enum) |
+| `onStatusChanged` | `(newStatus: CaseStatus) => void` | Callback invoked after successful transition |
+| `disabled` | `boolean` | Optional flag to disable actions during loading |
+
+### Allowed Transitions (UI)
+
+The component exposes exactly **5 transitions** matching the backend rules:
+
+| From Status | To Status | Label | Reason Required |
+|-------------|-----------|-------|-----------------|
+| `intake` | `under_review` | Move to Under Review | No |
+| `under_review` | `approved` | Approve Case | No |
+| `under_review` | `rejected` | Reject Case | Yes |
+| `approved` | `under_review` | Reopen Case | Yes |
+| `rejected` | `under_review` | Reopen Case | Yes |
+
+### Helper Functions Used
+
+| Function | Source | Purpose |
+|----------|--------|---------|
+| `transitionCaseStatus()` | `mutations/cases.ts` | Calls `perform_case_transition` RPC |
+| `isTransitionAllowed()` | `mutations/cases.ts` | Client-side filter for available actions |
+| `isReasonRequired()` | `mutations/cases.ts` | Determines if reason modal should open |
+
+### Modal Behavior
+
+**Confirm Modal (no reason):**
+- Used for: `intake → under_review`, `under_review → approved`
+- Simple confirmation dialog with description
+- Confirm/Cancel buttons
+
+**Reason Modal (reason required):**
+- Used for: `under_review → rejected`, `approved → under_review`, `rejected → under_review`
+- Contains textarea with validation (non-empty required)
+- Shows inline validation error if empty
+- Confirm/Cancel buttons
+
+### Error Handling
+
+- Backend errors displayed in `.alert.alert-danger` below the dropdown
+- Toast notification via sonner on both success and failure
+- `isSubmitting` state disables all buttons and shows spinner
+- Error clears on next action attempt
+
+### Data Flow
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                     CASE STATUS ACTIONS DATA FLOW                             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│   ┌───────────────────┐                                                       │
+│   │  CaseDetailHeader │                                                       │
+│   │   ├── CaseStatusBadge (displays current status)                          │
+│   │   └── CaseStatusActions (transition controls)                            │
+│   └─────────┬─────────┘                                                       │
+│             │                                                                 │
+│             ▼ User clicks "Change Status" dropdown                           │
+│   ┌─────────────────────────────────────────────────────────────┐            │
+│   │  CaseStatusActions Component                                 │            │
+│   │   │                                                          │            │
+│   │   ├── Filter TRANSITIONS by currentStatus                   │            │
+│   │   │   └── Uses isTransitionAllowed() helper                 │            │
+│   │   │                                                          │            │
+│   │   ├── User selects transition action                        │            │
+│   │   │   └── Uses isReasonRequired() to decide modal type      │            │
+│   │   │                                                          │            │
+│   │   ├── Opens Confirm Modal OR Reason Modal                   │            │
+│   │   │                                                          │            │
+│   │   ├── User confirms → transitionCaseStatus()                │            │
+│   │   │       │                                                  │            │
+│   │   │       ▼                                                  │            │
+│   │   │   supabase.rpc('perform_case_transition', {...})        │            │
+│   │   │       │                                                  │            │
+│   │   │       ▼ Backend validates:                              │            │
+│   │   │       - Role authorization                              │            │
+│   │   │       - Transition rules                                │            │
+│   │   │       - Business rules (docs, eligibility)              │            │
+│   │   │       - Reason requirement                              │            │
+│   │   │                                                          │            │
+│   │   └── On Success:                                           │            │
+│   │       ├── Toast: "Status updated"                           │            │
+│   │       ├── Call onStatusChanged(newStatus)                   │            │
+│   │       └── Detail.tsx refreshes case data + timeline         │            │
+│   └─────────────────────────────────────────────────────────────┘            │
+│                                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Integration Points
+
+**CaseDetailHeader.tsx:**
+- Added props: `caseId`, `onStatusChanged`
+- Renders `CaseStatusActions` adjacent to `CaseStatusBadge`
+
+**Detail.tsx (Case Detail Page):**
+- Added `refreshKey` state to trigger data re-fetch
+- `handleStatusChanged()` callback optimistically updates status and refreshes
+- Passes `caseId` and `onStatusChanged` to `CaseDetailHeader`
+
+### No Backend Changes
+
+This step is **UI-only**. No modifications to:
+- SQL functions (`validate_case_transition`, `perform_case_transition`)
+- RLS policies
+- Enum definitions
+- Database schema
+
+---
+
 ## 14. Admin UI Theme System (Phase X)
 
 ### 14.1 Data Attributes
