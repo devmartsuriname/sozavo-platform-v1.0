@@ -25,9 +25,12 @@ interface TransitionConfig {
   description: string;
 }
 
-// Define the 5 allowed transitions per Phase 10 Step 1
+// Define all allowed transitions per Phase 10 (Step 1 + Step 3)
 // Note: reasonRequired is derived from the isReasonRequired() helper at runtime
 const TRANSITIONS: Omit<TransitionConfig, 'reasonRequired'>[] = [
+  // ============================================================
+  // Phase 10 Step 1: T001-T005 (Original transitions)
+  // ============================================================
   {
     fromStatus: "intake",
     toStatus: "under_review",
@@ -62,6 +65,57 @@ const TRANSITIONS: Omit<TransitionConfig, 'reasonRequired'>[] = [
     label: "Reopen Case",
     icon: "bx-revision",
     description: "Reopen rejected case for review (reason required, department_head only)",
+  },
+  // ============================================================
+  // Phase 10 Step 3: T006-T011 (Payment & Hold transitions)
+  // ============================================================
+  // T006: approved → payment_pending
+  {
+    fromStatus: "approved",
+    toStatus: "payment_pending",
+    label: "Queue for Payment",
+    icon: "bx-money",
+    description: "Move case to payment queue",
+  },
+  // T007: payment_pending → payment_processed
+  {
+    fromStatus: "payment_pending",
+    toStatus: "payment_processed",
+    label: "Mark Payment Processed",
+    icon: "bx-check-double",
+    description: "Confirm payment has been processed",
+  },
+  // T008: under_review → on_hold
+  {
+    fromStatus: "under_review",
+    toStatus: "on_hold",
+    label: "Put on Hold",
+    icon: "bx-pause-circle",
+    description: "Pause case processing (reason required)",
+  },
+  // T009: approved → on_hold
+  {
+    fromStatus: "approved",
+    toStatus: "on_hold",
+    label: "Put on Hold",
+    icon: "bx-pause-circle",
+    description: "Pause approved case (reason required)",
+  },
+  // T010: payment_pending → on_hold
+  {
+    fromStatus: "payment_pending",
+    toStatus: "on_hold",
+    label: "Put on Hold",
+    icon: "bx-pause-circle",
+    description: "Pause payment processing (reason required)",
+  },
+  // T011: on_hold → under_review
+  {
+    fromStatus: "on_hold",
+    toStatus: "under_review",
+    label: "Resume Case",
+    icon: "bx-play-circle",
+    description: "Resume case processing from hold",
   },
 ];
 

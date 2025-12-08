@@ -22,6 +22,23 @@ The following transitions are now enforced via `perform_case_transition` RPC:
 | T004 | approved → under_review | department_head, system_admin | Reason required (reopen) | ✅ IMPLEMENTED |
 | T005 | rejected → under_review | department_head, system_admin | Reason required (reopen) | ✅ IMPLEMENTED |
 
+### Phase 10B — Payment & Hold Transitions (IMPLEMENTED ✅)
+
+Phase 10 Step 3 added the following transitions:
+
+| ID | From → To | Roles | Business Rules | Status |
+|----|-----------|-------|----------------|--------|
+| T006 | approved → payment_pending | finance_officer, department_head, system_admin | None | ✅ IMPLEMENTED |
+| T007 | payment_pending → payment_processed | finance_officer, department_head, system_admin | None | ✅ IMPLEMENTED |
+| T008 | under_review → on_hold | case_reviewer, department_head, system_admin | Reason required | ✅ IMPLEMENTED |
+| T009 | approved → on_hold | department_head, system_admin | Reason required | ✅ IMPLEMENTED |
+| T010 | payment_pending → on_hold | department_head, system_admin | Reason required | ✅ IMPLEMENTED |
+| T011 | on_hold → under_review | case_reviewer, department_head, system_admin | None (resume) | ✅ IMPLEMENTED |
+
+**Audit Metadata Flags:**
+- `is_hold_transition: true` — Set when transitioning to/from `on_hold` status
+- `is_payment_transition: true` — Set for T006 (approved→payment_pending) and T007 (payment_pending→payment_processed)
+
 **RPC Function**: `perform_case_transition(p_case_id, p_target_status, p_reason, p_metadata)`
 
 **Validation Function**: `validate_case_transition(p_case_id, p_target_status, p_actor_id, p_reason)`
