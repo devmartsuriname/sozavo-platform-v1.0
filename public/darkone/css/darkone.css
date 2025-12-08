@@ -697,6 +697,85 @@
   border-color: #6b57e6;
 }
 
+/* Secondary Button */
+.darkone-admin .btn-secondary {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+  color: #fff;
+}
+.darkone-admin .btn-secondary:hover {
+  background-color: #374049;
+  border-color: #374049;
+}
+
+/* Success Button */
+.darkone-admin .btn-success {
+  background-color: var(--bs-success);
+  border-color: var(--bs-success);
+  color: #fff;
+}
+.darkone-admin .btn-success:hover {
+  background-color: #0ca678;
+  border-color: #0ca678;
+}
+
+/* Outline Primary Button */
+.darkone-admin .btn-outline-primary {
+  background-color: transparent;
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+.darkone-admin .btn-outline-primary:hover {
+  background-color: var(--bs-primary);
+  color: #fff;
+}
+
+/* Outline Secondary Button */
+.darkone-admin .btn-outline-secondary {
+  background-color: transparent;
+  border-color: var(--bs-secondary);
+  color: var(--bs-secondary);
+}
+.darkone-admin .btn-outline-secondary:hover {
+  background-color: var(--bs-secondary);
+  color: #fff;
+}
+
+/* Soft Primary Button */
+.darkone-admin .btn-soft-primary {
+  background-color: rgba(126, 103, 254, 0.1);
+  border-color: transparent;
+  color: var(--bs-primary);
+}
+.darkone-admin .btn-soft-primary:hover {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+  color: #fff;
+}
+
+/* Soft Secondary Button */
+.darkone-admin .btn-soft-secondary {
+  background-color: rgba(66, 78, 90, 0.1);
+  border-color: transparent;
+  color: var(--bs-secondary);
+}
+.darkone-admin .btn-soft-secondary:hover {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+  color: #fff;
+}
+
+/* Light Button */
+.darkone-admin .btn-light {
+  background-color: var(--bs-light);
+  border-color: var(--bs-light);
+  color: var(--bs-dark);
+}
+.darkone-admin .btn-light:hover {
+  background-color: #e2e6eb;
+  border-color: #e2e6eb;
+}
+
 /* =====================================================
    Grid System
    ===================================================== */
