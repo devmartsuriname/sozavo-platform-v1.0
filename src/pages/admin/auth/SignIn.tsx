@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/integrations/supabase/AuthContext';
+import { toast } from 'sonner';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -49,7 +50,10 @@ const SignIn = () => {
       return;
     }
 
-    // Successful login - navigate to intended destination
+    // Successful login - show toast and navigate
+    toast.success("Welcome back!", {
+      description: "You have been signed in successfully.",
+    });
     navigate(from, { replace: true });
   };
 
