@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { Enums } from "@/integrations/supabase/types";
 import { 
   transitionCaseStatus, 
@@ -84,6 +84,19 @@ const CaseStatusActions = ({
   const [pendingTransition, setPendingTransition] = useState<TransitionConfig | null>(null);
   const [reasonInput, setReasonInput] = useState("");
   const [reasonError, setReasonError] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Get available transitions for current status (with reasonRequired derived from helper)
   const availableTransitions = TRANSITIONS
@@ -98,6 +111,7 @@ const CaseStatusActions = ({
   const handleTransitionClick = (transition: TransitionConfig) => {
     setErrorMessage(null);
     setPendingTransition(transition);
+    setIsDropdownOpen(false); // Close dropdown when action selected
     
     if (transition.reasonRequired) {
       setReasonInput("");
@@ -189,14 +203,14 @@ const CaseStatusActions = ({
 
   return (
     <div className="d-inline-block">
-      {/* Dropdown Button */}
-      <div className="dropdown">
+      {/* Dropdown Button - React-controlled */}
+      <div className="dropdown" ref={dropdownRef}>
         <button
           className="btn btn-sm btn-outline-primary dropdown-toggle"
           type="button"
-          data-bs-toggle="dropdown"
-          aria-expanded="false"
+          aria-expanded={isDropdownOpen}
           disabled={disabled || isSubmitting}
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         >
           {isSubmitting ? (
             <>
@@ -210,7 +224,17 @@ const CaseStatusActions = ({
             </>
           )}
         </button>
-        <ul className="dropdown-menu dropdown-menu-end" style={{ zIndex: 1050, backgroundColor: 'var(--bs-dropdown-bg, #fff)' }}>
+        <ul 
+          className={`dropdown-menu dropdown-menu-end ${isDropdownOpen ? 'show' : ''}`} 
+          style={{ 
+            zIndex: 1050, 
+            backgroundColor: 'var(--bs-dropdown-bg, #fff)',
+            position: 'absolute',
+            top: '100%',
+            right: 0,
+            marginTop: '2px'
+          }}
+        >
           {availableTransitions.map((transition) => (
             <li key={`${transition.fromStatus}-${transition.toStatus}`}>
               <button
