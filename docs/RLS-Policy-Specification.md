@@ -1,9 +1,29 @@
 # SoZaVo Platform v1.0 – RLS Policy Specification
 
-> **Version:** 1.0  
-> **Phase:** 7 – RLS Security & Authorization Layer  
-> **Status:** Specification Document (No Implementation)  
-> **Cross-References:** Access-Control-PreModel.md, DAL-Specification.md, case_workflow.json
+> **Version:** 1.1  
+> **Phase:** 10 – Mutation Authorization Layer  
+> **Status:** Partially Implemented  
+> **Cross-References:** Access-Control-PreModel.md, DAL-Specification.md, case_workflow.json  
+> **Last Updated:** 2025-01-XX
+
+---
+
+## 0. Implementation Status
+
+### Phase 10A — Case Status Mutations (IMPLEMENTED ✅)
+
+**Important:** Case status changes are **exclusively** handled via the `perform_case_transition` RPC. There is NO direct UPDATE policy for `cases.current_status`.
+
+| Policy | Table | Operation | Status |
+|--------|-------|-----------|--------|
+| `cases_update_status_via_rpc` | cases | UPDATE | ✅ IMPLEMENTED |
+| `case_events_insert_via_rpc` | case_events | INSERT | ✅ IMPLEMENTED |
+
+**Mutation Control:**
+- Direct UPDATE on `cases.current_status` is blocked by design
+- All status changes must go through `perform_case_transition` RPC
+- RPC enforces role-based access and business rules
+- All transitions are audited to `case_events`
 
 ---
 

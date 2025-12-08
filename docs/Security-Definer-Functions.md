@@ -1,9 +1,22 @@
 # Security Definer Functions
-## SoZaVo Platform v1.0 — Phase 8
+## SoZaVo Platform v1.0 — Phase 10
 
-> **Status**: Documentation Only — NO SQL executed  
-> **Version**: 1.0  
-> **Source**: RLS-Policy-Specification.md, Access-Control-PreModel.md
+> **Status**: Partially Implemented  
+> **Version**: 1.1  
+> **Source**: RLS-Policy-Specification.md, Access-Control-PreModel.md  
+> **Last Updated**: 2025-01-XX
+
+---
+
+## 0. Implementation Status
+
+### Phase 10A — Case Status Transition Functions (IMPLEMENTED ✅)
+
+| Function | Purpose | Status |
+|----------|---------|--------|
+| `get_user_roles_array(UUID)` | Returns array of roles for a user | ✅ IMPLEMENTED |
+| `validate_case_transition(UUID, case_status, UUID, TEXT)` | Validates transition rules, roles, business logic | ✅ IMPLEMENTED |
+| `perform_case_transition(UUID, case_status, TEXT, JSONB)` | RPC to execute status transition with audit | ✅ IMPLEMENTED |
 
 ---
 
@@ -24,7 +37,8 @@ This document defines all SECURITY DEFINER helper functions required for the SoZ
 | Scope | Retrieve user's organizational scope | 6 |
 | Ownership | Verify resource ownership | 4 |
 | Validation | Check workflow/field constraints | 4 |
-| **TOTAL** | | **21** |
+| Mutation | Execute controlled data changes | 3 |
+| **TOTAL** | | **24** |
 
 ### 1.2 Security Requirements
 

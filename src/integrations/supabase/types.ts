@@ -1178,6 +1178,10 @@ export type Database = {
     Functions: {
       current_user_id: { Args: never; Returns: string }
       get_user_internal_id: { Args: never; Returns: string }
+      get_user_roles_array: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"][]
+      }
       has_case_access: { Args: { _case_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -1194,6 +1198,24 @@ export type Database = {
       is_district_intake_officer: { Args: never; Returns: boolean }
       is_finance_officer: { Args: never; Returns: boolean }
       is_fraud_officer: { Args: never; Returns: boolean }
+      perform_case_transition: {
+        Args: {
+          p_case_id: string
+          p_metadata?: Json
+          p_reason?: string
+          p_target_status: Database["public"]["Enums"]["case_status"]
+        }
+        Returns: Json
+      }
+      validate_case_transition: {
+        Args: {
+          p_actor_id: string
+          p_case_id: string
+          p_reason?: string
+          p_target_status: Database["public"]["Enums"]["case_status"]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:

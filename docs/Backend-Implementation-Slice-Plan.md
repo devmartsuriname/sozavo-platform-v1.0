@@ -1,9 +1,9 @@
 # Backend Implementation Slice Plan
-## SoZaVo Platform v1.0 — Phase 9
+## SoZaVo Platform v1.0 — Phase 10
 
-**Document Version**: 1.0  
-**Phase**: 9 — Admin MVP Implementation Blueprint  
-**Status**: Approved for Implementation  
+**Document Version**: 1.1  
+**Phase**: 10 — Mutation Authorization Layer  
+**Status**: In Progress  
 **Last Updated**: 2025-01-XX
 
 ---
@@ -13,6 +13,41 @@
 This document breaks backend implementation into **speed-friendly slices** that respect governance constraints. Each slice is independently testable and follows established RLS policies.
 
 Implementation order is designed for **maximum parallelization** while respecting dependencies.
+
+---
+
+## 1.1 Phase 10 Implementation Status
+
+| Slice | Name | Status |
+|-------|------|--------|
+| 10A | Case Status Transition (Backend Mutation) | ✅ COMPLETE |
+| 10B | Case Assignment Mutation | 📋 Planned |
+| 10C | Document Verification Mutation | 📋 Planned |
+| 10D | Eligibility Override Mutation | 📋 Planned |
+
+### Slice 10A — Case Status Transition (COMPLETE ✅)
+
+**Scope**: Backend-only mutation for changing case status with role-based access and business rules.
+
+**Functions Created**:
+- `get_user_roles_array(UUID)` — Helper to get user's roles as array
+- `validate_case_transition(UUID, case_status, UUID, TEXT)` — Validation function
+- `perform_case_transition(UUID, case_status, TEXT, JSONB)` — RPC function
+
+**Allowed Transitions**:
+| From | To | Roles | Business Rules |
+|------|-----|-------|----------------|
+| intake | under_review | case_handler, case_reviewer, department_head, system_admin | None |
+| under_review | approved | case_reviewer, department_head, system_admin | Mandatory docs verified + eligible evaluation |
+| under_review | rejected | case_reviewer, department_head, system_admin | Reason required |
+| approved | under_review | department_head, system_admin | Reason required (reopen) |
+| rejected | under_review | department_head, system_admin | Reason required (reopen) |
+
+**TypeScript Wrapper**: `src/integrations/supabase/mutations/cases.ts`
+
+**Policies Added**:
+- `cases_update_status_via_rpc` — UPDATE policy for cases
+- `case_events_insert_via_rpc` — INSERT policy for case_events
 
 ---
 
@@ -48,10 +83,18 @@ Implementation order is designed for **maximum parallelization** while respectin
 │                                  └──────┘                   │
 │                                       │                     │
 │                                       ▼                     │
-│                                  ┌──────┐                   │
-│                                  │ S8   │  ← Documentation  │
-│                                  │Mutate│    only           │
-│                                  └──────┘                   │
+│                                  ┌──────────┐               │
+│                                  │ S10A ✅  │               │
+│                                  │ Case     │               │
+│                                  │ Status   │               │
+│                                  └──────────┘               │
+│                                       │                     │
+│                                  ┌────┴────┐                │
+│                                  ▼         ▼                │
+│                              ┌──────┐  ┌──────┐             │
+│                              │ S10B │  │ S10C │             │
+│                              │Assign│  │ Docs │             │
+│                              └──────┘  └──────┘             │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
