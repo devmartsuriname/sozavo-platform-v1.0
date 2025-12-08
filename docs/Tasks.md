@@ -336,20 +336,44 @@ Phase 9 Admin MVP is fully implemented with all 8 required modules verified and 
 | P10-ADM-01e | Add RLS policies for UPDATE cases and INSERT case_events | SEC | MUST | ✅ Complete |
 | P10-ADM-01f | Update documentation (Workflow-Security-Bindings, Security-Definer-Functions, RLS-Policy-Specification, Backend-Implementation-Slice-Plan, Tasks) | DOC | MUST | ✅ Complete |
 
-**Implemented Transitions**:
+### P10-ADM-02 — Case Status Transition (UI Integration) ✅ COMPLETE
+
+| Task ID | Description | Layer | Priority | Status |
+|---------|-------------|-------|----------|--------|
+| P10-ADM-02a | Create CaseStatusActions component with dropdown | UI | MUST | ✅ Complete |
+| P10-ADM-02b | Implement confirm modal for non-reason transitions | UI | MUST | ✅ Complete |
+| P10-ADM-02c | Implement reason modal for reject/reopen transitions | UI | MUST | ✅ Complete |
+| P10-ADM-02d | Wire onStatusChanged callback to refresh case data | BE | MUST | ✅ Complete |
+| P10-ADM-02e | Add toast notifications for success/error feedback | UI | MUST | ✅ Complete |
+
+### P10-ADM-03 — Payment & Hold Transitions ✅ COMPLETE
+
+| Task ID | Description | Layer | Priority | Status |
+|---------|-------------|-------|----------|--------|
+| P10-ADM-03a | Extend `validate_case_transition` with T006-T011 transitions | SEC | MUST | ✅ Complete |
+| P10-ADM-03b | Extend `perform_case_transition` with audit metadata flags | SEC | MUST | ✅ Complete |
+| P10-ADM-03c | Update TypeScript helpers (isTransitionAllowed, isReasonRequired) | BE | MUST | ✅ Complete |
+| P10-ADM-03d | Add 6 new transitions to CaseStatusActions component | UI | MUST | ✅ Complete |
+| P10-ADM-03e | Update documentation (Workflow-Security-Bindings, Backend-Implementation-Slice-Plan, Backend.md, Architecture.md, Tasks.md) | DOC | MUST | ✅ Complete |
+
+**Implemented Transitions (T001-T005)**:
 - `intake → under_review` (case_handler, case_reviewer, department_head, system_admin)
 - `under_review → approved` (case_reviewer, department_head, system_admin) + docs/eligibility checks
 - `under_review → rejected` (case_reviewer, department_head, system_admin) + reason required
 - `approved → under_review` (department_head, system_admin) + reason required (reopen)
 - `rejected → under_review` (department_head, system_admin) + reason required (reopen)
 
-**Test Coverage**:
-- Allowed: intake→under_review by case_handler ✅
-- Allowed: under_review→approved with valid docs/eligibility ✅
-- Allowed: under_review→rejected with reason ✅
-- Forbidden: under_review→approved by case_handler (role error) ✅
-- Forbidden: under_review→approved without eligible evaluation ✅
-- Forbidden: intake→approved (transition not allowed) ✅
+**Implemented Transitions (T006-T011)**:
+- `approved → payment_pending` (finance_officer, department_head, system_admin) — T006
+- `payment_pending → payment_processed` (finance_officer, department_head, system_admin) — T007
+- `under_review → on_hold` (case_reviewer, department_head, system_admin) + reason required — T008
+- `approved → on_hold` (department_head, system_admin) + reason required — T009
+- `payment_pending → on_hold` (department_head, system_admin) + reason required — T010
+- `on_hold → under_review` (case_reviewer, department_head, system_admin) — T011
+
+**Audit Metadata Flags**:
+- `is_hold_transition: true` — Set for T008, T009, T010, T011
+- `is_payment_transition: true` — Set for T006, T007
 
 ---
 

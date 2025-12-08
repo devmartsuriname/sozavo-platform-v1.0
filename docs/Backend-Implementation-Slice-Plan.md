@@ -21,6 +21,8 @@ Implementation order is designed for **maximum parallelization** while respectin
 | Slice | Name | Status |
 |-------|------|--------|
 | 10A | Case Status Transition (Backend Mutation) | ✅ COMPLETE |
+| 10A.2 | Case Status Transition (UI Integration) | ✅ COMPLETE |
+| 10A.3 | Payment & Hold Transitions | ✅ COMPLETE |
 | 10B | Case Assignment Mutation | 📋 Planned |
 | 10C | Document Verification Mutation | 📋 Planned |
 | 10D | Eligibility Override Mutation | 📋 Planned |
@@ -34,7 +36,7 @@ Implementation order is designed for **maximum parallelization** while respectin
 - `validate_case_transition(UUID, case_status, UUID, TEXT)` — Validation function
 - `perform_case_transition(UUID, case_status, TEXT, JSONB)` — RPC function
 
-**Allowed Transitions**:
+**Phase 10 Step 1 Transitions (T001-T005)**:
 | From | To | Roles | Business Rules |
 |------|-----|-------|----------------|
 | intake | under_review | case_handler, case_reviewer, department_head, system_admin | None |
@@ -43,7 +45,23 @@ Implementation order is designed for **maximum parallelization** while respectin
 | approved | under_review | department_head, system_admin | Reason required (reopen) |
 | rejected | under_review | department_head, system_admin | Reason required (reopen) |
 
+**Phase 10 Step 3 Transitions (T006-T011)**:
+| From | To | Roles | Business Rules |
+|------|-----|-------|----------------|
+| approved | payment_pending | finance_officer, department_head, system_admin | None (T006) |
+| payment_pending | payment_processed | finance_officer, department_head, system_admin | None (T007) |
+| under_review | on_hold | case_reviewer, department_head, system_admin | Reason required (T008) |
+| approved | on_hold | department_head, system_admin | Reason required (T009) |
+| payment_pending | on_hold | department_head, system_admin | Reason required (T010) |
+| on_hold | under_review | case_reviewer, department_head, system_admin | None - resume (T011) |
+
+**Audit Metadata Flags**:
+- `is_hold_transition: true` — Set for T008, T009, T010, T011
+- `is_payment_transition: true` — Set for T006, T007
+
 **TypeScript Wrapper**: `src/integrations/supabase/mutations/cases.ts`
+
+**UI Component**: `src/components/admin/cases/CaseStatusActions.tsx`
 
 **Policies Added**:
 - `cases_update_status_via_rpc` — UPDATE policy for cases
